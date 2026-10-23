@@ -62,10 +62,10 @@ func to_json() -> String:
 
 
 static func from_json(text: String, balance: BalanceConfig) -> SimState:
-	var parsed: Variant = JSON.parse_string(text)
-	if not parsed is Dictionary:
+	var json := JSON.new()
+	if json.parse(text) != OK or not json.data is Dictionary:
 		return null
-	var data := parsed as Dictionary
+	var data := json.data as Dictionary
 	if not data.has_all(REQUIRED_SAVE_KEYS) or int(data["save_version"]) != SAVE_VERSION:
 		return null
 	var state := SimState.new(balance, 0)
