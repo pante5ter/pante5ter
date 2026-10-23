@@ -2,8 +2,8 @@ class_name PlotView
 extends Interactable
 
 const GROWTH_START_SCALE: float = 0.75
-const DRY_SOIL: Color = Color(0.6, 0.45, 0.3)
-const WET_SOIL: Color = Color(0.22, 0.14, 0.09)
+const DRY_SOIL: Color = Color(0.49, 0.4, 0.314)
+const WET_SOIL: Color = Color(0.227, 0.173, 0.133)
 const DRY_LABEL: Color = Color(1.0, 0.5, 0.4)
 const READY_LABEL: Color = Color(0.7, 1.0, 0.6)
 

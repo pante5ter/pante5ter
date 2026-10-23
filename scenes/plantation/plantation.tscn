@@ -1,134 +1,150 @@
 [gd_scene format=3]
 
 [ext_resource type="Script" path="res://scenes/common/level.gd" id="1_level"]
-[ext_resource type="Script" path="res://scenes/common/elevator.gd" id="2_elevator"]
-[ext_resource type="Script" path="res://scenes/plantation/plots_grid.gd" id="3_grid"]
-[ext_resource type="PackedScene" path="res://scenes/plantation/plot_view.tscn" id="4_plot"]
-[ext_resource type="PackedScene" path="res://scenes/actors/jack.tscn" id="5_jack"]
-[ext_resource type="PackedScene" path="res://scenes/actors/worker.tscn" id="6_worker"]
-[ext_resource type="Script" path="res://scenes/common/iso_camera_rig.gd" id="7_camera"]
-[ext_resource type="PackedScene" path="res://scenes/ui/hud.tscn" id="8_hud"]
-[ext_resource type="PackedScene" path="res://assets/kenney_survival_kit/workbench.glb" id="9_workbench"]
-[ext_resource type="PackedScene" path="res://assets/kenney_survival_kit/barrel.glb" id="10_barrel"]
-[ext_resource type="PackedScene" path="res://assets/kenney_survival_kit/bucket.glb" id="11_bucket"]
-[ext_resource type="PackedScene" path="res://assets/kenney_survival_kit/box-large.glb" id="12_box_large"]
-[ext_resource type="PackedScene" path="res://assets/kenney_survival_kit/box.glb" id="13_box"]
-[ext_resource type="PackedScene" path="res://assets/kenney_survival_kit/tool-shovel.glb" id="14_shovel"]
-[ext_resource type="PackedScene" path="res://assets/kenney_survival_kit/tool-hoe.glb" id="15_hoe"]
-[ext_resource type="PackedScene" path="res://assets/kenney_survival_kit/resource-planks.glb" id="16_planks"]
-[ext_resource type="Script" path="res://scenes/plantation/computer_desk.gd" id="17_desk"]
-[ext_resource type="Script" path="res://scenes/plantation/packing_bench.gd" id="18_bench"]
-[ext_resource type="Script" path="res://scenes/plantation/stock_shelf.gd" id="19_shelf"]
+[ext_resource type="PackedScene" path="res://assets/models/plantation/concrete_wall_2m.glb" id="2_concrete_wall_2m"]
+[ext_resource type="Script" path="res://scenes/common/model_row.gd" id="3_model_row"]
+[ext_resource type="PackedScene" path="res://assets/models/plantation/vent_duct_2m.glb" id="4_vent_duct_2m"]
+[ext_resource type="Script" path="res://scenes/common/elevator.gd" id="5_elevator"]
+[ext_resource type="PackedScene" path="res://assets/models/plantation/lift_cage.glb" id="6_lift_cage"]
+[ext_resource type="Script" path="res://scenes/plantation/computer_desk.gd" id="7_computer_desk"]
+[ext_resource type="Script" path="res://scenes/plantation/packing_bench.gd" id="8_packing_bench"]
+[ext_resource type="Script" path="res://scenes/plantation/stock_shelf.gd" id="9_stock_shelf"]
+[ext_resource type="PackedScene" path="res://assets/models/field/stash_crate.glb" id="10_stash_crate"]
+[ext_resource type="Script" path="res://scenes/plantation/plots_grid.gd" id="11_plots_grid"]
+[ext_resource type="PackedScene" path="res://scenes/plantation/plot_view.tscn" id="12_plot_view"]
+[ext_resource type="PackedScene" path="res://scenes/actors/jack.tscn" id="13_jack"]
+[ext_resource type="PackedScene" path="res://scenes/actors/worker.tscn" id="14_worker"]
+[ext_resource type="Script" path="res://scenes/common/iso_camera_rig.gd" id="15_iso_camera_rig"]
+[ext_resource type="PackedScene" path="res://scenes/ui/hud.tscn" id="16_hud"]
 
-[sub_resource type="BoxShape3D" id="BoxShape3D_desk"]
-size = Vector3(1.2, 1.0, 1.6)
-
-[sub_resource type="BoxMesh" id="BoxMesh_monitor"]
-size = Vector3(0.12, 0.55, 0.8)
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_monitor"]
-albedo_color = Color(0.15, 0.16, 0.17, 1)
-
-[sub_resource type="BoxMesh" id="BoxMesh_screen"]
-size = Vector3(0.02, 0.45, 0.7)
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_screen"]
-albedo_color = Color(0.3, 0.9, 0.5, 1)
-emission_enabled = true
-emission = Color(0.3, 0.9, 0.5, 1)
-emission_energy_multiplier = 2.0
-
-[sub_resource type="BoxMesh" id="BoxMesh_sack"]
-size = Vector3(0.45, 0.35, 0.4)
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_sack"]
-albedo_color = Color(0.725, 0.643, 0.416, 1)
-roughness = 1.0
-
-[sub_resource type="BoxShape3D" id="BoxShape3D_shelf"]
-size = Vector3(2.0, 2.1, 0.6)
-
-[sub_resource type="BoxMesh" id="BoxMesh_shelf_frame"]
-size = Vector3(2.0, 2.1, 0.08)
-
-[sub_resource type="BoxMesh" id="BoxMesh_shelf_plank"]
-size = Vector3(1.9, 0.05, 0.45)
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_shelf"]
-albedo_color = Color(0.48, 0.35, 0.23, 1)
-roughness = 1.0
-
-[sub_resource type="Environment" id="Environment_bunker"]
+[sub_resource type="Environment" id="env_bunker"]
 background_mode = 1
-background_color = Color(0.02, 0.02, 0.03, 1)
+background_color = Color(0.08, 0.07, 0.06, 1)
 ambient_light_source = 2
-ambient_light_color = Color(0.62, 0.52, 0.72, 1)
-ambient_light_energy = 0.4
-tonemap_mode = 2
+ambient_light_color = Color(0.29, 0.263, 0.235, 1)
+ambient_light_energy = 1.4
+tonemap_mode = 4
+glow_enabled = true
+glow_intensity = 0.6
 
-[sub_resource type="NavigationMesh" id="NavigationMesh_bunker"]
+[sub_resource type="NavigationMesh" id="navmesh_bunker"]
 geometry_parsed_geometry_type = 1
 agent_radius = 0.5
 agent_height = 1.5
 agent_max_climb = 0.25
 geometry_collision_mask = 3
 
-[sub_resource type="BoxShape3D" id="BoxShape3D_floor"]
+[sub_resource type="BoxShape3D" id="shape_Floor"]
 size = Vector3(20, 1, 14)
 
-[sub_resource type="BoxMesh" id="BoxMesh_floor"]
+[sub_resource type="BoxMesh" id="mesh_Floor"]
 size = Vector3(20, 1, 14)
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_concrete"]
-albedo_color = Color(0.36, 0.36, 0.35, 1)
-roughness = 1.0
+[sub_resource type="StandardMaterial3D" id="mat_concrete"]
+albedo_color = Color(0.435, 0.431, 0.416, 1)
+roughness = 0.9
 
-[sub_resource type="BoxShape3D" id="BoxShape3D_wall_long"]
+[sub_resource type="BoxShape3D" id="shape_WallNorth"]
 size = Vector3(21, 3, 0.5)
 
-[sub_resource type="BoxMesh" id="BoxMesh_wall_long"]
-size = Vector3(21, 3, 0.5)
-
-[sub_resource type="BoxShape3D" id="BoxShape3D_wall_side"]
+[sub_resource type="BoxShape3D" id="shape_WallWest"]
 size = Vector3(0.5, 3, 14)
 
-[sub_resource type="BoxMesh" id="BoxMesh_wall_side"]
-size = Vector3(0.5, 3, 14)
-
-[sub_resource type="BoxShape3D" id="BoxShape3D_curb_long"]
+[sub_resource type="BoxShape3D" id="shape_CurbSouth"]
 size = Vector3(21, 0.5, 0.5)
 
-[sub_resource type="BoxMesh" id="BoxMesh_curb_long"]
+[sub_resource type="BoxMesh" id="mesh_CurbSouth"]
 size = Vector3(21, 0.5, 0.5)
 
-[sub_resource type="BoxShape3D" id="BoxShape3D_curb_side"]
+[sub_resource type="StandardMaterial3D" id="mat_concrete_dark"]
+albedo_color = Color(0.29, 0.286, 0.275, 1)
+roughness = 0.9
+
+[sub_resource type="BoxShape3D" id="shape_CurbEast"]
 size = Vector3(0.5, 0.5, 14)
 
-[sub_resource type="BoxMesh" id="BoxMesh_curb_side"]
+[sub_resource type="BoxMesh" id="mesh_CurbEast"]
 size = Vector3(0.5, 0.5, 14)
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_wall"]
-albedo_color = Color(0.28, 0.27, 0.26, 1)
-roughness = 1.0
+[sub_resource type="StandardMaterial3D" id="mat_concrete_dark"]
+albedo_color = Color(0.29, 0.286, 0.275, 1)
+roughness = 0.9
 
-[sub_resource type="BoxShape3D" id="BoxShape3D_cage"]
+[sub_resource type="BoxShape3D" id="shape_Elevator"]
 size = Vector3(2.2, 2.8, 2.4)
 
-[sub_resource type="BoxMesh" id="BoxMesh_cage"]
-size = Vector3(2.2, 2.8, 2.4)
+[sub_resource type="BoxShape3D" id="shape_Computer"]
+size = Vector3(1.2, 0.85, 1.6)
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_metal"]
-albedo_color = Color(0.45, 0.47, 0.5, 1)
-metallic = 0.6
-roughness = 0.5
+[sub_resource type="BoxMesh" id="mesh_Computer"]
+size = Vector3(1.2, 0.85, 1.6)
 
-[sub_resource type="BoxMesh" id="BoxMesh_cage_door"]
-size = Vector3(0.06, 2.4, 2.0)
+[sub_resource type="StandardMaterial3D" id="mat_oak"]
+albedo_color = Color(0.478, 0.353, 0.227, 1)
+roughness = 0.9
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_door"]
-albedo_color = Color(0.62, 0.55, 0.25, 1)
-metallic = 0.4
-roughness = 0.6
+[sub_resource type="BoxMesh" id="mesh_monitor"]
+size = Vector3(0.12, 0.55, 0.8)
+
+[sub_resource type="BoxMesh" id="mesh_screen"]
+size = Vector3(0.02, 0.45, 0.7)
+
+[sub_resource type="StandardMaterial3D" id="mat_pot_black"]
+albedo_color = Color(0.149, 0.153, 0.165, 1)
+roughness = 0.9
+
+[sub_resource type="StandardMaterial3D" id="mat_police_blue_glow"]
+albedo_color = Color(0.184, 0.365, 0.62, 1)
+roughness = 0.9
+emission_enabled = true
+emission = Color(0.184, 0.365, 0.62, 1)
+emission_energy_multiplier = 2.0
+
+[sub_resource type="BoxShape3D" id="shape_Bench"]
+size = Vector3(1.2, 0.85, 1.6)
+
+[sub_resource type="BoxMesh" id="mesh_Bench"]
+size = Vector3(1.2, 0.85, 1.6)
+
+[sub_resource type="StandardMaterial3D" id="mat_timber"]
+albedo_color = Color(0.29, 0.227, 0.173, 1)
+roughness = 0.9
+
+[sub_resource type="BoxMesh" id="mesh_sack"]
+size = Vector3(0.45, 0.35, 0.4)
+
+[sub_resource type="StandardMaterial3D" id="mat_hay"]
+albedo_color = Color(0.725, 0.643, 0.416, 1)
+roughness = 0.9
+
+[sub_resource type="StandardMaterial3D" id="mat_hay"]
+albedo_color = Color(0.725, 0.643, 0.416, 1)
+roughness = 0.9
+
+[sub_resource type="BoxShape3D" id="shape_Shelf"]
+size = Vector3(2.0, 2.1, 0.6)
+
+[sub_resource type="BoxMesh" id="mesh_shelf_frame"]
+size = Vector3(2.0, 2.1, 0.08)
+
+[sub_resource type="BoxMesh" id="mesh_shelf_plank"]
+size = Vector3(1.9, 0.05, 0.45)
+
+[sub_resource type="StandardMaterial3D" id="mat_oak"]
+albedo_color = Color(0.478, 0.353, 0.227, 1)
+roughness = 0.9
+
+[sub_resource type="StandardMaterial3D" id="mat_oak"]
+albedo_color = Color(0.478, 0.353, 0.227, 1)
+roughness = 0.9
+
+[sub_resource type="StandardMaterial3D" id="mat_oak"]
+albedo_color = Color(0.478, 0.353, 0.227, 1)
+roughness = 0.9
+
+[sub_resource type="StandardMaterial3D" id="mat_oak"]
+albedo_color = Color(0.478, 0.353, 0.227, 1)
+roughness = 0.9
 
 [node name="Plantation" type="Node3D" node_paths=PackedStringArray("nav_region", "jack", "camera_rig", "hud", "spawn_points")]
 script = ExtResource("1_level")
@@ -140,73 +156,104 @@ spawn_points = NodePath("SpawnPoints")
 default_spawn = "from_elevator"
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
-environment = SubResource("Environment_bunker")
+environment = SubResource("env_bunker")
 
 [node name="NavRegion" type="NavigationRegion3D" parent="."]
-navigation_mesh = SubResource("NavigationMesh_bunker")
+navigation_mesh = SubResource("navmesh_bunker")
 
 [node name="Floor" type="StaticBody3D" parent="NavRegion"]
 position = Vector3(0, -0.5, 0)
+collision_layer = 1
 collision_mask = 0
 
 [node name="Shape" type="CollisionShape3D" parent="NavRegion/Floor"]
-shape = SubResource("BoxShape3D_floor")
+position = Vector3(0, 0, 0)
+shape = SubResource("shape_Floor")
 
 [node name="Mesh" type="MeshInstance3D" parent="NavRegion/Floor"]
-mesh = SubResource("BoxMesh_floor")
-surface_material_override/0 = SubResource("StandardMaterial3D_concrete")
+position = Vector3(0, 0, 0)
+mesh = SubResource("mesh_Floor")
+surface_material_override/0 = SubResource("mat_concrete")
 
 [node name="WallNorth" type="StaticBody3D" parent="NavRegion"]
 position = Vector3(0, 1.5, -7.25)
+collision_layer = 1
 collision_mask = 0
 
 [node name="Shape" type="CollisionShape3D" parent="NavRegion/WallNorth"]
-shape = SubResource("BoxShape3D_wall_long")
-
-[node name="Mesh" type="MeshInstance3D" parent="NavRegion/WallNorth"]
-mesh = SubResource("BoxMesh_wall_long")
-surface_material_override/0 = SubResource("StandardMaterial3D_wall")
+position = Vector3(0, 0, 0)
+shape = SubResource("shape_WallNorth")
 
 [node name="WallWest" type="StaticBody3D" parent="NavRegion"]
 position = Vector3(-10.25, 1.5, 0)
+collision_layer = 1
 collision_mask = 0
 
 [node name="Shape" type="CollisionShape3D" parent="NavRegion/WallWest"]
-shape = SubResource("BoxShape3D_wall_side")
-
-[node name="Mesh" type="MeshInstance3D" parent="NavRegion/WallWest"]
-mesh = SubResource("BoxMesh_wall_side")
-surface_material_override/0 = SubResource("StandardMaterial3D_wall")
+position = Vector3(0, 0, 0)
+shape = SubResource("shape_WallWest")
 
 [node name="CurbSouth" type="StaticBody3D" parent="NavRegion"]
 position = Vector3(0, 0.25, 7.25)
+collision_layer = 1
 collision_mask = 0
 
 [node name="Shape" type="CollisionShape3D" parent="NavRegion/CurbSouth"]
-shape = SubResource("BoxShape3D_curb_long")
+position = Vector3(0, 0, 0)
+shape = SubResource("shape_CurbSouth")
 
 [node name="Mesh" type="MeshInstance3D" parent="NavRegion/CurbSouth"]
-mesh = SubResource("BoxMesh_curb_long")
-surface_material_override/0 = SubResource("StandardMaterial3D_wall")
+position = Vector3(0, 0, 0)
+mesh = SubResource("mesh_CurbSouth")
+surface_material_override/0 = SubResource("mat_concrete_dark")
 
 [node name="CurbEast" type="StaticBody3D" parent="NavRegion"]
 position = Vector3(10.25, 0.25, 0)
+collision_layer = 1
 collision_mask = 0
 
 [node name="Shape" type="CollisionShape3D" parent="NavRegion/CurbEast"]
-shape = SubResource("BoxShape3D_curb_side")
+position = Vector3(0, 0, 0)
+shape = SubResource("shape_CurbEast")
 
 [node name="Mesh" type="MeshInstance3D" parent="NavRegion/CurbEast"]
-mesh = SubResource("BoxMesh_curb_side")
-surface_material_override/0 = SubResource("StandardMaterial3D_wall")
+position = Vector3(0, 0, 0)
+mesh = SubResource("mesh_CurbEast")
+surface_material_override/0 = SubResource("mat_concrete_dark")
 
-[node name="Elevator" type="StaticBody3D" parent="NavRegion" node_paths=PackedStringArray("door", "approach")]
+[node name="WallNorthSegments" type="Node3D" parent="NavRegion"]
+position = Vector3(0, 0, -7.12)
+script = ExtResource("3_model_row")
+model = ExtResource("2_concrete_wall_2m")
+count = 10
+spacing = Vector3(2, 0, 0)
+vary_yaw = false
+
+[node name="WallWestSegments" type="Node3D" parent="NavRegion"]
+position = Vector3(-10.12, 0, 0)
+script = ExtResource("3_model_row")
+model = ExtResource("2_concrete_wall_2m")
+count = 7
+spacing = Vector3(0, 0, 2)
+vary_yaw = false
+yaw_degrees = 90.0
+
+[node name="Vents" type="Node3D" parent="NavRegion"]
+position = Vector3(1, 2.3, -6.55)
+script = ExtResource("3_model_row")
+model = ExtResource("4_vent_duct_2m")
+count = 8
+spacing = Vector3(2, 0, 0)
+vary_yaw = false
+
+[node name="Elevator" type="StaticBody3D" parent="NavRegion" node_paths=PackedStringArray("model", "approach")]
 position = Vector3(-8.5, 0, 0)
 collision_layer = 2
 collision_mask = 0
-script = ExtResource("2_elevator")
-door = NodePath("Door")
-door_open_offset = Vector3(0, 2.3, 0)
+script = ExtResource("5_elevator")
+model = NodePath("Model")
+model_door_name = "Door"
+door_open_offset = Vector3(1.84, 0, 0)
 destination = "res://scenes/field/field.tscn"
 destination_spawn = "from_elevator"
 approach = NodePath("Approach")
@@ -214,20 +261,14 @@ hover_label = "Лифт — подняться в контейнер"
 
 [node name="Shape" type="CollisionShape3D" parent="NavRegion/Elevator"]
 position = Vector3(0, 1.4, 0)
-shape = SubResource("BoxShape3D_cage")
+shape = SubResource("shape_Elevator")
 
-[node name="Cage" type="MeshInstance3D" parent="NavRegion/Elevator"]
-position = Vector3(0, 1.4, 0)
-mesh = SubResource("BoxMesh_cage")
-surface_material_override/0 = SubResource("StandardMaterial3D_metal")
-
-[node name="Door" type="MeshInstance3D" parent="NavRegion/Elevator"]
-position = Vector3(1.13, 1.2, 0)
-mesh = SubResource("BoxMesh_cage_door")
-surface_material_override/0 = SubResource("StandardMaterial3D_door")
+[node name="Model" parent="NavRegion/Elevator" instance=ExtResource("6_lift_cage")]
+position = Vector3(0, 0, 0)
+rotation = Vector3(0, 1.570796, 0)
 
 [node name="Label" type="Label3D" parent="NavRegion/Elevator"]
-position = Vector3(0, 3.4, 0)
+position = Vector3(0, 3.9, 0)
 pixel_size = 0.008
 billboard = 1
 no_depth_test = true
@@ -242,29 +283,31 @@ position = Vector3(2.1, 0, 0)
 position = Vector3(-8.9, 0, 3.8)
 collision_layer = 2
 collision_mask = 0
-script = ExtResource("17_desk")
+script = ExtResource("7_computer_desk")
 screen_glow = NodePath("Glow")
 approach = NodePath("Approach")
 
 [node name="Shape" type="CollisionShape3D" parent="NavRegion/Computer"]
-position = Vector3(0, 0.5, 0)
-shape = SubResource("BoxShape3D_desk")
+position = Vector3(0, 0.425, 0)
+shape = SubResource("shape_Computer")
 
-[node name="Desk" parent="NavRegion/Computer" instance=ExtResource("9_workbench")]
-transform = Transform3D(0, 0, 3.5, 0, 3, 0, -3.5, 0, 0, 0, 0, 0)
+[node name="Mesh" type="MeshInstance3D" parent="NavRegion/Computer"]
+position = Vector3(0, 0.425, 0)
+mesh = SubResource("mesh_Computer")
+surface_material_override/0 = SubResource("mat_oak")
 
 [node name="Monitor" type="MeshInstance3D" parent="NavRegion/Computer"]
-position = Vector3(-0.1, 1.2, 0)
-mesh = SubResource("BoxMesh_monitor")
-surface_material_override/0 = SubResource("StandardMaterial3D_monitor")
+position = Vector3(-0.1, 1.15, 0)
+mesh = SubResource("mesh_monitor")
+surface_material_override/0 = SubResource("mat_pot_black")
 
 [node name="Glow" type="MeshInstance3D" parent="NavRegion/Computer"]
-position = Vector3(-0.03, 1.2, 0)
-mesh = SubResource("BoxMesh_screen")
-surface_material_override/0 = SubResource("StandardMaterial3D_screen")
+position = Vector3(-0.03, 1.15, 0)
+mesh = SubResource("mesh_screen")
+surface_material_override/0 = SubResource("mat_police_blue_glow")
 
 [node name="Label" type="Label3D" parent="NavRegion/Computer"]
-position = Vector3(0, 2.1, 0)
+position = Vector3(0, 2.0, 0)
 pixel_size = 0.008
 billboard = 1
 no_depth_test = true
@@ -279,30 +322,32 @@ position = Vector3(1.5, 0, 0)
 position = Vector3(-8.9, 0, -3.8)
 collision_layer = 2
 collision_mask = 0
-script = ExtResource("18_bench")
+script = ExtResource("8_packing_bench")
 sacks = NodePath("Sacks")
 progress_label = NodePath("Label")
 approach = NodePath("Approach")
 
 [node name="Shape" type="CollisionShape3D" parent="NavRegion/Bench"]
-position = Vector3(0, 0.5, 0)
-shape = SubResource("BoxShape3D_desk")
+position = Vector3(0, 0.425, 0)
+shape = SubResource("shape_Bench")
 
-[node name="Table" parent="NavRegion/Bench" instance=ExtResource("9_workbench")]
-transform = Transform3D(0, 0, 3.5, 0, 3, 0, -3.5, 0, 0, 0, 0, 0)
+[node name="Mesh" type="MeshInstance3D" parent="NavRegion/Bench"]
+position = Vector3(0, 0.425, 0)
+mesh = SubResource("mesh_Bench")
+surface_material_override/0 = SubResource("mat_timber")
 
 [node name="Sacks" type="Node3D" parent="NavRegion/Bench"]
 visible = false
 
-[node name="SackA" type="MeshInstance3D" parent="NavRegion/Bench/Sacks"]
-position = Vector3(0, 1.05, -0.35)
-mesh = SubResource("BoxMesh_sack")
-surface_material_override/0 = SubResource("StandardMaterial3D_sack")
+[node name="Sack0" type="MeshInstance3D" parent="NavRegion/Bench/Sacks"]
+position = Vector3(0, 1.03, -0.35)
+mesh = SubResource("mesh_sack")
+surface_material_override/0 = SubResource("mat_hay")
 
-[node name="SackB" type="MeshInstance3D" parent="NavRegion/Bench/Sacks"]
-position = Vector3(0.05, 1.05, 0.3)
-mesh = SubResource("BoxMesh_sack")
-surface_material_override/0 = SubResource("StandardMaterial3D_sack")
+[node name="Sack1" type="MeshInstance3D" parent="NavRegion/Bench/Sacks"]
+position = Vector3(0, 1.03, 0.3)
+mesh = SubResource("mesh_sack")
+surface_material_override/0 = SubResource("mat_hay")
 
 [node name="Label" type="Label3D" parent="NavRegion/Bench"]
 position = Vector3(0, 2.0, 0)
@@ -318,35 +363,37 @@ position = Vector3(1.5, 0, 0)
 
 [node name="Shelf" type="StaticBody3D" parent="NavRegion"]
 position = Vector3(-8.2, 0, -6.4)
+collision_layer = 1
 collision_mask = 0
 
 [node name="Shape" type="CollisionShape3D" parent="NavRegion/Shelf"]
 position = Vector3(0, 1.05, 0)
-shape = SubResource("BoxShape3D_shelf")
+shape = SubResource("shape_Shelf")
 
 [node name="Back" type="MeshInstance3D" parent="NavRegion/Shelf"]
 position = Vector3(0, 1.05, -0.25)
-mesh = SubResource("BoxMesh_shelf_frame")
-surface_material_override/0 = SubResource("StandardMaterial3D_shelf")
+mesh = SubResource("mesh_shelf_frame")
+surface_material_override/0 = SubResource("mat_oak")
 
-[node name="PlankLow" type="MeshInstance3D" parent="NavRegion/Shelf"]
+[node name="Plank0" type="MeshInstance3D" parent="NavRegion/Shelf"]
 position = Vector3(0, 0.05, 0)
-mesh = SubResource("BoxMesh_shelf_plank")
-surface_material_override/0 = SubResource("StandardMaterial3D_shelf")
+mesh = SubResource("mesh_shelf_plank")
+surface_material_override/0 = SubResource("mat_oak")
 
-[node name="PlankMiddle" type="MeshInstance3D" parent="NavRegion/Shelf"]
+[node name="Plank1" type="MeshInstance3D" parent="NavRegion/Shelf"]
 position = Vector3(0, 0.67, 0)
-mesh = SubResource("BoxMesh_shelf_plank")
-surface_material_override/0 = SubResource("StandardMaterial3D_shelf")
+mesh = SubResource("mesh_shelf_plank")
+surface_material_override/0 = SubResource("mat_oak")
 
-[node name="PlankHigh" type="MeshInstance3D" parent="NavRegion/Shelf"]
+[node name="Plank2" type="MeshInstance3D" parent="NavRegion/Shelf"]
 position = Vector3(0, 1.29, 0)
-mesh = SubResource("BoxMesh_shelf_plank")
-surface_material_override/0 = SubResource("StandardMaterial3D_shelf")
+mesh = SubResource("mesh_shelf_plank")
+surface_material_override/0 = SubResource("mat_oak")
 
 [node name="Stock" type="Node3D" parent="NavRegion/Shelf" node_paths=PackedStringArray("label")]
-script = ExtResource("19_shelf")
-box_scene = ExtResource("13_box")
+script = ExtResource("9_stock_shelf")
+box_scene = ExtResource("10_stash_crate")
+box_scale = 0.55
 label = NodePath("Label")
 
 [node name="Label" type="Label3D" parent="NavRegion/Shelf/Stock"]
@@ -360,65 +407,44 @@ outline_size = 10
 
 [node name="PlotsGrid" type="Node3D" parent="NavRegion"]
 position = Vector3(1.5, 0, 0)
-script = ExtResource("3_grid")
-plot_scene = ExtResource("4_plot")
+script = ExtResource("11_plots_grid")
+plot_scene = ExtResource("12_plot_view")
 
 [node name="ElevatorLight" type="OmniLight3D" parent="."]
 position = Vector3(-6.5, 2.6, 0)
-light_color = Color(1, 0.9, 0.75, 1)
+light_color = Color(0.949, 0.769, 0.42, 1)
 light_energy = 1.2
 omni_range = 6.0
 
-[node name="Props" type="Node3D" parent="."]
+[node name="DeskLight" type="OmniLight3D" parent="."]
+position = Vector3(-7.6, 2.6, 4.0)
+light_color = Color(0.949, 0.769, 0.42, 1)
+light_energy = 1.0
+omni_range = 5.0
 
-[node name="BucketA" parent="Props" instance=ExtResource("11_bucket")]
-transform = Transform3D(3.5, 0, 0.0, 0, 3.5, 0, 0.0, 0, 3.5, -4.9, 0, -6.3)
+[node name="BenchLight" type="OmniLight3D" parent="."]
+position = Vector3(-7.6, 2.6, -4.8)
+light_color = Color(0.949, 0.769, 0.42, 1)
+light_energy = 1.0
+omni_range = 5.0
 
-[node name="BucketB" parent="Props" instance=ExtResource("11_bucket")]
-transform = Transform3D(3.5, 0, 0.0, 0, 3.5, 0, 0.0, 0, 3.5, -4.3, 0, -6.5)
+[node name="Jack" parent="." instance=ExtResource("13_jack")]
 
-[node name="Shovel" parent="Props" instance=ExtResource("14_shovel")]
-transform = Transform3D(3.5, 0, 0.0, 0, 3.5, 0, 0.0, 0, 3.5, -8.0, 0, -6.6)
-
-[node name="Hoe" parent="Props" instance=ExtResource("15_hoe")]
-transform = Transform3D(3.5, 0, 0.0, 0, 3.5, 0, 0.0, 0, 3.5, -7.6, 0, -6.6)
-
-[node name="BarrelA" parent="Props" instance=ExtResource("10_barrel")]
-transform = Transform3D(3.0, 0, 0.0, 0, 3.0, 0, 0.0, 0, 3.0, 7.8, 0, -6.2)
-
-[node name="BarrelB" parent="Props" instance=ExtResource("10_barrel")]
-transform = Transform3D(3.0, 0, 0.0, 0, 3.0, 0, 0.0, 0, 3.0, 8.7, 0, -6.0)
-
-[node name="BarrelC" parent="Props" instance=ExtResource("10_barrel")]
-transform = Transform3D(3.0, 0, 0.0, 0, 3.0, 0, 0.0, 0, 3.0, 9.1, 0, -5.0)
-
-[node name="CrateA" parent="Props" instance=ExtResource("12_box_large")]
-transform = Transform3D(0.0, 0, -3.0, 0, 3.0, 0, 3.0, 0, 0.0, 8.9, 0, 5.0)
-
-[node name="CrateB" parent="Props" instance=ExtResource("13_box")]
-transform = Transform3D(3.0, 0, 0.0, 0, 3.0, 0, 0.0, 0, 3.0, 8.2, 0, 6.0)
-
-[node name="Planks" parent="Props" instance=ExtResource("16_planks")]
-transform = Transform3D(0.0, 0, -3.0, 0, 3.0, 0, 3.0, 0, 0.0, 6.6, 0, 6.0)
-
-[node name="Jack" parent="." instance=ExtResource("5_jack")]
-
-[node name="Worker" parent="." node_paths=PackedStringArray("plots_grid", "idle_spot", "arrival_spot") instance=ExtResource("6_worker")]
+[node name="Worker" parent="." node_paths=PackedStringArray("plots_grid", "idle_spot", "arrival_spot") instance=ExtResource("14_worker")]
 plots_grid = NodePath("../NavRegion/PlotsGrid")
 idle_spot = NodePath("../SpawnPoints/worker_idle")
 arrival_spot = NodePath("../SpawnPoints/from_elevator")
 
 [node name="CameraRig" type="Node3D" parent="." node_paths=PackedStringArray("camera")]
 rotation = Vector3(0, 0.785398, 0)
-script = ExtResource("7_camera")
+script = ExtResource("15_iso_camera_rig")
 camera = NodePath("Camera")
-zoom_min = 6.0
-zoom_max = 24.0
+distance = 30.0
+zoom_min = 14.0
+zoom_max = 50.0
 bounds = Rect2(-9, -7, 18, 14)
 
 [node name="Camera" type="Camera3D" parent="CameraRig"]
-projection = 1
-size = 15.0
 
 [node name="SpawnPoints" type="Node3D" parent="."]
 
@@ -428,4 +454,4 @@ position = Vector3(-6.2, 0, 0.8)
 [node name="worker_idle" type="Marker3D" parent="SpawnPoints"]
 position = Vector3(-6, 0, -3.5)
 
-[node name="Hud" parent="." instance=ExtResource("8_hud")]
+[node name="Hud" parent="." instance=ExtResource("16_hud")]

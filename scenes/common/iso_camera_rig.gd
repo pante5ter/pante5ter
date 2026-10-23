@@ -2,30 +2,46 @@ class_name IsoCameraRig
 extends Node3D
 
 @export var camera: Camera3D
-@export var pitch_degrees: float = 35.264
-@export var distance: float = 60.0
+@export var pitch_degrees: float = 45.0
+@export var fov_degrees: float = 28.0
+## Camera distance from the focus point; the wheel moves between the limits.
+@export var distance: float = 36.0
 @export var pan_speed: float = 14.0
 @export var edge_scroll: bool = false
 @export var edge_margin: float = 12.0
-@export var zoom_min: float = 6.0
-@export var zoom_max: float = 40.0
-@export var zoom_step: float = 2.0
+@export var zoom_min: float = 14.0
+@export var zoom_max: float = 80.0
+@export var zoom_step: float = 4.0
 @export var smoothing: float = 10.0
 @export var bounds: Rect2 = Rect2(-30.0, -30.0, 60.0, 60.0)
 
 var _target_yaw: float = 0.0
-var _target_zoom: float = 16.0
+var _target_zoom: float = 36.0
 
 
 func _ready() -> void:
+	camera.projection = Camera3D.PROJECTION_PERSPECTIVE
+	camera.fov = fov_degrees
+	camera.near = 0.5
+	camera.far = zoom_max * 4.0
+	distance = clampf(distance, zoom_min, zoom_max)
+	_target_yaw = rotation.y
+	_target_zoom = distance
+	_place_camera()
+
+
+func zoom() -> float:
+	return distance
+
+
+func _place_camera() -> void:
 	var pitch := deg_to_rad(pitch_degrees)
-	camera.projection = Camera3D.PROJECTION_ORTHOGONAL
 	camera.position = Vector3(0.0, sin(pitch) * distance, cos(pitch) * distance)
 	camera.rotation = Vector3(-pitch, 0.0, 0.0)
-	camera.near = 0.1
-	camera.far = distance * 3.0
-	_target_yaw = rotation.y
-	_target_zoom = clampf(camera.size, zoom_min, zoom_max)
+
+
+func _view_height() -> float:
+	return 2.0 * distance * tan(deg_to_rad(fov_degrees) / 2.0)
 
 
 func focus(point: Vector3) -> void:
@@ -33,7 +49,7 @@ func focus(point: Vector3) -> void:
 
 
 func drag(screen_delta: Vector2) -> void:
-	var world_per_pixel := camera.size / maxf(get_viewport().get_visible_rect().size.y, 1.0)
+	var world_per_pixel := _view_height() / maxf(get_viewport().get_visible_rect().size.y, 1.0)
 	var forward := Vector3(-sin(rotation.y), 0.0, -cos(rotation.y))
 	var right := Vector3(cos(rotation.y), 0.0, -sin(rotation.y))
 	var pitch := deg_to_rad(pitch_degrees)
@@ -60,12 +76,13 @@ func _unhandled_input(event: InputEvent) -> void:
 func _process(delta: float) -> void:
 	var weight := 1.0 - exp(-smoothing * delta)
 	rotation.y = lerp_angle(rotation.y, _target_yaw, weight)
-	camera.size = lerpf(camera.size, _target_zoom, weight)
+	distance = lerpf(distance, _target_zoom, weight)
+	_place_camera()
 	var input := _pan_input()
 	if input != Vector2.ZERO:
 		var forward := Vector3(-sin(rotation.y), 0.0, -cos(rotation.y))
 		var right := Vector3(cos(rotation.y), 0.0, -sin(rotation.y))
-		var speed := pan_speed * camera.size / 16.0
+		var speed := pan_speed * _view_height() / 16.0
 		position = _clamped(position + (right * input.x + forward * input.y) * speed * delta)
 
 

@@ -1,77 +1,71 @@
 [gd_scene format=3]
 
-[ext_resource type="Script" path="res://scenes/plantation/plot_view.gd" id="1_plot"]
-[ext_resource type="PackedScene" path="res://assets/quaternius_crops/Tomato_1.fbx" id="2_stage1"]
-[ext_resource type="PackedScene" path="res://assets/quaternius_crops/Tomato_2.fbx" id="3_stage2"]
-[ext_resource type="PackedScene" path="res://assets/quaternius_crops/Tomato_3.fbx" id="4_stage3"]
-[ext_resource type="PackedScene" path="res://assets/quaternius_crops/Tomato_4.fbx" id="5_stage4"]
+[ext_resource type="PackedScene" path="res://assets/models/plantation/plant_stage_1.glb" id="1_plant_stage_1"]
+[ext_resource type="PackedScene" path="res://assets/models/plantation/plant_stage_2.glb" id="2_plant_stage_2"]
+[ext_resource type="PackedScene" path="res://assets/models/plantation/plant_stage_3.glb" id="3_plant_stage_3"]
+[ext_resource type="PackedScene" path="res://assets/models/plantation/plant_stage_4.glb" id="4_plant_stage_4"]
+[ext_resource type="Script" path="res://scenes/plantation/plot_view.gd" id="5_plot_view"]
+[ext_resource type="PackedScene" path="res://assets/models/plantation/raised_bed.glb" id="6_raised_bed"]
+[ext_resource type="PackedScene" path="res://assets/models/plantation/grow_lamp.glb" id="7_grow_lamp"]
 
-[sub_resource type="BoxShape3D" id="BoxShape3D_bed"]
-size = Vector3(2.3, 0.4, 1.5)
-
-[sub_resource type="BoxMesh" id="BoxMesh_frame"]
-size = Vector3(2.3, 0.35, 1.5)
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_wood"]
-albedo_color = Color(0.42, 0.3, 0.2, 1)
-roughness = 1.0
-
-[sub_resource type="BoxMesh" id="BoxMesh_soil"]
-size = Vector3(2.1, 0.06, 1.3)
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_water"]
+[sub_resource type="StandardMaterial3D" id="mat_water"]
 albedo_color = Color(0.45, 0.7, 1, 1)
 emission_enabled = true
 emission = Color(0.2, 0.4, 0.8, 1)
 
-[sub_resource type="SphereMesh" id="SphereMesh_drop"]
-material = SubResource("StandardMaterial3D_water")
+[sub_resource type="SphereMesh" id="mesh_drop"]
+material = SubResource("mat_water")
 radius = 0.04
 height = 0.08
 
-[sub_resource type="BoxMesh" id="BoxMesh_lamp"]
-size = Vector3(2.2, 0.08, 0.3)
+[sub_resource type="BoxMesh" id="mesh_soil"]
+size = Vector3(2.1, 0.02, 1.3)
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_lamp"]
-albedo_color = Color(1, 0.6, 0.95, 1)
-emission_enabled = true
-emission = Color(1, 0.45, 0.9, 1)
-emission_energy_multiplier = 2.0
+[sub_resource type="BoxShape3D" id="shape_bed"]
+size = Vector3(2.3, 0.4, 1.5)
 
 [node name="PlotView" type="StaticBody3D" node_paths=PackedStringArray("soil", "plant", "label", "splash", "approach")]
 collision_layer = 2
 collision_mask = 0
-script = ExtResource("1_plot")
+script = ExtResource("5_plot_view")
 soil = NodePath("Soil")
 plant = NodePath("Plant")
 label = NodePath("Label")
 splash = NodePath("Splash")
-stage_models = Array[PackedScene]([ExtResource("2_stage1"), ExtResource("3_stage2"), ExtResource("4_stage3"), ExtResource("5_stage4")])
+stage_models = Array[PackedScene]([ExtResource("1_plant_stage_1"), ExtResource("2_plant_stage_2"), ExtResource("3_plant_stage_3"), ExtResource("4_plant_stage_4")])
+plant_scale = 1.0
 approach = NodePath("Approach")
 
 [node name="Shape" type="CollisionShape3D" parent="."]
 position = Vector3(0, 0.2, 0)
-shape = SubResource("BoxShape3D_bed")
+shape = SubResource("shape_bed")
 
-[node name="Frame" type="MeshInstance3D" parent="."]
-position = Vector3(0, 0.175, 0)
-mesh = SubResource("BoxMesh_frame")
-surface_material_override/0 = SubResource("StandardMaterial3D_wood")
+[node name="Bed" parent="." instance=ExtResource("6_raised_bed")]
 
 [node name="Soil" type="MeshInstance3D" parent="."]
-position = Vector3(0, 0.37, 0)
-mesh = SubResource("BoxMesh_soil")
+position = Vector3(0, 0.31, 0)
+mesh = SubResource("mesh_soil")
 
 [node name="Plant" type="Node3D" parent="."]
-position = Vector3(0, 0.4, 0)
+position = Vector3(0, 0.3, 0)
+
+[node name="Lamp" parent="." instance=ExtResource("7_grow_lamp")]
+position = Vector3(0, 2.5, 0)
+scale = Vector3(1.6, 1.6, 1.6)
+
+[node name="GrowLight" type="OmniLight3D" parent="."]
+position = Vector3(0, 2.3, 0)
+light_color = Color(0.949, 0.769, 0.42, 1)
+light_energy = 1.6
+omni_range = 4.5
 
 [node name="Label" type="Label3D" parent="."]
-position = Vector3(0, 2.1, 0)
+position = Vector3(0, 1.9, 0)
 pixel_size = 0.008
 billboard = 1
 no_depth_test = true
 outline_modulate = Color(0, 0, 0, 1)
-font_size = 36
+font_size = 34
 outline_size = 10
 
 [node name="Approach" type="Marker3D" parent="."]
@@ -84,7 +78,7 @@ amount = 60
 lifetime = 0.9
 one_shot = true
 explosiveness = 0.6
-mesh = SubResource("SphereMesh_drop")
+mesh = SubResource("mesh_drop")
 emission_shape = 3
 emission_box_extents = Vector3(1, 0.05, 0.5)
 direction = Vector3(0, -1, 0)
@@ -92,14 +86,3 @@ spread = 10.0
 gravity = Vector3(0, -6, 0)
 initial_velocity_min = 0.5
 initial_velocity_max = 1.5
-
-[node name="Lamp" type="MeshInstance3D" parent="."]
-position = Vector3(0, 2.9, 0)
-mesh = SubResource("BoxMesh_lamp")
-surface_material_override/0 = SubResource("StandardMaterial3D_lamp")
-
-[node name="GrowLight" type="OmniLight3D" parent="."]
-position = Vector3(0, 2.6, 0)
-light_color = Color(1, 0.62, 0.92, 1)
-light_energy = 1.4
-omni_range = 4.0

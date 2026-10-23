@@ -1,8 +1,10 @@
 [gd_scene format=3]
 
 [ext_resource type="Script" path="res://scenes/common/walker.gd" id="1_walker"]
-[ext_resource type="Script" path="res://scenes/common/character_model.gd" id="2_model"]
-[ext_resource type="PackedScene" path="res://assets/kenney_mini_characters/character-male-b.glb" id="3_mesh"]
+[ext_resource type="Script" path="res://scenes/common/character_model.gd" id="2_character_model"]
+[ext_resource type="PackedScene" path="res://assets/models/characters/worker.glb" id="3_worker"]
+
+
 
 [node name="Farmhand" type="Node3D" node_paths=PackedStringArray("agent", "model")]
 script = ExtResource("1_walker")
@@ -15,7 +17,6 @@ path_desired_distance = 0.3
 target_desired_distance = 0.35
 
 [node name="Model" type="Node3D" parent="."]
-scale = Vector3(2.6, 2.6, 2.6)
-script = ExtResource("2_model")
+script = ExtResource("2_character_model")
 
-[node name="Mesh" parent="Model" instance=ExtResource("3_mesh")]
+[node name="Mesh" parent="Model" instance=ExtResource("3_worker")]

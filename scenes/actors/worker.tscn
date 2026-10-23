@@ -1,47 +1,46 @@
 [gd_scene format=3]
 
-[ext_resource type="Script" path="res://scenes/plantation/worker_view.gd" id="1_worker"]
-[ext_resource type="Script" path="res://scenes/common/character_model.gd" id="2_model"]
-[ext_resource type="PackedScene" path="res://assets/kenney_mini_characters/character-male-b.glb" id="3_mesh"]
-[ext_resource type="Script" path="res://scenes/plantation/worker_talk.gd" id="4_talk"]
+[ext_resource type="Script" path="res://scenes/plantation/worker_view.gd" id="1_worker_view"]
+[ext_resource type="Script" path="res://scenes/common/character_model.gd" id="2_character_model"]
+[ext_resource type="PackedScene" path="res://assets/models/characters/worker.glb" id="3_worker"]
+[ext_resource type="Script" path="res://scenes/plantation/worker_talk.gd" id="4_worker_talk"]
 
-[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_body"]
+[sub_resource type="CapsuleShape3D" id="shape_body"]
 radius = 0.45
 height = 1.8
 
 [node name="Worker" type="Node3D" node_paths=PackedStringArray("status_label", "talk", "agent", "model")]
-script = ExtResource("1_worker")
-status_label = NodePath("Status")
-talk = NodePath("Talk")
+script = ExtResource("1_worker_view")
 speed = 3.0
 agent = NodePath("Agent")
 model = NodePath("Model")
+status_label = NodePath("Status")
+talk = NodePath("Talk")
 
 [node name="Agent" type="NavigationAgent3D" parent="."]
 path_desired_distance = 0.3
 target_desired_distance = 0.35
 
 [node name="Model" type="Node3D" parent="."]
-scale = Vector3(2.6, 2.6, 2.6)
-script = ExtResource("2_model")
+script = ExtResource("2_character_model")
 
-[node name="Mesh" parent="Model" instance=ExtResource("3_mesh")]
+[node name="Mesh" parent="Model" instance=ExtResource("3_worker")]
 
 [node name="Talk" type="StaticBody3D" parent="."]
 collision_layer = 0
 collision_mask = 0
-script = ExtResource("4_talk")
+script = ExtResource("4_worker_talk")
 
 [node name="Shape" type="CollisionShape3D" parent="Talk"]
 position = Vector3(0, 0.9, 0)
-shape = SubResource("CapsuleShape3D_body")
+shape = SubResource("shape_body")
 
 [node name="Status" type="Label3D" parent="."]
-position = Vector3(0, 2.4, 0)
+position = Vector3(0, 2.3, 0)
 pixel_size = 0.008
 billboard = 1
 no_depth_test = true
 modulate = Color(0.8, 1, 0.8, 1)
 outline_modulate = Color(0, 0, 0, 1)
-font_size = 40
+font_size = 36
 outline_size = 10
