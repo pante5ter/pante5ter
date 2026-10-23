@@ -131,3 +131,50 @@ func test_item_names() -> void:
 	var premium := _balance.extra_strains[0]
 	assert_eq(UiText.item_name(Supplies.FERTILIZER, state), "удобрение")
 	assert_eq(UiText.item_name(Supplies.seed_item(premium.id), state), "семена «%s»" % premium.display_name)
+
+
+func test_rent_news_is_announced() -> void:
+	var state := _new_state()
+	var event_log := state.event_log
+	var paid := event_log.record(EventLog.RENT_PAID, 0.0, PackedStringArray([Rent.LORD_ACTOR]), {"amount": 1500, "money": 200})
+	var missed := event_log.record(EventLog.RENT_MISSED, 0.0, PackedStringArray([Rent.LORD_ACTOR]), {"amount": 1500, "money": 300, "missed": 2, "evict_after": 3})
+	var evicted := event_log.record(EventLog.RENT_EVICTED, 0.0, PackedStringArray([Rent.LORD_ACTOR]), {"missed": 3})
+	assert_string_contains(UiText.announcement(paid, state), "£1500")
+	assert_string_contains(UiText.announcement(missed, state), "2 из 3")
+	assert_string_contains(UiText.announcement(evicted, state), "расторг")
+
+
+func test_objective_warns_before_rent_the_player_cannot_pay() -> void:
+	var state := _new_state()
+	var rent_hours := _balance.rent.first_due_hours
+	state.economy.money = 0
+	state.apply(AdvanceTimeCommand.new(_real_seconds_for_game_hours(rent_hours - 2.0)))
+	assert_string_contains(UiText.objective(state), "аренда")
+	state.economy.money = _balance.rent.amount
+	assert_false(UiText.objective(state).contains("аренда"), "no rent warning once the money is there")
+
+
+func test_objective_says_the_farm_is_lost_after_eviction() -> void:
+	var state := _new_state()
+	state.rent.evicted = true
+	assert_string_contains(UiText.objective(state), "расторг")
+
+
+func test_lord_talks_about_the_next_payment() -> void:
+	var state := _new_state()
+	var lines := UiText.lord_lines(state)
+	assert_gt(lines.size(), 0)
+	assert_eq(lines[0].speaker, "Лорд Эшкомб")
+	var all_text := "\n".join(lines.map(func(line: DialogueLineDef) -> String: return line.text))
+	assert_string_contains(all_text, UiText.money(_balance.rent.amount))
+
+
+func test_lord_complains_after_a_missed_payment_and_says_goodbye_after_eviction() -> void:
+	var state := _new_state()
+	state.rent.missed = 1
+	var complaint := "\n".join(UiText.lord_lines(state).map(func(line: DialogueLineDef) -> String: return line.text))
+	assert_string_contains(complaint, "1 из %d" % _balance.rent.evict_after_missed)
+	state.rent.evicted = true
+	var farewell := UiText.lord_lines(state)
+	assert_gt(farewell.size(), 0)
+	assert_false("\n".join(farewell.map(func(line: DialogueLineDef) -> String: return line.text)).contains("следующий платёж"), "no payment talk after eviction")

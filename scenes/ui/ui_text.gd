@@ -1,6 +1,12 @@
 class_name UiText
 extends RefCounted
 
+const LORD: String = "Лорд Эшкомб"
+const FINN: String = "Финн"
+const JACK: String = "Джек"
+## Finn starts nagging about rent this many game hours before it is due.
+const RENT_WARNING_HOURS: float = 12.0
+
 const STAGE_NAMES: Dictionary[Plot.Stage, String] = {
 	Plot.Stage.EMPTY: "пусто",
 	Plot.Stage.SEED: "семя",
@@ -159,10 +165,14 @@ static func worker_status(workers: Workers) -> String:
 
 
 static func objective(sim: SimState) -> String:
+	if sim.rent.evicted:
+		return "Лорд Эшкомб расторг аренду, ферма потеряна. Загрузите сохранение (F9) или начните заново."
 	if sim.raids.pending:
 		return "У контейнера гости, и не с пирогами — гопники. Поднимитесь наверх и разберитесь."
 	if sim.suspicion.inspection_pending() and not sim.suspicion.quiet:
 		return "Едет проверка. Изобразим скуку: на компьютере выключите свет, придержите курьеров."
+	if _rent_is_short(sim):
+		return "Через %s аренда лорду — %s, а в кассе %s. Продайте товар через компьютер, иначе лорд обидится." % [real_duration(sim.rent.due_in(sim.clock.elapsed_game_seconds), sim), money(sim.rent.amount()), money(sim.economy.money)]
 	if not sim.supplies.parcel().is_empty():
 		return "У контейнера посылка. Сама она вниз не спустится — заберите её."
 	var any_planted := false
@@ -252,7 +262,40 @@ static func announcement(event: SimEvent, sim: SimState) -> String:
 		EventLog.PLOT_STAGE_CHANGED:
 			if String(event.data["stage"]) == Plot.stage_name(Plot.Stage.READY):
 				return "Грядка %d созрела." % plot_number(int(event.data["plot_id"]))
+		EventLog.RENT_PAID:
+			return "Лорду Эшкомбу ушла аренда: %s. Дом пока не продают." % money(int(event.data["amount"]))
+		EventLog.RENT_MISSED:
+			return "Аренду заплатить нечем. Лорд недоволен, по округе пошли разговоры. Пропущено %d из %d." % [int(event.data["missed"]), int(event.data["evict_after"])]
+		EventLog.RENT_EVICTED:
+			return error(CommandResult.EVICTED)
 	return ""
+
+
+static func _rent_is_short(sim: SimState) -> bool:
+	var rent := sim.rent
+	if rent.amount() <= 0 or sim.economy.money >= rent.amount():
+		return false
+	return rent.due_in(sim.clock.elapsed_game_seconds) <= RENT_WARNING_HOURS * SimClock.GAME_SECONDS_PER_HOUR
+
+
+static func lord_lines(sim: SimState) -> Array[DialogueLineDef]:
+	var rent := sim.rent
+	if rent.evicted:
+		return [
+			DialogueLineDef.make(LORD, "Мне искренне жаль, мистер Кэллоуэй. Банк, знаете ли, не принимает обещаний. Я тоже больше не могу."),
+			DialogueLineDef.make(FINN, "Поле больше не наше. Предлагаю не задерживаться."),
+		]
+	var due := "следующий платёж %s через %s" % [money(rent.amount()), real_duration(rent.due_in(sim.clock.elapsed_game_seconds), sim)]
+	if rent.missed > 0:
+		return [
+			DialogueLineDef.make(LORD, "Мистер Кэллоуэй, платёж так и не пришёл. Я не привык напоминать о деньгах. Это неловко для нас обоих."),
+			DialogueLineDef.make(JACK, "Будет, милорд."),
+			DialogueLineDef.make(FINN, "Пропущено %d из %d — после этого поле уйдёт. Аренда: %s." % [rent.missed, rent.max_missed(), due]),
+		]
+	return [
+		DialogueLineDef.make(LORD, "Мистер Кэллоуэй. Дом всё ещё мой — полагаю, вашими стараниями. Что бы вы там ни сеяли."),
+		DialogueLineDef.make(FINN, "Аренда: %s. Лорд ценит пунктуальность больше, чем показывает." % due),
+	]
 
 
 static func _raid_outcome(outcome: String) -> String:

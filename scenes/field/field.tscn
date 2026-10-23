@@ -18,14 +18,15 @@
 [ext_resource type="PackedScene" path="res://scenes/actors/farmhand.tscn" id="16_farmhand"]
 [ext_resource type="Script" path="res://scenes/common/character_model.gd" id="17_character_model"]
 [ext_resource type="PackedScene" path="res://assets/models/characters/worker.glb" id="18_worker"]
-[ext_resource type="Script" path="res://scenes/field/raider_gang.gd" id="19_raider_gang"]
-[ext_resource type="PackedScene" path="res://assets/models/characters/courier.glb" id="20_courier"]
-[ext_resource type="Script" path="res://scenes/field/inspector_view.gd" id="21_inspector_view"]
-[ext_resource type="PackedScene" path="res://assets/models/characters/inspector.glb" id="22_inspector"]
-[ext_resource type="Script" path="res://scenes/field/courier_view.gd" id="23_courier_view"]
-[ext_resource type="PackedScene" path="res://scenes/actors/jack.tscn" id="24_jack"]
-[ext_resource type="Script" path="res://scenes/common/iso_camera_rig.gd" id="25_iso_camera_rig"]
-[ext_resource type="PackedScene" path="res://scenes/ui/hud.tscn" id="26_hud"]
+[ext_resource type="Script" path="res://scenes/field/lord_ashcombe.gd" id="19_lord_ashcombe"]
+[ext_resource type="PackedScene" path="res://assets/models/characters/inspector.glb" id="20_inspector"]
+[ext_resource type="Script" path="res://scenes/field/raider_gang.gd" id="21_raider_gang"]
+[ext_resource type="PackedScene" path="res://assets/models/characters/courier.glb" id="22_courier"]
+[ext_resource type="Script" path="res://scenes/field/inspector_view.gd" id="23_inspector_view"]
+[ext_resource type="Script" path="res://scenes/field/courier_view.gd" id="24_courier_view"]
+[ext_resource type="PackedScene" path="res://scenes/actors/jack.tscn" id="25_jack"]
+[ext_resource type="Script" path="res://scenes/common/iso_camera_rig.gd" id="26_iso_camera_rig"]
+[ext_resource type="PackedScene" path="res://scenes/ui/hud.tscn" id="27_hud"]
 
 [sub_resource type="Environment" id="env_field"]
 background_mode = 1
@@ -568,11 +569,47 @@ outline_size = 10
 [node name="Approach" type="Marker3D" parent="NavRegion/CandidateBarry"]
 position = Vector3(0, 0, -1.5)
 
+[node name="Lord" type="StaticBody3D" parent="NavRegion" node_paths=PackedStringArray("approach")]
+position = Vector3(15.5, 0, -8.0)
+rotation = Vector3(0, 0.6, 0)
+collision_layer = 2
+collision_mask = 0
+script = ExtResource("19_lord_ashcombe")
+approach = NodePath("Approach")
+
+[node name="Shape" type="CollisionShape3D" parent="NavRegion/Lord"]
+position = Vector3(0, 0.9, 0)
+shape = SubResource("shape_person")
+
+[node name="Model" type="Node3D" parent="NavRegion/Lord"]
+script = ExtResource("17_character_model")
+
+[node name="Mesh" parent="NavRegion/Lord/Model" instance=ExtResource("20_inspector")]
+
+[node name="Label" type="Label3D" parent="NavRegion/Lord"]
+position = Vector3(0, 2.3, 0)
+pixel_size = 0.008
+billboard = 1
+no_depth_test = true
+text = "Лорд Эшкомб"
+font_size = 36
+outline_size = 10
+modulate = Color(0.96, 0.84, 0.45, 1)
+
+[node name="Approach" type="Marker3D" parent="NavRegion/Lord"]
+position = Vector3(0, 0, 1.5)
+
+[node name="PorchLight" type="OmniLight3D" parent="NavRegion/Lord"]
+position = Vector3(0, 2.6, -0.8)
+light_color = Color(0.949, 0.769, 0.42, 1)
+light_energy = 1.2
+omni_range = 5.0
+
 [node name="Raiders" type="StaticBody3D" parent="NavRegion" node_paths=PackedStringArray("visual", "approach")]
 position = Vector3(12.6, 0, -5.4)
 collision_layer = 0
 collision_mask = 0
-script = ExtResource("19_raider_gang")
+script = ExtResource("21_raider_gang")
 visual = NodePath("Visual")
 approach = NodePath("Approach")
 
@@ -588,14 +625,14 @@ position = Vector3(-0.5, 0, 0)
 rotation = Vector3(0, 3.490659, 0)
 script = ExtResource("17_character_model")
 
-[node name="Mesh" parent="NavRegion/Raiders/Visual/Model0" instance=ExtResource("20_courier")]
+[node name="Mesh" parent="NavRegion/Raiders/Visual/Model0" instance=ExtResource("22_courier")]
 
 [node name="Model1" type="Node3D" parent="NavRegion/Raiders/Visual"]
 position = Vector3(0.6, 0, 0)
 rotation = Vector3(0, 2.792527, 0)
 script = ExtResource("17_character_model")
 
-[node name="Mesh" parent="NavRegion/Raiders/Visual/Model1" instance=ExtResource("20_courier")]
+[node name="Mesh" parent="NavRegion/Raiders/Visual/Model1" instance=ExtResource("22_courier")]
 
 [node name="Label" type="Label3D" parent="NavRegion/Raiders/Visual"]
 position = Vector3(0, 2.3, 0)
@@ -612,7 +649,7 @@ position = Vector3(-1.4, 0, 1.4)
 
 [node name="Inspector" type="Node3D" parent="." node_paths=PackedStringArray("road_point", "target_point", "model")]
 visible = false
-script = ExtResource("21_inspector_view")
+script = ExtResource("23_inspector_view")
 road_point = NodePath("../SpawnPoints/road_east")
 target_point = NodePath("../NavRegion/Container/Approach")
 model = NodePath("Model")
@@ -620,11 +657,11 @@ model = NodePath("Model")
 [node name="Model" type="Node3D" parent="Inspector"]
 script = ExtResource("17_character_model")
 
-[node name="Mesh" parent="Inspector/Model" instance=ExtResource("22_inspector")]
+[node name="Mesh" parent="Inspector/Model" instance=ExtResource("20_inspector")]
 
 [node name="CourierA" type="Node3D" parent="." node_paths=PackedStringArray("depot_point", "road_point", "model", "name_label")]
 visible = false
-script = ExtResource("23_courier_view")
+script = ExtResource("24_courier_view")
 slot = 0
 depot_point = NodePath("../NavRegion/Container/Approach")
 road_point = NodePath("../SpawnPoints/road_west")
@@ -634,7 +671,7 @@ name_label = NodePath("Label")
 [node name="Model" type="Node3D" parent="CourierA"]
 script = ExtResource("17_character_model")
 
-[node name="Mesh" parent="CourierA/Model" instance=ExtResource("20_courier")]
+[node name="Mesh" parent="CourierA/Model" instance=ExtResource("22_courier")]
 
 [node name="Label" type="Label3D" parent="CourierA"]
 position = Vector3(0, 2.3, 0)
@@ -646,7 +683,7 @@ outline_size = 10
 
 [node name="CourierB" type="Node3D" parent="." node_paths=PackedStringArray("depot_point", "road_point", "model", "name_label")]
 visible = false
-script = ExtResource("23_courier_view")
+script = ExtResource("24_courier_view")
 slot = 1
 depot_point = NodePath("../NavRegion/Container/Approach")
 road_point = NodePath("../SpawnPoints/road_west")
@@ -656,7 +693,7 @@ name_label = NodePath("Label")
 [node name="Model" type="Node3D" parent="CourierB"]
 script = ExtResource("17_character_model")
 
-[node name="Mesh" parent="CourierB/Model" instance=ExtResource("20_courier")]
+[node name="Mesh" parent="CourierB/Model" instance=ExtResource("22_courier")]
 
 [node name="Label" type="Label3D" parent="CourierB"]
 position = Vector3(0, 2.3, 0)
@@ -666,11 +703,11 @@ no_depth_test = true
 font_size = 32
 outline_size = 10
 
-[node name="Jack" parent="." instance=ExtResource("24_jack")]
+[node name="Jack" parent="." instance=ExtResource("25_jack")]
 
 [node name="CameraRig" type="Node3D" parent="." node_paths=PackedStringArray("camera")]
 rotation = Vector3(0, 0.785398, 0)
-script = ExtResource("25_iso_camera_rig")
+script = ExtResource("26_iso_camera_rig")
 camera = NodePath("Camera")
 distance = 36.0
 bounds = Rect2(-30, -28, 60, 48)
@@ -699,4 +736,4 @@ position = Vector3(-34, 0, 4)
 [node name="road_east" type="Marker3D" parent="SpawnPoints"]
 position = Vector3(34, 0, 4)
 
-[node name="Hud" parent="." instance=ExtResource("26_hud")]
+[node name="Hud" parent="." instance=ExtResource("27_hud")]

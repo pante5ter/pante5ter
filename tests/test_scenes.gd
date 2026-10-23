@@ -340,3 +340,16 @@ func test_hired_couriers_walk_the_road_with_orders() -> void:
 	assert_true(courier.visible)
 	assert_string_contains(courier.name_label.text, "Гарри")
 	assert_false((level.get_node("CourierB") as CourierView).visible)
+
+
+func test_lord_ashcombe_waits_by_the_cottage_and_talks() -> void:
+	var level := await _open(FIELD_SCENE)
+	var lord := level.get_node("NavRegion/Lord") as LordAshcombe
+	assert_ne(lord.collision_layer, 0, "the lord can be clicked")
+	assert_string_contains(lord.hover_text(), "Эшкомб")
+	var money := Game.sim.economy.money
+	lord.interact(level)
+	assert_true(level.hud.is_dialogue_open())
+	assert_eq(Game.sim.economy.money, money, "talking costs nothing")
+	level.hud.dialogue_box.skip()
+	assert_false(level.hud.is_dialogue_open())

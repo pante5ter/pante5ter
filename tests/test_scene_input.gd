@@ -92,7 +92,7 @@ func test_every_field_interactable_can_be_reached_from_start() -> void:
 	var level := await _open(FIELD_SCENE)
 	var start := level.jack.global_position
 	var targets := _interactables(level).filter(func(target: Interactable) -> bool: return not target is RaiderGang)
-	assert_eq(targets.size(), 4)
+	assert_eq(targets.size(), 5, "container, three candidates, Lord Ashcombe")
 	for target: Interactable in targets:
 		_assert_reachable(level, start, target.approach_position(), target.name)
 	_assert_reachable(level, start, (level.get_node("SpawnPoints/from_elevator") as Node3D).global_position, "lift exit")
