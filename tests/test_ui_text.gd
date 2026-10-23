@@ -56,12 +56,15 @@ func test_worker_status_follows_the_worker() -> void:
 func test_objective_walks_the_player_through_the_loop() -> void:
 	var state := _new_state()
 	assert_string_contains(UiText.objective(state), "посади")
+	assert_string_contains(UiText.objective(state), "через контейнер")
 	state.apply(PlantCommand.new(0))
 	assert_string_contains(UiText.objective(state), "Полей")
 	state.apply(WaterCommand.new(0))
 	assert_string_contains(UiText.objective(state), "Найми")
+	assert_string_contains(UiText.objective(state), "у дороги")
 	state.apply(HireWorkerCommand.new())
-	assert_string_contains(UiText.objective(state), "Жди")
+	assert_string_contains(UiText.objective(state), "закажите семена")
+	assert_string_contains(UiText.objective(state), "(Tab)")
 
 
 func test_objective_points_at_harvest_and_then_the_buyer() -> void:
@@ -85,7 +88,7 @@ func test_objective_skips_hiring_when_wage_is_unaffordable() -> void:
 	var state := SimState.new(balance, 1)
 	state.apply(PlantCommand.new(0))
 	state.apply(WaterCommand.new(0))
-	assert_string_contains(UiText.objective(state), "Жди")
+	assert_string_contains(UiText.objective(state), "закажите семена")
 
 
 func test_announcements_cover_worker_and_plot_news() -> void:

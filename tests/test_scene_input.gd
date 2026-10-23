@@ -234,6 +234,7 @@ func test_hud_shows_the_state_and_the_goal() -> void:
 	var hud := level.hud
 	assert_eq(hud.money_label.text, UiText.money(Game.sim.economy.money))
 	assert_string_contains(hud.objective_label.text, "посади")
+	assert_true(hud.objective_label.text.begins_with("Финн: "), "Finn voices the guidance")
 	assert_null(hud.get_node_or_null("Controls"), "control hints moved to the Esc menu")
 	assert_eq(hud.worker_label.text, "Работника нет")
 

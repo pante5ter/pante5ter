@@ -159,11 +159,11 @@ static func worker_status(workers: Workers) -> String:
 
 static func objective(sim: SimState) -> String:
 	if sim.raids.pending:
-		return "У контейнера гопники! Иди наверх и разберись, пока не обчистили."
+		return "У контейнера гости, и не с пирогами — гопники. Поднимитесь наверх и разберитесь."
 	if sim.suspicion.inspection_pending() and not sim.suspicion.quiet:
-		return "Едет проверка! Затихни: на компьютере выключи свет и придержи курьеров."
+		return "Едет проверка. Изобразим скуку: на компьютере выключите свет, придержите курьеров."
 	if not sim.supplies.parcel().is_empty():
-		return "У контейнера ждёт посылка — забери её."
+		return "У контейнера посылка. Сама она вниз не спустится — заберите её."
 	var any_planted := false
 	var any_ready := false
 	var any_dry := false
@@ -173,79 +173,79 @@ static func objective(sim: SimState) -> String:
 		any_dry = any_dry or (plot.is_growing() and plot.water_seconds <= 0.0)
 	for plot: Plot in sim.grow.plots():
 		if not plot.problem.is_empty():
-			return "Грядка %d: %s. Вылечи её, иначе урожай пропадёт." % [plot_number(plot.id), problem(plot.problem)]
+			return "Грядка %d: %s. Само не пройдёт — вылечите её на плантации, пока урожай цел." % [plot_number(plot.id), problem(plot.problem)]
 	if not sim.orders.with_status(Order.Status.OFFERED).is_empty():
-		return "Звонит клиент — ответь на компьютере на плантации."
+		return "Звонит клиент. Ответьте на компьютере на плантации — дважды они не звонят."
 	if any_ready:
-		return "Собери созревший урожай на плантации."
+		return "Созрело, мистер Кэллоуэй. Соберите урожай на плантации."
 	if sim.inventory.count() > 0:
 		return _selling_objective(sim)
 	if any_dry:
-		return "Полей сухие грядки на плантации."
+		return "Грядки сами себя не польют, мистер Кэллоуэй. Полейте сухие на плантации."
 	if not any_planted:
-		return "Спустись через контейнер на плантацию и посади растения."
+		return "Погреб пока пустой. Спуститесь через контейнер на плантацию и посадите семена."
 	if not sim.workers.hired and sim.economy.money >= sim.workers.definition().daily_wage:
-		return "Найми работника у дороги — он будет сам ухаживать за грядками."
-	return "Жди урожай. Пока растёт — закажи семена и удобрения в телефоне (Tab), обрежь кусты."
+		return "Двух рук на ферму мало. Наймите работника у дороги — он сам займётся грядками."
+	return "Терпение. А пока закажите семена и удобрения в телефоне (Tab), обрежьте кусты."
 
 
 static func _selling_objective(sim: SimState) -> String:
 	if sim.packing.unpacked_count() > 0 and not sim.packing.busy():
-		return "Расфасуй урожай на столе на плантации."
+		return "Россыпью приличные люди не продают. Расфасуйте урожай на столе на плантации."
 	var accepted := sim.orders.with_status(Order.Status.ACCEPTED)
 	for order: Order in accepted:
 		if sim.orders.can_fill(order):
-			return "Отправь заказ курьером или отвези сам — с компьютера."
+			return "Заказ готов. На компьютере отправьте курьера или отвезите сами."
 	if accepted.is_empty():
-		return "Товар на полке. Жди звонков клиентов на компьютер."
-	return "Заказу нужно качество выше — удобряй и обрезай кусты."
+		return "Товар на полке. Теперь ждём звонков — клиенты звонят на компьютер на плантации."
+	return "Клиент хочет лучше, чем у нас есть. Удобряйте и обрезайте кусты на плантации."
 
 
 static func announcement(event: SimEvent, sim: SimState) -> String:
 	var worker := sim.workers.definition()
 	match event.type:
 		EventLog.WORKER_QUIT:
-			return "%s ушёл: нечем было заплатить зарплату." % worker.display_name
+			return "%s ушёл: платить было нечем, а бесплатно он работать отказался. Принципиальный." % worker.display_name
 		EventLog.WORKER_PAID:
 			return "Зарплата %s: %s." % [worker.display_name, money(int(event.data["wage"]))]
 		EventLog.PLOT_DRIED_OUT:
 			return "Грядка %d пересохла — рост остановился." % plot_number(int(event.data["plot_id"]))
 		EventLog.ORDER_RECEIVED:
-			return "Звонок: нужно %d шт., качество %d+, %s. Ответь на компьютере." % [int(event.data["quantity"]), int(event.data["min_quality"]), money(int(event.data["reward"]))]
+			return "Звонок: нужно %d шт., качество %d+, %s. Ответьте на компьютере." % [int(event.data["quantity"]), int(event.data["min_quality"]), money(int(event.data["reward"]))]
 		EventLog.ORDER_MISSED:
-			return "Клиент не дождался ответа и повесил трубку."
+			return "Клиент не дождался ответа и повесил трубку. Второй раз он вряд ли позвонит."
 		EventLog.ORDER_HAGGLED:
 			return "Клиент поворчал, но согласился на %s." % money(int(event.data["reward"]))
 		EventLog.ORDER_WALKED_AWAY:
-			return "Клиенту не понравился торг — ушёл к другим."
+			return "Торг клиенту не понравился. Ушёл к другим — с гордостью и без товара."
 		EventLog.ORDER_PAID:
 			var fee := int(event.data["fee"])
 			return "Заказ #%d доставлен: +%s%s." % [int(event.data["order_id"]), money(int(event.data["reward"]) - fee), (" (курьеру %s)" % money(fee)) if fee > 0 else ""]
 		EventLog.ORDER_EXPIRED:
 			return "Заказ #%d сгорел — не успели." % int(event.data["order_id"])
 		EventLog.DELIVERY_STOPPED:
-			return "Курьера остановили по дороге — товар пропал, о ферме заговорили."
+			return "Курьера остановили по дороге. Товар потерян, о ферме пошли разговоры. Неприятно."
 		EventLog.COURIER_STOLE:
-			return "Курьер %s пропал вместе с товаром." % courier_name(String(event.data["courier_id"]), sim)
+			return "Курьер %s исчез вместе с товаром. Открытки, полагаю, не будет." % courier_name(String(event.data["courier_id"]), sim)
 		EventLog.PACKING_DONE:
 			return "Расфасовано: %d шт. — на полке склада." % int(event.data["units"])
 		EventLog.SUPPLY_DELIVERED:
-			return "Посылка у контейнера: %s × %d — забери." % [item_name(String(event.data["item"]), sim), int(event.data["quantity"])]
+			return "Посылка у контейнера: %s × %d — заберите." % [item_name(String(event.data["item"]), sim), int(event.data["quantity"])]
 		EventLog.MILESTONE_REACHED:
 			var reached := sim.config.milestones[int(event.data["index"])]
-			return "Новый уровень — «%s». %s" % [reached.title, reached.description]
+			return "Новый уровень — «%s». Неплохо, мистер Кэллоуэй. %s" % [reached.title, reached.description]
 		EventLog.PLOT_PROBLEM:
-			return "Грядка %d: %s!" % [plot_number(int(event.data["plot_id"])), problem(String(event.data["problem"]))]
+			return "Грядка %d: %s. Лучше заняться сейчас, чем объяснять потом." % [plot_number(int(event.data["plot_id"])), problem(String(event.data["problem"]))]
 		EventLog.WORKER_STOLE:
-			return "С грядки %d пропал урожай. Кто-то нечист на руку…" % plot_number(int(event.data["plot_id"]))
+			return "С грядки %d пропал урожай. Сам он уйти не мог." % plot_number(int(event.data["plot_id"]))
 		EventLog.INSPECTION_WARNED:
-			return "Сосед заметил неладное — скоро проверка! Затихни: выключи свет и придержи курьеров."
+			return "Сосед проявил бдительность — скоро проверка. На компьютере выключите свет и придержите курьеров."
 		EventLog.INSPECTION_PASSED:
-			return "Проверяющий потоптался у контейнера и ушёл ни с чем."
+			return "Проверяющий потоптался у контейнера и уехал ни с чем. Приятный человек."
 		EventLog.INSPECTION_FAILED:
-			return "Проверка: пришлось откупиться на %s." % money(int(event.data["fine"]))
+			return "Проверка обошлась в %s. Взятка — тоже статья расходов." % money(int(event.data["fine"]))
 		EventLog.RAID_STARTED:
-			return "У контейнера гопники! Разберись, пока не обчистили."
+			return "У контейнера гопники. Поднимитесь и разберитесь, пока они не обчистили ферму."
 		EventLog.RAID_RESOLVED:
 			return _raid_outcome(String(event.data["outcome"]))
 		EventLog.PLOT_STAGE_CHANGED:
@@ -257,14 +257,14 @@ static func announcement(event: SimEvent, sim: SimState) -> String:
 static func _raid_outcome(outcome: String) -> String:
 	match outcome:
 		"paid":
-			return "Гопники взяли деньги и ушли."
+			return "Гопники взяли деньги и ушли. Вежливо, по их меркам."
 		"gave":
-			return "Гопники забрали половину товара."
+			return "Гопники забрали половину товара. Вторую, видимо, оставили из уважения."
 		"chased":
-			return "Гопников прогнали. Шуму, правда, наделали."
+			return "Гопников прогнали. Тихо, правда, не получилось."
 		"chase_failed":
-			return "Прогнать не вышло — гопники обчистили всё."
-	return "Гопники обчистили всё, пока никого не было."
+			return "Прогнать не вышло — гопники обчистили всё. Уходили не спеша."
+	return "Гопники обчистили всё, пока никого не было. Без свидетелей им было удобно."
 
 
 static func error(code: String) -> String:

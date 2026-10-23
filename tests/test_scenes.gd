@@ -201,7 +201,7 @@ func test_inspector_walks_up_while_an_inspection_is_pending() -> void:
 	await wait_process_frames(2)
 	assert_true(inspector.visible)
 	assert_string_contains(level.hud.suspicion_label.text, "ПРОВЕРКА")
-	assert_string_contains(level.hud.objective_label.text, "Затихни")
+	assert_string_contains(level.hud.objective_label.text, "выключите свет")
 
 
 func test_raiders_show_up_and_can_be_paid_off() -> void:

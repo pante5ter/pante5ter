@@ -75,7 +75,7 @@ func _process(delta: float) -> void:
 	time_label.text = UiText.clock(sim.clock)
 	stock_label.text = UiText.stock(sim)
 	worker_label.text = UiText.worker_status(sim.workers)
-	objective_label.text = "Цель: " + UiText.objective(sim)
+	objective_label.text = "Финн: " + UiText.objective(sim)
 	empire_label.text = UiText.empire(sim)
 	suspicion_label.text = UiText.suspicion(sim)
 	suspicion_label.modulate = Color(1.0, 0.55, 0.45) if sim.suspicion.inspection_pending() or sim.raids.pending else Color.WHITE
