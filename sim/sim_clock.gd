@@ -21,6 +21,10 @@ func advance(game_seconds: float) -> void:
 	elapsed_game_seconds += maxf(game_seconds, 0.0)
 
 
+func advance_to(game_time: float) -> void:
+	elapsed_game_seconds = maxf(elapsed_game_seconds, game_time)
+
+
 func day() -> int:
 	return floori(elapsed_game_seconds / GAME_SECONDS_PER_DAY)
 

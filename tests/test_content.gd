@@ -32,3 +32,14 @@ func test_balance_values_are_sane() -> void:
 	assert_true(strain.dry_penalty_per_hour >= 0.0)
 	assert_gt(strain.base_price, 0)
 	assert_true(strain.price_mult_at_q100 > strain.price_mult_at_q0, "better quality must sell for more")
+
+
+func test_worker_values_are_sane() -> void:
+	var worker := _balance().worker
+	assert_not_null(worker)
+	assert_false(worker.id.is_empty())
+	assert_gt(worker.daily_wage, 0)
+	assert_gt(worker.task_minutes, 0.0, "zero-length tasks would stall the simulation")
+	assert_gt(worker.idle_check_minutes, 0.0, "zero idle checks would stall the simulation")
+	assert_true(worker.water_below_hours >= 0.0)
+	assert_lt(worker.water_below_hours, _balance().strain.water_capacity_hours)

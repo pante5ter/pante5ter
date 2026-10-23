@@ -37,6 +37,13 @@ func sell(product_id: int, now: float, actor: String) -> CommandResult:
 	return CommandResult.success(price)
 
 
+func spend(amount: int) -> bool:
+	if amount < 0 or money < amount:
+		return false
+	money -= amount
+	return true
+
+
 func to_dict() -> Dictionary:
 	return {"money": money}
 

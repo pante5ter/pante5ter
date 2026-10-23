@@ -7,6 +7,8 @@ const PLOT_NOT_GROWING: String = "plot_not_growing"
 const PLOT_NOT_READY: String = "plot_not_ready"
 const UNKNOWN_PRODUCT: String = "unknown_product"
 const UNKNOWN_COMMAND: String = "unknown_command"
+const WORKER_ALREADY_HIRED: String = "worker_already_hired"
+const NOT_ENOUGH_MONEY: String = "not_enough_money"
 
 var ok: bool = false
 var error: String = ""

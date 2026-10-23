@@ -1,8 +1,8 @@
 class_name SimState
 extends RefCounted
 
-const SAVE_VERSION: int = 1
-const REQUIRED_SAVE_KEYS: Array[String] = ["save_version", "clock", "rng", "economy", "inventory", "plots", "event_log"]
+const SAVE_VERSION: int = 2
+const REQUIRED_SAVE_KEYS: Array[String] = ["save_version", "clock", "rng", "economy", "inventory", "plots", "workers", "event_log"]
 
 var config: BalanceConfig
 var clock: SimClock
@@ -11,6 +11,7 @@ var event_log: EventLog
 var inventory: Inventory
 var grow: Grow
 var economy: Economy
+var workers: Workers
 
 
 func _init(balance: BalanceConfig, seed_value: int) -> void:
@@ -21,6 +22,7 @@ func _init(balance: BalanceConfig, seed_value: int) -> void:
 	inventory = Inventory.new()
 	grow = Grow.new(balance.strain, balance.plot_count, rng, event_log, inventory)
 	economy = Economy.new(balance.strain, balance.starting_money, event_log, inventory)
+	workers = Workers.new(balance.worker, grow, economy, event_log)
 
 
 func apply(command: SimCommand) -> CommandResult:
@@ -35,13 +37,22 @@ func apply(command: SimCommand) -> CommandResult:
 		return grow.harvest((command as HarvestCommand).plot_id, now, command.actor)
 	if command is SellCommand:
 		return economy.sell((command as SellCommand).product_id, now, command.actor)
+	if command is HireWorkerCommand:
+		return workers.hire(now, command.actor)
 	return CommandResult.failure(CommandResult.UNKNOWN_COMMAND)
 
 
 func _advance_time(real_seconds: float) -> CommandResult:
-	var game_seconds := clock.real_to_game(real_seconds)
-	grow.advance(clock.elapsed_game_seconds, game_seconds)
-	clock.advance(game_seconds)
+	var end_time := clock.elapsed_game_seconds + clock.real_to_game(real_seconds)
+	while true:
+		var now := clock.elapsed_game_seconds
+		var stop_at := minf(workers.next_event_time(), end_time)
+		if stop_at > now:
+			grow.advance(now, stop_at - now)
+			clock.advance_to(stop_at)
+		workers.process(clock.elapsed_game_seconds)
+		if clock.elapsed_game_seconds >= end_time:
+			break
 	return CommandResult.success()
 
 
@@ -53,6 +64,7 @@ func to_dict() -> Dictionary:
 		"economy": economy.to_dict(),
 		"inventory": inventory.to_dict(),
 		"plots": grow.to_array(),
+		"workers": workers.to_dict(),
 		"event_log": event_log.to_array(),
 	}
 
@@ -79,4 +91,5 @@ func _load_dict(data: Dictionary) -> void:
 	economy.load_dict(data["economy"] as Dictionary)
 	inventory.load_dict(data["inventory"] as Dictionary)
 	grow.load_array(data["plots"] as Array)
+	workers.load_dict(data["workers"] as Dictionary)
 	event_log.load_array(data["event_log"] as Array)

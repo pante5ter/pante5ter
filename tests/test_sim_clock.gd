@@ -20,6 +20,14 @@ func test_negative_real_time_does_not_rewind() -> void:
 	assert_eq(clock.elapsed_game_seconds, 0.0)
 
 
+func test_advance_to_moves_forward_only() -> void:
+	var clock := SimClock.new(TEN_REAL_MINUTES)
+	clock.advance_to(500.0)
+	assert_eq(clock.elapsed_game_seconds, 500.0)
+	clock.advance_to(100.0)
+	assert_eq(clock.elapsed_game_seconds, 500.0)
+
+
 func test_day_and_hour_of_day() -> void:
 	var clock := SimClock.new(TEN_REAL_MINUTES)
 	clock.advance(SimClock.GAME_SECONDS_PER_DAY * 2.0 + SimClock.GAME_SECONDS_PER_HOUR * 6.5)

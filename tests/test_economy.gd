@@ -72,6 +72,16 @@ func test_cannot_sell_same_product_twice() -> void:
 	assert_eq(_economy.money, 625)
 
 
+func test_spend_deducts_only_when_affordable() -> void:
+	assert_true(_economy.spend(200))
+	assert_eq(_economy.money, 300)
+	assert_false(_economy.spend(301))
+	assert_false(_economy.spend(-5))
+	assert_eq(_economy.money, 300)
+	assert_true(_economy.spend(300))
+	assert_eq(_economy.money, 0)
+
+
 func test_round_trip() -> void:
 	_economy.money = 1234
 	var data: Dictionary = JSON.parse_string(JSON.stringify(_economy.to_dict()))

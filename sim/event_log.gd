@@ -7,6 +7,10 @@ const PLOT_DRIED_OUT: String = "plot_dried_out"
 const PLOT_STAGE_CHANGED: String = "plot_stage_changed"
 const PLOT_HARVESTED: String = "plot_harvested"
 const PRODUCT_SOLD: String = "product_sold"
+const WORKER_HIRED: String = "worker_hired"
+const WORKER_PAID: String = "worker_paid"
+const WORKER_QUIT: String = "worker_quit"
+const WORKER_TASK_STARTED: String = "worker_task_started"
 
 var _entries: Array[SimEvent] = []
 

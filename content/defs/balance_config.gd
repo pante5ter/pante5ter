@@ -5,3 +5,4 @@ extends Resource
 @export var starting_money: int = 0
 @export var plot_count: int = 1
 @export var strain: StrainDef
+@export var worker: WorkerDef
