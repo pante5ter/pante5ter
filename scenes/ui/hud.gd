@@ -1,6 +1,9 @@
 class_name Hud
 extends CanvasLayer
 
+signal dialogue_finished
+
+const DIALOGUE_BOX_SCENE: PackedScene = preload("res://scenes/ui/dialogue_box.tscn")
 const MESSAGE_SECONDS: float = 4.0
 const MESSAGE_FADE_SECONDS: float = 0.6
 const HOVER_OFFSET: Vector2 = Vector2(18.0, 14.0)
@@ -20,11 +23,14 @@ var action_menu: ActionMenu
 var phone: Phone
 var pause_menu: PauseMenu
 var computer: ComputerScreen
+var dialogue_box: DialogueBox
 var speed_buttons: Array[Button] = []
 
 var _message_left: float = 0.0
 var _watched_sim: SimState
 var _seen_events: int = 0
+var _dialogue_was_running: bool = false
+var _hidden_for_dialogue: Array[CanvasItem] = []
 
 
 func _ready() -> void:
@@ -54,6 +60,9 @@ func _ready() -> void:
 		button.offset_bottom = -16.0
 		add_child(button)
 		speed_buttons.append(button)
+	dialogue_box = DIALOGUE_BOX_SCENE.instantiate() as DialogueBox
+	dialogue_box.finished.connect(_on_dialogue_finished)
+	add_child(dialogue_box)
 
 
 func _add_corner_button(text: String, on_pressed: Callable, anchor: Vector2, rect: Rect2) -> void:
@@ -109,7 +118,7 @@ func show_message(text: String) -> void:
 
 
 func set_hover(text: String) -> void:
-	var blocked := action_menu.visible or phone.visible or pause_menu.visible or computer.visible
+	var blocked := action_menu.visible or phone.visible or pause_menu.visible or computer.visible or dialogue_box.is_open()
 	hover_label.text = text
 	hover_label.visible = not text.is_empty() and not blocked
 
@@ -123,7 +132,63 @@ func close_actions() -> void:
 
 
 func is_blocking_world() -> bool:
-	return action_menu.visible or pause_menu.visible or computer.visible
+	return action_menu.visible or pause_menu.visible or computer.visible or dialogue_box.is_open()
+
+
+func play_dialogue(lines: Array[DialogueLineDef]) -> void:
+	action_menu.close()
+	phone.close()
+	computer.close()
+	pause_menu.close()
+	if not dialogue_box.is_open():
+		_dialogue_was_running = Game.is_running
+		_hide_for_dialogue()
+	Game.is_running = false
+	dialogue_box.play(lines)
+
+
+func is_dialogue_open() -> bool:
+	return dialogue_box.is_open()
+
+
+func _hide_for_dialogue() -> void:
+	for child: Node in get_children():
+		var item := child as CanvasItem
+		if item != null and item != dialogue_box and item.visible:
+			item.visible = false
+			_hidden_for_dialogue.append(item)
+
+
+func _on_dialogue_finished() -> void:
+	for item: CanvasItem in _hidden_for_dialogue:
+		item.visible = true
+	_hidden_for_dialogue.clear()
+	Game.is_running = _dialogue_was_running
+	dialogue_finished.emit()
+
+
+func _dialogue_input(event: InputEvent) -> void:
+	var button := event as InputEventMouseButton
+	if button != null:
+		if button.button_index != MOUSE_BUTTON_LEFT:
+			return
+		if button.pressed:
+			dialogue_box.advance()
+		get_viewport().set_input_as_handled()
+		return
+	var key := event as InputEventKey
+	if key == null or not key.pressed or key.echo:
+		return
+	match key.physical_keycode:
+		KEY_SPACE, KEY_ENTER, KEY_KP_ENTER:
+			dialogue_box.advance()
+		KEY_ESCAPE:
+			dialogue_box.skip()
+		KEY_TAB, KEY_1, KEY_2, KEY_3, KEY_F5, KEY_F9:
+			pass
+		_:
+			return
+	get_viewport().set_input_as_handled()
 
 
 func open_computer() -> void:
@@ -148,6 +213,9 @@ func toggle_pause() -> void:
 
 
 func _input(event: InputEvent) -> void:
+	if dialogue_box.is_open():
+		_dialogue_input(event)
+		return
 	var key := event as InputEventKey
 	if key == null or not key.pressed or key.echo:
 		return

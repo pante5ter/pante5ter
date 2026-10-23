@@ -9,10 +9,11 @@ var is_running: bool = false
 var save_path: String = DEFAULT_SAVE_PATH
 var time_scale: float = 1.0
 var _balance: BalanceConfig
+var _fresh_start: bool = false
 
 
 func _ready() -> void:
-	new_game(int(Time.get_unix_time_from_system()))
+	new_game(int(Time.get_unix_time_from_system()), true)
 
 
 func _process(delta: float) -> void:
@@ -24,8 +25,16 @@ func set_speed(index: int) -> void:
 	time_scale = SPEEDS[clampi(index, 0, SPEEDS.size() - 1)]
 
 
-func new_game(seed_value: int) -> void:
+func new_game(seed_value: int, fresh_start: bool = false) -> void:
 	sim = SimState.new(_get_balance(), seed_value)
+	_fresh_start = fresh_start
+
+
+## True once after a new game that should open with the prologue.
+func take_fresh_start() -> bool:
+	var fresh := _fresh_start
+	_fresh_start = false
+	return fresh
 
 
 func save_game(path: String = "") -> Error:
@@ -52,6 +61,7 @@ func load_game(path: String = "") -> Error:
 	if loaded == null:
 		return ERR_PARSE_ERROR
 	sim = loaded
+	_fresh_start = false
 	return OK
 
 
