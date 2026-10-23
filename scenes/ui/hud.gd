@@ -41,6 +41,9 @@ func _ready() -> void:
 	phone = Phone.new()
 	phone.message.connect(show_message)
 	add_child(phone)
+	var phone_drag := PanelDrag.new()
+	phone_drag.settings_key = "phone"
+	phone.add_child(phone_drag)
 	action_menu = ActionMenu.new()
 	add_child(action_menu)
 	computer = ComputerScreen.new()

@@ -5,6 +5,13 @@ signal finished
 
 const LINE_COLOR: Color = Color("d8cfbe")
 const NARRATION_COLOR: Color = Color("a9b2b5")
+const DEFAULT_SPEAKER_COLOR: Color = Color("f2c46b")
+## Playtesters mixed up who said what, so every regular speaker gets a colour of their own.
+const SPEAKER_COLORS: Dictionary[String, Color] = {
+	"Лорд Эшкомб": Color("f2c46b"),
+	"Финн": Color("8fb3d9"),
+	"Джек": Color("d98f6b"),
+}
 
 @export var speaker_label: Label
 @export var text_label: Label
@@ -59,6 +66,7 @@ func _show_line() -> void:
 	var line := _lines[_index]
 	speaker_label.text = line.speaker
 	speaker_label.visible = not line.speaker.is_empty()
+	speaker_label.add_theme_color_override("font_color", SPEAKER_COLORS.get(line.speaker, DEFAULT_SPEAKER_COLOR))
 	text_label.text = line.text
 	text_label.add_theme_color_override("font_color", NARRATION_COLOR if line.speaker.is_empty() else LINE_COLOR)
 

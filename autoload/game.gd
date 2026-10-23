@@ -2,11 +2,13 @@ extends Node
 
 const BALANCE_PATH: String = "res://content/balance.tres"
 const DEFAULT_SAVE_PATH: String = "user://save.json"
+const DEFAULT_UI_SETTINGS_PATH: String = "user://ui.cfg"
 const SPEEDS: Array[float] = [1.0, 2.0, 4.0]
 
 var sim: SimState
 var is_running: bool = false
 var save_path: String = DEFAULT_SAVE_PATH
+var ui_settings_path: String = DEFAULT_UI_SETTINGS_PATH
 var time_scale: float = 1.0
 var _balance: BalanceConfig
 var _fresh_start: bool = false
