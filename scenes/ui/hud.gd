@@ -82,8 +82,7 @@ func _announce_new_events(sim: SimState) -> void:
 			news.append(text)
 	_seen_events = sim.event_log.size()
 	if not news.is_empty():
-		show_message("
-".join(news.slice(maxi(news.size() - MAX_NEWS_LINES, 0))))
+		show_message("\n".join(news.slice(maxi(news.size() - MAX_NEWS_LINES, 0))))
 
 
 func show_message(text: String) -> void:
