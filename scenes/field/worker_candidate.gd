@@ -1,6 +1,7 @@
 class_name WorkerCandidate
 extends Interactable
 
+@export var worker_id: String = ""
 @export var visual: Node3D
 @export var leave_target: Marker3D
 @export var walker_scene: PackedScene
@@ -18,25 +19,28 @@ func _process(_delta: float) -> void:
 	collision_layer = _clickable_layer if available else 0
 
 
+func worker() -> WorkerDef:
+	return Game.sim.config.find_worker(worker_id)
+
+
 func hover_text() -> String:
-	var worker := Game.sim.workers.definition()
-	return "%s ищет работу — поговорить" % worker.display_name
+	return "%s ищет работу — поговорить" % worker().display_name
 
 
 func interact(level: Level) -> void:
-	var worker := Game.sim.workers.definition()
-	var title := "%s ищет работу.\nБудет сам сажать, поливать и собирать.\nЗарплата %s в день, первый день вперёд." % [worker.display_name, UiText.money(worker.daily_wage)]
-	var actions: Array[UiAction] = [UiAction.make("Нанять за %s в день" % UiText.money(worker.daily_wage), _hire.bind(level), Game.sim.economy.money >= worker.daily_wage)]
+	var candidate := worker()
+	var title := "%s ищет работу.\n%s\nЗарплата %s в день, первый день вперёд." % [candidate.display_name, candidate.description, UiText.money(candidate.daily_wage)]
+	var actions: Array[UiAction] = [UiAction.make("Нанять за %s в день" % UiText.money(candidate.daily_wage), _hire.bind(level), Game.sim.economy.money >= candidate.daily_wage)]
 	level.hud.show_actions(title, actions)
 
 
 func _hire(level: Level) -> void:
-	var worker := Game.sim.workers.definition()
-	var result := Game.sim.apply(HireWorkerCommand.new())
+	var candidate := worker()
+	var result := Game.sim.apply(HireWorkerCommand.new(worker_id))
 	if not result.ok:
 		level.show_message(UiText.error(result.error))
 		return
-	level.show_message("%s нанят. Он идёт к контейнеру и спускается на плантацию." % worker.display_name)
+	level.show_message("%s нанят(а). Идёт к контейнеру и спускается на плантацию." % candidate.display_name)
 	_walk_to_container()
 
 

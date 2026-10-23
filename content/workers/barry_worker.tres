@@ -4,9 +4,9 @@
 
 [resource]
 script = ExtResource("1_worker")
-id = "maggie"
-display_name = "Мэгги"
-description = "Аккуратная, честная. По вечерам любит поболтать в пабе."
+id = "barry"
+display_name = "Барри"
+description = "Аккуратный, честный. По вечерам любит поболтать в пабе."
 daily_wage = 360
 task_minutes = 5.0
 idle_check_minutes = 5.0

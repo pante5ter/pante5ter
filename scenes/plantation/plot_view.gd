@@ -53,7 +53,8 @@ func _process(_delta: float) -> void:
 		_stage_holders[index].visible = index == visible_holder
 	plant.scale = Vector3.ONE * plant_scale * _growth_scale(plot)
 	label.text = _label_text(plot)
-	label.modulate = DRY_LABEL if _is_dry(plot) else (READY_LABEL if plot.stage == Plot.Stage.READY else Color.WHITE)
+	var troubled := _is_dry(plot) or not plot.problem.is_empty()
+	label.modulate = DRY_LABEL if troubled else (READY_LABEL if plot.stage == Plot.Stage.READY else Color.WHITE)
 
 
 func title() -> String:
@@ -67,6 +68,8 @@ func hover_text() -> String:
 			return "%s — посадить" % title()
 		Plot.Stage.READY:
 			return "%s — собрать урожай" % title()
+	if not plot.problem.is_empty():
+		return "%s — %s, вылечить" % [title(), UiText.problem(plot.problem)]
 	return "%s — уход" % title()
 
 
@@ -81,12 +84,19 @@ func actions(level: Level) -> Array[UiAction]:
 	match plot.stage:
 		Plot.Stage.EMPTY:
 			for strain: StrainDef in sim.config.strains():
+				if not sim.progress.is_strain_unlocked(strain.id):
+					continue
 				var seeds_text := "бесплатно" if not strain.needs_seeds() else "семян: %d" % sim.supplies.seeds(strain.id)
 				var can_plant := not strain.needs_seeds() or sim.supplies.seeds(strain.id) > 0
 				result.append(UiAction.make("Посадить «%s» (%s)" % [strain.display_name, seeds_text], _plant.bind(level, strain.id), can_plant))
 		Plot.Stage.READY:
 			result.append(UiAction.make("Собрать урожай", _harvest.bind(level)))
 		_:
+			if not plot.problem.is_empty():
+				var item := Problems.cure_item(plot.problem)
+				var have := sim.supplies.count(item) if not item.is_empty() else 1
+				var stock := "" if item.is_empty() else " (есть: %d)" % have
+				result.append(UiAction.make(UiText.cure(plot.problem) + stock, _run.bind(level, TreatCommand.new(plot_id), "%s снова в порядке." % title()), have > 0))
 			result.append(UiAction.make("Полить", _run.bind(level, WaterCommand.new(plot_id), "%s полита." % title())))
 			if not plot.fertilized:
 				result.append(UiAction.make("Удобрить (+%d к качеству, есть: %d)" % [sim.config.fertilizer_bonus, sim.supplies.fertilizer], _run.bind(level, FertilizeCommand.new(plot_id), "Удобрено."), sim.supplies.fertilizer > 0))
@@ -142,7 +152,9 @@ func _label_text(plot: Plot) -> String:
 		return "\n".join(lines)
 	var strain := Game.sim.grow.strain_of(plot)
 	lines.append("%s · %s" % [strain.display_name, UiText.stage(plot.stage)])
-	if plot.is_growing():
+	if not plot.problem.is_empty():
+		lines.append("%s — рост стоит!" % UiText.capitalized(UiText.problem(plot.problem)))
+	elif plot.is_growing():
 		var capacity := strain.water_capacity_hours * SimClock.GAME_SECONDS_PER_HOUR
 		var water_percent := roundi(clampf(plot.water_seconds / capacity, 0.0, 1.0) * 100.0)
 		if _is_dry(plot):

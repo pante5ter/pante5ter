@@ -86,8 +86,8 @@ func _assert_reachable(level: Level, from: Vector3, to: Vector3, what: String) -
 func test_every_field_interactable_can_be_reached_from_start() -> void:
 	var level := await _open(FIELD_SCENE)
 	var start := level.jack.global_position
-	var targets := _interactables(level)
-	assert_eq(targets.size(), 3)
+	var targets := _interactables(level).filter(func(target: Interactable) -> bool: return not target is RaiderGang)
+	assert_eq(targets.size(), 5)
 	for target: Interactable in targets:
 		_assert_reachable(level, start, target.approach_position(), target.name)
 	_assert_reachable(level, start, (level.get_node("SpawnPoints/from_elevator") as Node3D).global_position, "lift exit")
@@ -306,3 +306,14 @@ func test_a_full_plantation_stays_walkable() -> void:
 	for view: PlotView in (level.get_node("NavRegion/PlotsGrid") as PlotsGrid).views():
 		_assert_reachable(level, start, view.approach_position(), view.title())
 		_assert_reachable(level, start, view.approach_position() + WorkerView.WORK_OFFSET, "work spot of %s" % view.title())
+
+
+
+func test_news_from_the_same_moment_are_all_shown() -> void:
+	var level := await _open(FIELD_SCENE)
+	await wait_process_frames(2)
+	Game.sim.event_log.record(EventLog.WORKER_QUIT, 0.0, PackedStringArray(), {"reason": "unpaid", "money": 0})
+	Game.sim.event_log.record(EventLog.PLOT_PROBLEM, 0.0, PackedStringArray(), {"plot_id": 1, "problem": Problems.PESTS})
+	await wait_process_frames(2)
+	assert_string_contains(level.hud.message_label.text, "ушёл")
+	assert_string_contains(level.hud.message_label.text, "вредители")

@@ -6,6 +6,7 @@ const PHONE_SIZE: Vector2 = Vector2(430.0, 560.0)
 const TAB_ORDERS: int = 0
 const TAB_SHOP: int = 1
 const TAB_STOCK: int = 2
+const TAB_EMPIRE: int = 3
 
 signal message(text: String)
 
@@ -13,6 +14,7 @@ var _tabs: TabContainer
 var _orders: VBoxContainer
 var _shop: VBoxContainer
 var _stock: VBoxContainer
+var _empire: VBoxContainer
 var _refresh_left: float = 0.0
 
 
@@ -30,6 +32,7 @@ func _ready() -> void:
 	_orders = _add_tab("Заказы")
 	_shop = _add_tab("Магазин")
 	_stock = _add_tab("Склад")
+	_empire = _add_tab("Империя")
 	rows.add_child(UiStyle.label("Tab — закрыть", 13, UiStyle.MUTED))
 
 
@@ -83,6 +86,7 @@ func refresh() -> void:
 	_fill_orders(sim)
 	_fill_shop(sim)
 	_fill_stock(sim)
+	_fill_empire(sim)
 
 
 func buy(item: String, quantity: int) -> void:
@@ -128,12 +132,19 @@ func _fill_shop(sim: SimState) -> void:
 	_shop.add_child(UiStyle.label("Доставка в ящик у контейнера через %s." % delivery, 13, UiStyle.MUTED))
 	for strain: StrainDef in sim.config.extra_strains:
 		var item := Supplies.seed_item(strain.id)
+		if not sim.progress.is_strain_unlocked(strain.id):
+			var unlock := sim.progress.unlocking_milestone(strain.id)
+			_shop.add_child(UiStyle.label("Семена «%s» откроются на уровне «%s» (%s)." % [strain.display_name, unlock.title, UiText.money(unlock.value)], 15, UiStyle.MUTED))
+			continue
 		_add_shop_row("Семена «%s»: %s/шт.\nРастёт %s, качество около %d." % [strain.display_name, UiText.money(strain.seed_price), UiText.real_duration(strain.growth_hours() * SimClock.GAME_SECONDS_PER_HOUR, sim), strain.base_quality], item, strain.seed_price, sim)
 	_add_shop_row("Удобрение: %s/шт.\n+%d к качеству одной грядки." % [UiText.money(sim.config.fertilizer_price), sim.config.fertilizer_bonus], Supplies.FERTILIZER, sim.config.fertilizer_price, sim)
+	_add_shop_row("Средство от вредителей: %s/шт." % UiText.money(sim.config.problems.pesticide_price), Supplies.PESTICIDE, sim.config.problems.pesticide_price, sim)
+	_add_shop_row("Запасная лампа: %s/шт." % UiText.money(sim.config.problems.lamp_price), Supplies.LAMP, sim.config.problems.lamp_price, sim)
 	var beds := sim.grow.plots().size()
+	var cap := sim.progress.plot_cap()
 	var row := VBoxContainer.new()
-	row.add_child(UiStyle.label("Новая грядка: %s (сейчас %d из %d)." % [UiText.money(sim.config.plot_price), beds, sim.config.max_plots]))
-	row.add_child(UiStyle.button("Купить грядку", buy_plot, beds < sim.config.max_plots and sim.economy.money >= sim.config.plot_price))
+	row.add_child(UiStyle.label("Новая грядка: %s (сейчас %d, можно до %d)." % [UiText.money(sim.config.plot_price), beds, cap]))
+	row.add_child(UiStyle.button("Купить грядку", buy_plot, beds < cap and sim.economy.money >= sim.config.plot_price))
 	_shop.add_child(row)
 	var pending := sim.supplies.pending_deliveries()
 	if not pending.is_empty():
@@ -164,3 +175,17 @@ func _fill_stock(sim: SimState) -> void:
 		_stock.add_child(UiStyle.label("Семена «%s»: %d" % [strain.display_name, sim.supplies.seeds(strain.id)]))
 	_stock.add_child(UiStyle.label("«%s»: без ограничений" % sim.config.strain.display_name, 15, UiStyle.MUTED))
 	_stock.add_child(UiStyle.label("Удобрение: %d" % sim.supplies.fertilizer))
+	for tool: String in Supplies.TOOLS:
+		_stock.add_child(UiStyle.label("%s: %d" % [UiText.capitalized(UiText.item_name(tool, sim)), sim.supplies.count(tool)]))
+
+
+func _fill_empire(sim: SimState) -> void:
+	_clear(_empire)
+	_empire.add_child(UiStyle.label("Оценка империи: %s" % UiText.money(sim.empire_value()), 18, UiStyle.ACCENT))
+	_empire.add_child(UiStyle.label("Деньги, грядки, товар на руках и в тайнике.", 13, UiStyle.MUTED))
+	for index: int in sim.config.milestones.size():
+		var milestone := sim.config.milestones[index]
+		var mark := "[готово]" if index < sim.progress.reached else "[цель]"
+		_empire.add_child(UiStyle.label("%s %s — «%s»\n%s" % [mark, UiText.money(milestone.value), milestone.title, milestone.description], 14, Color.WHITE if index < sim.progress.reached else UiStyle.MUTED))
+	_empire.add_child(UiStyle.label(UiText.suspicion(sim)))
+	_empire.add_child(UiStyle.label("Подозрение растёт от заказов, болтливых работников и большой фермы. Проверку переживёшь, если вовремя замаскируешь вход.", 13, UiStyle.MUTED))

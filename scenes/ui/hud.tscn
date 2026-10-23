@@ -24,13 +24,15 @@ corner_radius_top_right = 4
 corner_radius_bottom_right = 4
 corner_radius_bottom_left = 4
 
-[node name="Hud" type="CanvasLayer" node_paths=PackedStringArray("money_label", "time_label", "stock_label", "worker_label", "objective_label", "message_label", "hover_label")]
+[node name="Hud" type="CanvasLayer" node_paths=PackedStringArray("money_label", "time_label", "stock_label", "worker_label", "empire_label", "suspicion_label", "objective_label", "message_label", "hover_label")]
 script = ExtResource("1_hud")
 money_label = NodePath("Stats/Rows/Money")
 time_label = NodePath("Stats/Rows/Time")
 stock_label = NodePath("Stats/Rows/Stock")
 worker_label = NodePath("Stats/Rows/Worker")
 objective_label = NodePath("Stats/Rows/Objective")
+empire_label = NodePath("Stats/Rows/Empire")
+suspicion_label = NodePath("Stats/Rows/Suspicion")
 message_label = NodePath("Message")
 hover_label = NodePath("Hover")
 
@@ -68,6 +70,18 @@ theme_override_colors/font_color = Color(0.75, 0.85, 0.75, 1)
 theme_override_font_sizes/font_size = 16
 text = "Работника нет"
 
+[node name="Empire" type="Label" parent="Stats/Rows"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.8, 0.65, 1)
+theme_override_font_sizes/font_size = 15
+text = "Империя"
+
+[node name="Suspicion" type="Label" parent="Stats/Rows"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.7, 0.6, 1)
+theme_override_font_sizes/font_size = 15
+text = "Подозрение"
+
 [node name="Objective" type="Label" parent="Stats/Rows"]
 custom_minimum_size = Vector2(360, 0)
 layout_mode = 2
@@ -82,7 +96,7 @@ anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
 offset_left = -450.0
-offset_top = -96.0
+offset_top = -150.0
 offset_right = 450.0
 offset_bottom = -56.0
 grow_horizontal = 2

@@ -162,14 +162,14 @@ func test_a_greedy_worker_steals_some_of_the_harvest() -> void:
 
 func test_an_honest_worker_never_steals() -> void:
 	var state := SimState.new(_config(50000), 5)
-	state.apply(HireWorkerCommand.new("maggie"))
+	state.apply(HireWorkerCommand.new("barry"))
 	_advance_in_steps(state, 20.0, 0.5)
 	assert_eq(state.event_log.of_type(EventLog.WORKER_STOLE).size(), 0)
 
 
 func test_a_talkative_worker_raises_suspicion_each_paid_day() -> void:
 	var state := SimState.new(_config(50000), 5)
-	state.apply(HireWorkerCommand.new("maggie"))
+	state.apply(HireWorkerCommand.new("barry"))
 	var before := state.suspicion.level
 	_advance(state, 24.01)
 	assert_gt(state.suspicion.level, before)
@@ -177,9 +177,9 @@ func test_a_talkative_worker_raises_suspicion_each_paid_day() -> void:
 
 func test_hired_worker_survives_save_and_load() -> void:
 	var state := SimState.new(_config(5000), 5)
-	state.apply(HireWorkerCommand.new("maggie"))
+	state.apply(HireWorkerCommand.new("barry"))
 	var loaded := SimState.from_json(state.to_json(), _config(5000))
-	assert_eq(loaded.workers.definition().id, "maggie")
+	assert_eq(loaded.workers.definition().id, "barry")
 	assert_eq(loaded.to_json(), state.to_json())
 
 

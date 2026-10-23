@@ -4,12 +4,15 @@ extends CanvasLayer
 const MESSAGE_SECONDS: float = 4.0
 const MESSAGE_FADE_SECONDS: float = 0.6
 const HOVER_OFFSET: Vector2 = Vector2(18.0, 14.0)
+const MAX_NEWS_LINES: int = 3
 
 @export var money_label: Label
 @export var time_label: Label
 @export var stock_label: Label
 @export var worker_label: Label
 @export var objective_label: Label
+@export var empire_label: Label
+@export var suspicion_label: Label
 @export var message_label: Label
 @export var hover_label: Label
 
@@ -57,6 +60,9 @@ func _process(delta: float) -> void:
 	stock_label.text = "Урожай на руках: %d шт." % sim.inventory.count()
 	worker_label.text = UiText.worker_status(sim.workers)
 	objective_label.text = "Цель: " + UiText.objective(sim)
+	empire_label.text = UiText.empire(sim)
+	suspicion_label.text = UiText.suspicion(sim)
+	suspicion_label.modulate = Color(1.0, 0.55, 0.45) if sim.suspicion.inspection_pending() or sim.raids.pending else Color.WHITE
 	_announce_new_events(sim)
 	_message_left = maxf(_message_left - delta, 0.0)
 	message_label.modulate.a = clampf(_message_left / MESSAGE_FADE_SECONDS, 0.0, 1.0)
@@ -69,11 +75,15 @@ func _announce_new_events(sim: SimState) -> void:
 		_watched_sim = sim
 		_seen_events = sim.event_log.size()
 		return
+	var news := PackedStringArray()
 	for event: SimEvent in sim.event_log.since(_seen_events):
 		var text := UiText.announcement(event, sim)
-		if not text.is_empty():
-			show_message(text)
+		if not text.is_empty() and not news.has(text):
+			news.append(text)
 	_seen_events = sim.event_log.size()
+	if not news.is_empty():
+		show_message("
+".join(news.slice(maxi(news.size() - MAX_NEWS_LINES, 0))))
 
 
 func show_message(text: String) -> void:

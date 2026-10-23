@@ -61,9 +61,51 @@ static func real_duration(game_seconds: float, sim: SimState) -> String:
 	return "%d:%02d" % [floori(real_seconds / 60.0), real_seconds % 60]
 
 
+const PROBLEM_NAMES: Dictionary[String, String] = {
+	Problems.PESTS: "вредители",
+	Problems.MOLD: "плесень",
+	Problems.LAMP: "перегорела лампа",
+}
+
+const PROBLEM_CURES: Dictionary[String, String] = {
+	Problems.PESTS: "Обработать от вредителей",
+	Problems.MOLD: "Убрать плесень",
+	Problems.LAMP: "Заменить лампу",
+}
+
+
+static func problem(name: String) -> String:
+	return PROBLEM_NAMES.get(name, name)
+
+
+static func cure(name: String) -> String:
+	return PROBLEM_CURES.get(name, "Вылечить")
+
+
+static func empire(sim: SimState) -> String:
+	var value := sim.empire_value()
+	var next := sim.progress.next_milestone()
+	if next == null:
+		return "Империя: %s · все цели взяты" % money(value)
+	return "Империя: %s → %s «%s»" % [money(value), money(next.value), next.title]
+
+
+static func suspicion(sim: SimState) -> String:
+	var text := "Подозрение: %d%%" % roundi(sim.suspicion.level)
+	if sim.suspicion.inspection_pending():
+		text += " · ПРОВЕРКА через %s" % real_duration(sim.suspicion.inspection_at - sim.clock.elapsed_game_seconds, sim)
+	if sim.suspicion.entrance_masked:
+		text += " · вход замаскирован"
+	return text
+
+
 static func item_name(item: String, sim: SimState) -> String:
 	if item == Supplies.FERTILIZER:
 		return "удобрение"
+	if item == Supplies.PESTICIDE:
+		return "средство от вредителей"
+	if item == Supplies.LAMP:
+		return "запасная лампа"
 	var strain := sim.config.find_strain(item.trim_prefix(Supplies.SEED_PREFIX))
 	return "семена «%s»" % strain.display_name if strain != null else item
 
@@ -90,6 +132,10 @@ static func worker_status(workers: Workers) -> String:
 
 
 static func objective(sim: SimState) -> String:
+	if sim.raids.pending:
+		return "У тайника гопники! Иди туда и разберись, пока не обчистили."
+	if sim.suspicion.inspection_pending() and not sim.suspicion.entrance_masked:
+		return "Едет проверка! Замаскируй вход в контейнер."
 	var any_planted := false
 	var any_ready := false
 	var any_dry := false
@@ -97,6 +143,9 @@ static func objective(sim: SimState) -> String:
 		any_planted = any_planted or plot.stage != Plot.Stage.EMPTY
 		any_ready = any_ready or plot.stage == Plot.Stage.READY
 		any_dry = any_dry or (plot.is_growing() and plot.water_seconds <= 0.0)
+	for plot: Plot in sim.grow.plots():
+		if not plot.problem.is_empty():
+			return "Грядка %d: %s. Вылечи её, иначе урожай пропадёт." % [plot_number(plot.id), problem(plot.problem)]
 	if any_ready:
 		return "Собери созревший урожай на плантации."
 	if sim.inventory.count() > 0:
@@ -105,9 +154,8 @@ static func objective(sim: SimState) -> String:
 		return "Полей сухие грядки на плантации."
 	if not any_planted:
 		return "Спустись через контейнер на плантацию и посади растения."
-	var worker := sim.workers.definition()
-	if not sim.workers.hired and sim.economy.money >= worker.daily_wage:
-		return "Найми %s у дороги — он будет сам ухаживать за грядками." % worker.display_name
+	if not sim.workers.hired and sim.economy.money >= sim.workers.definition().daily_wage:
+		return "Найми работника у дороги — он будет сам ухаживать за грядками."
 	return "Жди урожай. Пока растёт — закажи семена и удобрения в телефоне (Tab), обрежь кусты."
 
 
@@ -138,10 +186,42 @@ static func announcement(event: SimEvent, sim: SimState) -> String:
 			return "Заказ #%d сгорел — не успели." % int(event.data["order_id"])
 		EventLog.SUPPLY_DELIVERED:
 			return "Посылка в ящике у контейнера: %s × %d." % [item_name(String(event.data["item"]), sim), int(event.data["quantity"])]
+		EventLog.ORDER_STOLEN:
+			return "Заказ #%d пропал из тайника." % int(event.data["order_id"])
+		EventLog.MILESTONE_REACHED:
+			var reached := sim.config.milestones[int(event.data["index"])]
+			return "Новый уровень — «%s». %s" % [reached.title, reached.description]
+		EventLog.PLOT_PROBLEM:
+			return "Грядка %d: %s!" % [plot_number(int(event.data["plot_id"])), problem(String(event.data["problem"]))]
+		EventLog.WORKER_STOLE:
+			return "С грядки %d пропал урожай. Кто-то нечист на руку…" % plot_number(int(event.data["plot_id"]))
+		EventLog.INSPECTION_WARNED:
+			return "Сосед заметил неладное — скоро проверка! Замаскируй вход в контейнер."
+		EventLog.INSPECTION_PASSED:
+			return "Проверяющий потоптался у контейнера и ушёл ни с чем."
+		EventLog.INSPECTION_FAILED:
+			return "Проверка: пришлось откупиться на %s." % money(int(event.data["fine"]))
+		EventLog.RAID_STARTED:
+			return "У тайника гопники! Разберись, пока не обчистили."
+		EventLog.RAID_RESOLVED:
+			return _raid_outcome(String(event.data["outcome"]))
 		EventLog.PLOT_STAGE_CHANGED:
 			if String(event.data["stage"]) == Plot.stage_name(Plot.Stage.READY):
 				return "Грядка %d созрела." % plot_number(int(event.data["plot_id"]))
 	return ""
+
+
+static func _raid_outcome(outcome: String) -> String:
+	match outcome:
+		"paid":
+			return "Гопники взяли деньги и ушли."
+		"gave":
+			return "Гопники забрали половину товара."
+		"chased":
+			return "Гопников прогнали. Шуму, правда, наделали."
+		"chase_failed":
+			return "Прогнать не вышло — гопники обчистили всё."
+	return "Гопники обчистили всё, пока никого не было."
 
 
 static func error(code: String) -> String:

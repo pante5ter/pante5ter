@@ -12,6 +12,10 @@ var _opening: bool = false
 
 
 func interact(_level: Level) -> void:
+	ride()
+
+
+func ride() -> void:
 	if _opening or SceneRouter.is_busy():
 		return
 	_opening = true

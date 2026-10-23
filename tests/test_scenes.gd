@@ -217,3 +217,94 @@ func test_beds_stay_centred_in_the_room() -> void:
 		centre += view.position
 	centre /= float(grid.views().size())
 	assert_almost_eq(centre.z, 0.0, 0.01)
+
+
+
+func test_container_can_be_masked_and_then_refuses_the_lift() -> void:
+	var level := await _open(FIELD_SCENE)
+	var entrance := level.get_node("NavRegion/Container") as ContainerEntrance
+	entrance.interact(level)
+	_choose(level, "Замаскировать вход")
+	assert_true(Game.sim.suspicion.entrance_masked)
+	await wait_process_frames(2)
+	assert_true(entrance.cover.visible)
+	var ride := entrance.actions(level)[0]
+	assert_false(ride.enabled, "a masked entrance cannot be used")
+	entrance.interact(level)
+	_choose(level, "Снять маскировку")
+	assert_false(Game.sim.suspicion.entrance_masked)
+	await wait_process_frames(2)
+	assert_false(entrance.cover.visible)
+
+
+func test_inspector_walks_up_while_an_inspection_is_pending() -> void:
+	var level := await _open(FIELD_SCENE)
+	var inspector := level.get_node("Inspector") as InspectorView
+	await wait_process_frames(2)
+	assert_false(inspector.visible)
+	Game.sim.suspicion.add(Game.sim.config.suspicion.inspection_threshold + 10.0)
+	Game.sim.apply(AdvanceTimeCommand.new(_hours_to_real(1.0)))
+	await wait_process_frames(2)
+	assert_true(inspector.visible)
+	assert_string_contains(level.hud.suspicion_label.text, "ПРОВЕРКА")
+	assert_string_contains(level.hud.objective_label.text, "Замаскируй")
+
+
+func test_raiders_show_up_and_can_be_paid_off() -> void:
+	var level := await _open(FIELD_SCENE)
+	var gang := level.get_node("NavRegion/Raiders") as RaiderGang
+	await wait_process_frames(2)
+	assert_false(gang.visual.visible)
+	assert_eq(gang.collision_layer, 0)
+	Game.sim.raids.pending = true
+	Game.sim.raids.deadline = Game.sim.clock.elapsed_game_seconds + SimClock.GAME_SECONDS_PER_HOUR
+	await wait_process_frames(2)
+	assert_true(gang.visual.visible)
+	assert_ne(gang.collision_layer, 0)
+	var money := Game.sim.economy.money
+	gang.interact(level)
+	_choose(level, "Откупиться")
+	assert_false(Game.sim.raids.pending)
+	assert_eq(Game.sim.economy.money, money - Game.sim.config.raids.bribe)
+
+
+func test_each_candidate_hires_their_own_worker() -> void:
+	var level := await _open(FIELD_SCENE)
+	var dave := level.get_node("NavRegion/CandidateDave") as WorkerCandidate
+	dave.interact(level)
+	assert_string_contains((level.hud.action_menu.get_child(0).get_child(0) as Label).text, Game.sim.config.find_worker("dave").description)
+	_choose(level, "Нанять")
+	assert_eq(Game.sim.workers.definition().id, "dave")
+	await wait_process_frames(2)
+	for node_name: String in ["Candidate", "CandidateDave", "CandidateBarry"]:
+		assert_false((level.get_node("NavRegion/" + node_name) as WorkerCandidate).visual.visible)
+
+
+func test_a_sick_bed_offers_the_cure() -> void:
+	var level := await _open(PLANTATION_SCENE)
+	Game.sim.apply(PlantCommand.new(3))
+	Game.sim.grow.plot(3).problem = Problems.MOLD
+	var bed := _plots_grid(level).view_for(3)
+	await wait_process_frames(2)
+	assert_string_contains(bed.label.text, "Плесень")
+	bed.interact(level)
+	_choose(level, "Убрать плесень")
+	assert_eq(Game.sim.grow.plot(3).problem, "")
+
+
+func test_hud_shows_empire_value_and_the_next_goal() -> void:
+	var level := await _open(FIELD_SCENE)
+	await wait_process_frames(2)
+	assert_string_contains(level.hud.empire_label.text, UiText.money(Game.sim.empire_value()))
+	assert_string_contains(level.hud.empire_label.text, Game.sim.config.milestones[0].title)
+	level.hud.phone.open(Phone.TAB_EMPIRE)
+	assert_eq(level.hud.phone.current_tab(), Phone.TAB_EMPIRE)
+
+
+func test_locked_strain_is_not_offered_for_planting() -> void:
+	var level := await _open(PLANTATION_SCENE)
+	var bed := _plots_grid(level).view_for(0)
+	var labels := bed.actions(level).map(func(action: UiAction) -> String: return action.label)
+	var elite := Game.sim.config.find_strain("elite")
+	for label: Variant in labels:
+		assert_false(String(label).contains(elite.display_name))

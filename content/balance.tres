@@ -9,7 +9,7 @@
 [ext_resource type="Script" path="res://content/defs/strain_def.gd" id="7_strain_def"]
 [ext_resource type="Script" path="res://content/defs/worker_def.gd" id="8_worker_def"]
 [ext_resource type="Resource" path="res://content/workers/dave_worker.tres" id="9_dave"]
-[ext_resource type="Resource" path="res://content/workers/maggie_worker.tres" id="10_maggie"]
+[ext_resource type="Resource" path="res://content/workers/barry_worker.tres" id="10_barry"]
 [ext_resource type="Resource" path="res://content/problems.tres" id="11_problems"]
 [ext_resource type="Resource" path="res://content/suspicion.tres" id="12_suspicion"]
 [ext_resource type="Resource" path="res://content/raids.tres" id="13_raids"]
@@ -45,7 +45,7 @@ plot_count = 6
 strain = ExtResource("2_strain")
 extra_strains = Array[ExtResource("7_strain_def")]([ExtResource("4_classic"), ExtResource("5_elite")])
 worker = ExtResource("3_worker")
-worker_candidates = Array[ExtResource("8_worker_def")]([ExtResource("3_worker"), ExtResource("9_dave"), ExtResource("10_maggie")])
+worker_candidates = Array[ExtResource("8_worker_def")]([ExtResource("3_worker"), ExtResource("9_dave"), ExtResource("10_barry")])
 orders = ExtResource("6_orders")
 problems = ExtResource("11_problems")
 suspicion = ExtResource("12_suspicion")
