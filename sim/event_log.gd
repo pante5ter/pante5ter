@@ -44,6 +44,9 @@ const INSPECTION_PASSED: String = "inspection_passed"
 const INSPECTION_FAILED: String = "inspection_failed"
 const RAID_STARTED: String = "raid_started"
 const RAID_RESOLVED: String = "raid_resolved"
+const RENT_PAID: String = "rent_paid"
+const RENT_MISSED: String = "rent_missed"
+const RENT_EVICTED: String = "rent_evicted"
 
 var _entries: Array[SimEvent] = []
 

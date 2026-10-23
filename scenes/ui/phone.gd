@@ -193,5 +193,19 @@ func _fill_empire(sim: SimState) -> void:
 		var milestone := sim.config.milestones[index]
 		var mark := "[готово]" if index < sim.progress.reached else "[цель]"
 		_empire.add_child(UiStyle.label("%s %s — «%s»\n%s" % [mark, UiText.money(milestone.value), milestone.title, milestone.description], 14, Color.WHITE if index < sim.progress.reached else UiStyle.MUTED))
+	_add_rent(sim)
 	_empire.add_child(UiStyle.label(UiText.suspicion(sim)))
 	_empire.add_child(UiStyle.label("Подозрение растёт от заказов, болтливых работников и большой фермы. Проверку переживёшь, если вовремя замаскируешь вход.", 13, UiStyle.MUTED))
+
+
+func _add_rent(sim: SimState) -> void:
+	var rent := sim.rent
+	if rent.amount() <= 0:
+		return
+	if rent.evicted:
+		_empire.add_child(UiStyle.label("Лорд Эшкомб расторг аренду: поле больше не твоё.", 15, UiStyle.ACCENT))
+		return
+	var text := "Аренда лорду Эшкомбу: %s, следующий платёж через %s." % [UiText.money(rent.amount()), UiText.real_duration(rent.due_in(sim.clock.elapsed_game_seconds), sim)]
+	if rent.missed > 0:
+		text += "\nПропущено платежей подряд: %d из %d." % [rent.missed, rent.max_missed()]
+	_empire.add_child(UiStyle.label(text, 15, UiStyle.ACCENT if rent.missed > 0 else Color.WHITE))
