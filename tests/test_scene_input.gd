@@ -57,9 +57,13 @@ func _drag(level: Level, from: Vector2, to: Vector2) -> void:
 
 func _press_key(target: Node, keycode: Key) -> void:
 	var key := InputEventKey.new()
+	key.keycode = keycode
 	key.physical_keycode = keycode
 	key.pressed = true
-	target._unhandled_input(key)
+	if target is Hud:
+		target.get_viewport().push_input(key)
+	else:
+		target._unhandled_input(key)
 
 
 func _flat_distance(a: Vector3, b: Vector3) -> float:
@@ -317,3 +321,19 @@ func test_news_from_the_same_moment_are_all_shown() -> void:
 	await wait_process_frames(2)
 	assert_string_contains(level.hud.message_label.text, "ушёл")
 	assert_string_contains(level.hud.message_label.text, "вредители")
+
+
+
+func test_tab_closes_the_phone_even_after_clicking_its_tabs() -> void:
+	var level := await _open(FIELD_SCENE)
+	level.hud.toggle_phone()
+	var tab_bar := level.hud.phone.find_children("*", "TabBar", true, false)[0] as TabBar
+	tab_bar.focus_mode = Control.FOCUS_ALL
+	tab_bar.grab_focus()
+	var key := InputEventKey.new()
+	key.keycode = KEY_TAB
+	key.physical_keycode = KEY_TAB
+	key.pressed = true
+	level.get_viewport().push_input(key)
+	await wait_process_frames(2)
+	assert_false(level.hud.phone.visible, "Tab must close the phone whatever has focus")

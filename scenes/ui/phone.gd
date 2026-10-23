@@ -28,6 +28,7 @@ func _ready() -> void:
 	rows.add_child(UiStyle.label("Телефон", 18, UiStyle.ACCENT))
 	_tabs = TabContainer.new()
 	_tabs.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_tabs.get_tab_bar().focus_mode = Control.FOCUS_NONE
 	rows.add_child(_tabs)
 	_orders = _add_tab("Заказы")
 	_shop = _add_tab("Магазин")
