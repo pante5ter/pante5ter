@@ -1,0 +1,64 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scenes/plantation/worker_view.gd" id="1_worker"]
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_body"]
+radius = 0.28
+height = 1.45
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_overalls"]
+albedo_color = Color(0.45, 0.33, 0.2, 1)
+roughness = 0.9
+
+[sub_resource type="SphereMesh" id="SphereMesh_head"]
+radius = 0.17
+height = 0.34
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_skin"]
+albedo_color = Color(0.8, 0.62, 0.5, 1)
+roughness = 0.9
+
+[sub_resource type="BoxMesh" id="BoxMesh_can"]
+size = Vector3(0.18, 0.22, 0.3)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_can"]
+albedo_color = Color(0.3, 0.55, 0.35, 1)
+roughness = 0.6
+
+[node name="Worker" type="Node3D" node_paths=PackedStringArray("status_label", "body", "agent")]
+script = ExtResource("1_worker")
+status_label = NodePath("Status")
+body = NodePath("Body")
+speed = 3.0
+agent = NodePath("Agent")
+
+[node name="Agent" type="NavigationAgent3D" parent="."]
+path_desired_distance = 0.3
+target_desired_distance = 0.35
+
+[node name="Body" type="Node3D" parent="."]
+
+[node name="Torso" type="MeshInstance3D" parent="Body"]
+position = Vector3(0, 0.73, 0)
+mesh = SubResource("CapsuleMesh_body")
+surface_material_override/0 = SubResource("StandardMaterial3D_overalls")
+
+[node name="Head" type="MeshInstance3D" parent="Body"]
+position = Vector3(0, 1.58, 0)
+mesh = SubResource("SphereMesh_head")
+surface_material_override/0 = SubResource("StandardMaterial3D_skin")
+
+[node name="WateringCan" type="MeshInstance3D" parent="Body"]
+position = Vector3(0.32, 0.7, 0.1)
+mesh = SubResource("BoxMesh_can")
+surface_material_override/0 = SubResource("StandardMaterial3D_can")
+
+[node name="Status" type="Label3D" parent="."]
+position = Vector3(0, 2.25, 0)
+pixel_size = 0.008
+billboard = 1
+no_depth_test = true
+modulate = Color(0.8, 1, 0.8, 1)
+outline_modulate = Color(0, 0, 0, 1)
+font_size = 40
+outline_size = 10

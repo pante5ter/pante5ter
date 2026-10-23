@@ -1,0 +1,19 @@
+class_name Interactable
+extends StaticBody3D
+
+@export var approach: Marker3D
+@export var hover_label: String = ""
+
+
+func approach_position() -> Vector3:
+	if approach == null:
+		return global_position
+	return approach.global_position
+
+
+func hover_text() -> String:
+	return hover_label
+
+
+func interact(_level: Level) -> void:
+	pass

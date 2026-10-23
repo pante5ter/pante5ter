@@ -5,11 +5,13 @@ config_version=5
 [application]
 
 config/name="Old Money"
+run/main_scene="res://scenes/field/field.tscn"
 config/features=PackedStringArray("4.7")
 
 [autoload]
 
 Game="*res://autoload/game.gd"
+SceneRouter="*res://autoload/scene_router.gd"
 
 [debug]
 
@@ -19,3 +21,12 @@ gdscript/warnings/unsafe_property_access=1
 gdscript/warnings/unsafe_method_access=1
 gdscript/warnings/unsafe_cast=1
 gdscript/warnings/unsafe_call_argument=1
+
+[display]
+
+window/size/viewport_width=1600
+window/size/viewport_height=900
+
+[rendering]
+
+anti_aliasing/quality/msaa_3d=2

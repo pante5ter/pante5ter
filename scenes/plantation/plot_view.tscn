@@ -1,0 +1,104 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scenes/plantation/plot_view.gd" id="1_plot"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_bed"]
+size = Vector3(2.3, 0.4, 1.5)
+
+[sub_resource type="BoxMesh" id="BoxMesh_frame"]
+size = Vector3(2.3, 0.35, 1.5)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_wood"]
+albedo_color = Color(0.42, 0.3, 0.2, 1)
+roughness = 1.0
+
+[sub_resource type="BoxMesh" id="BoxMesh_soil"]
+size = Vector3(2.1, 0.06, 1.3)
+
+[sub_resource type="SphereMesh" id="SphereMesh_bush"]
+radius = 0.36
+height = 0.9
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_leaves"]
+albedo_color = Color(0.25, 0.55, 0.22, 1)
+roughness = 0.8
+
+[sub_resource type="SphereMesh" id="SphereMesh_bud"]
+radius = 0.13
+height = 0.26
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_bud"]
+albedo_color = Color(0.85, 0.75, 0.95, 1)
+roughness = 0.6
+emission_enabled = true
+emission = Color(0.35, 0.2, 0.45, 1)
+
+[node name="PlotView" type="StaticBody3D" node_paths=PackedStringArray("soil", "plant", "buds", "label", "approach")]
+collision_layer = 2
+collision_mask = 0
+script = ExtResource("1_plot")
+soil = NodePath("Soil")
+plant = NodePath("Plant")
+buds = NodePath("Plant/Buds")
+label = NodePath("Label")
+approach = NodePath("Approach")
+
+[node name="Shape" type="CollisionShape3D" parent="."]
+position = Vector3(0, 0.2, 0)
+shape = SubResource("BoxShape3D_bed")
+
+[node name="Frame" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.175, 0)
+mesh = SubResource("BoxMesh_frame")
+surface_material_override/0 = SubResource("StandardMaterial3D_wood")
+
+[node name="Soil" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.37, 0)
+mesh = SubResource("BoxMesh_soil")
+
+[node name="Plant" type="Node3D" parent="."]
+position = Vector3(0, 0.4, 0)
+
+[node name="BushLeft" type="MeshInstance3D" parent="Plant"]
+position = Vector3(-0.65, 0.45, 0)
+mesh = SubResource("SphereMesh_bush")
+surface_material_override/0 = SubResource("StandardMaterial3D_leaves")
+
+[node name="BushMiddle" type="MeshInstance3D" parent="Plant"]
+position = Vector3(0, 0.45, 0)
+mesh = SubResource("SphereMesh_bush")
+surface_material_override/0 = SubResource("StandardMaterial3D_leaves")
+
+[node name="BushRight" type="MeshInstance3D" parent="Plant"]
+position = Vector3(0.65, 0.45, 0)
+mesh = SubResource("SphereMesh_bush")
+surface_material_override/0 = SubResource("StandardMaterial3D_leaves")
+
+[node name="Buds" type="Node3D" parent="Plant"]
+
+[node name="BudLeft" type="MeshInstance3D" parent="Plant/Buds"]
+position = Vector3(-0.65, 0.92, 0)
+mesh = SubResource("SphereMesh_bud")
+surface_material_override/0 = SubResource("StandardMaterial3D_bud")
+
+[node name="BudMiddle" type="MeshInstance3D" parent="Plant/Buds"]
+position = Vector3(0, 0.92, 0)
+mesh = SubResource("SphereMesh_bud")
+surface_material_override/0 = SubResource("StandardMaterial3D_bud")
+
+[node name="BudRight" type="MeshInstance3D" parent="Plant/Buds"]
+position = Vector3(0.65, 0.92, 0)
+mesh = SubResource("SphereMesh_bud")
+surface_material_override/0 = SubResource("StandardMaterial3D_bud")
+
+[node name="Label" type="Label3D" parent="."]
+position = Vector3(0, 1.8, 0)
+pixel_size = 0.008
+billboard = 1
+no_depth_test = true
+outline_modulate = Color(0, 0, 0, 1)
+font_size = 36
+outline_size = 10
+
+[node name="Approach" type="Marker3D" parent="."]
+position = Vector3(0, 0, 1.3)

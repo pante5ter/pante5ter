@@ -1,0 +1,259 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scenes/common/level.gd" id="1_level"]
+[ext_resource type="Script" path="res://scenes/common/elevator.gd" id="2_elevator"]
+[ext_resource type="Script" path="res://scenes/plantation/plots_grid.gd" id="3_grid"]
+[ext_resource type="PackedScene" path="res://scenes/plantation/plot_view.tscn" id="4_plot"]
+[ext_resource type="PackedScene" path="res://scenes/actors/jack.tscn" id="5_jack"]
+[ext_resource type="PackedScene" path="res://scenes/actors/worker.tscn" id="6_worker"]
+[ext_resource type="Script" path="res://scenes/common/iso_camera_rig.gd" id="7_camera"]
+[ext_resource type="PackedScene" path="res://scenes/ui/hud.tscn" id="8_hud"]
+
+[sub_resource type="Environment" id="Environment_bunker"]
+background_mode = 1
+background_color = Color(0.02, 0.02, 0.03, 1)
+ambient_light_source = 2
+ambient_light_color = Color(0.62, 0.52, 0.72, 1)
+ambient_light_energy = 0.4
+tonemap_mode = 2
+
+[sub_resource type="NavigationMesh" id="NavigationMesh_bunker"]
+geometry_parsed_geometry_type = 1
+agent_radius = 0.5
+agent_height = 1.5
+agent_max_climb = 0.25
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_floor"]
+size = Vector3(20, 1, 14)
+
+[sub_resource type="BoxMesh" id="BoxMesh_floor"]
+size = Vector3(20, 1, 14)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_concrete"]
+albedo_color = Color(0.36, 0.36, 0.35, 1)
+roughness = 1.0
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_wall_long"]
+size = Vector3(21, 3, 0.5)
+
+[sub_resource type="BoxMesh" id="BoxMesh_wall_long"]
+size = Vector3(21, 3, 0.5)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_wall_side"]
+size = Vector3(0.5, 3, 14)
+
+[sub_resource type="BoxMesh" id="BoxMesh_wall_side"]
+size = Vector3(0.5, 3, 14)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_curb_long"]
+size = Vector3(21, 0.5, 0.5)
+
+[sub_resource type="BoxMesh" id="BoxMesh_curb_long"]
+size = Vector3(21, 0.5, 0.5)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_curb_side"]
+size = Vector3(0.5, 0.5, 14)
+
+[sub_resource type="BoxMesh" id="BoxMesh_curb_side"]
+size = Vector3(0.5, 0.5, 14)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_wall"]
+albedo_color = Color(0.28, 0.27, 0.26, 1)
+roughness = 1.0
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_cage"]
+size = Vector3(2.2, 2.8, 2.4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_cage"]
+size = Vector3(2.2, 2.8, 2.4)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_metal"]
+albedo_color = Color(0.45, 0.47, 0.5, 1)
+metallic = 0.6
+roughness = 0.5
+
+[sub_resource type="BoxMesh" id="BoxMesh_cage_door"]
+size = Vector3(0.06, 2.4, 2.0)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_door"]
+albedo_color = Color(0.62, 0.55, 0.25, 1)
+metallic = 0.4
+roughness = 0.6
+
+[sub_resource type="BoxMesh" id="BoxMesh_lamp"]
+size = Vector3(8, 0.1, 0.35)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_lamp"]
+albedo_color = Color(1, 0.6, 0.95, 1)
+emission_enabled = true
+emission = Color(1, 0.45, 0.9, 1)
+emission_energy_multiplier = 2.0
+
+[node name="Plantation" type="Node3D" node_paths=PackedStringArray("nav_region", "jack", "camera_rig", "hud", "spawn_points")]
+script = ExtResource("1_level")
+nav_region = NodePath("NavRegion")
+jack = NodePath("Jack")
+camera_rig = NodePath("CameraRig")
+hud = NodePath("Hud")
+spawn_points = NodePath("SpawnPoints")
+default_spawn = "from_elevator"
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_bunker")
+
+[node name="NavRegion" type="NavigationRegion3D" parent="."]
+navigation_mesh = SubResource("NavigationMesh_bunker")
+
+[node name="Floor" type="StaticBody3D" parent="NavRegion"]
+position = Vector3(0, -0.5, 0)
+collision_mask = 0
+
+[node name="Shape" type="CollisionShape3D" parent="NavRegion/Floor"]
+shape = SubResource("BoxShape3D_floor")
+
+[node name="Mesh" type="MeshInstance3D" parent="NavRegion/Floor"]
+mesh = SubResource("BoxMesh_floor")
+surface_material_override/0 = SubResource("StandardMaterial3D_concrete")
+
+[node name="WallNorth" type="StaticBody3D" parent="NavRegion"]
+position = Vector3(0, 1.5, -7.25)
+collision_mask = 0
+
+[node name="Shape" type="CollisionShape3D" parent="NavRegion/WallNorth"]
+shape = SubResource("BoxShape3D_wall_long")
+
+[node name="Mesh" type="MeshInstance3D" parent="NavRegion/WallNorth"]
+mesh = SubResource("BoxMesh_wall_long")
+surface_material_override/0 = SubResource("StandardMaterial3D_wall")
+
+[node name="WallWest" type="StaticBody3D" parent="NavRegion"]
+position = Vector3(-10.25, 1.5, 0)
+collision_mask = 0
+
+[node name="Shape" type="CollisionShape3D" parent="NavRegion/WallWest"]
+shape = SubResource("BoxShape3D_wall_side")
+
+[node name="Mesh" type="MeshInstance3D" parent="NavRegion/WallWest"]
+mesh = SubResource("BoxMesh_wall_side")
+surface_material_override/0 = SubResource("StandardMaterial3D_wall")
+
+[node name="CurbSouth" type="StaticBody3D" parent="NavRegion"]
+position = Vector3(0, 0.25, 7.25)
+collision_mask = 0
+
+[node name="Shape" type="CollisionShape3D" parent="NavRegion/CurbSouth"]
+shape = SubResource("BoxShape3D_curb_long")
+
+[node name="Mesh" type="MeshInstance3D" parent="NavRegion/CurbSouth"]
+mesh = SubResource("BoxMesh_curb_long")
+surface_material_override/0 = SubResource("StandardMaterial3D_wall")
+
+[node name="CurbEast" type="StaticBody3D" parent="NavRegion"]
+position = Vector3(10.25, 0.25, 0)
+collision_mask = 0
+
+[node name="Shape" type="CollisionShape3D" parent="NavRegion/CurbEast"]
+shape = SubResource("BoxShape3D_curb_side")
+
+[node name="Mesh" type="MeshInstance3D" parent="NavRegion/CurbEast"]
+mesh = SubResource("BoxMesh_curb_side")
+surface_material_override/0 = SubResource("StandardMaterial3D_wall")
+
+[node name="Elevator" type="StaticBody3D" parent="NavRegion" node_paths=PackedStringArray("door", "approach")]
+position = Vector3(-8.5, 0, 0)
+collision_layer = 2
+collision_mask = 0
+script = ExtResource("2_elevator")
+door = NodePath("Door")
+door_open_offset = Vector3(0, 2.3, 0)
+destination = "res://scenes/field/field.tscn"
+destination_spawn = "from_elevator"
+approach = NodePath("Approach")
+hover_label = "Лифт — подняться в контейнер"
+
+[node name="Shape" type="CollisionShape3D" parent="NavRegion/Elevator"]
+position = Vector3(0, 1.4, 0)
+shape = SubResource("BoxShape3D_cage")
+
+[node name="Cage" type="MeshInstance3D" parent="NavRegion/Elevator"]
+position = Vector3(0, 1.4, 0)
+mesh = SubResource("BoxMesh_cage")
+surface_material_override/0 = SubResource("StandardMaterial3D_metal")
+
+[node name="Door" type="MeshInstance3D" parent="NavRegion/Elevator"]
+position = Vector3(1.13, 1.2, 0)
+mesh = SubResource("BoxMesh_cage_door")
+surface_material_override/0 = SubResource("StandardMaterial3D_door")
+
+[node name="Label" type="Label3D" parent="NavRegion/Elevator"]
+position = Vector3(0, 3.4, 0)
+pixel_size = 0.008
+billboard = 1
+no_depth_test = true
+text = "Лифт"
+font_size = 44
+outline_size = 10
+
+[node name="Approach" type="Marker3D" parent="NavRegion/Elevator"]
+position = Vector3(2.1, 0, 0)
+
+[node name="PlotsGrid" type="Node3D" parent="NavRegion"]
+position = Vector3(1.5, 0, 0)
+script = ExtResource("3_grid")
+plot_scene = ExtResource("4_plot")
+
+[node name="LampNorth" type="MeshInstance3D" parent="."]
+position = Vector3(1.5, 2.9, -2)
+mesh = SubResource("BoxMesh_lamp")
+surface_material_override/0 = SubResource("StandardMaterial3D_lamp")
+
+[node name="LampSouth" type="MeshInstance3D" parent="."]
+position = Vector3(1.5, 2.9, 2)
+mesh = SubResource("BoxMesh_lamp")
+surface_material_override/0 = SubResource("StandardMaterial3D_lamp")
+
+[node name="GrowLightNorth" type="OmniLight3D" parent="."]
+position = Vector3(1.5, 2.6, -2)
+light_color = Color(1, 0.62, 0.92, 1)
+light_energy = 2.5
+omni_range = 8.0
+
+[node name="GrowLightSouth" type="OmniLight3D" parent="."]
+position = Vector3(1.5, 2.6, 2)
+light_color = Color(1, 0.62, 0.92, 1)
+light_energy = 2.5
+omni_range = 8.0
+
+[node name="ElevatorLight" type="OmniLight3D" parent="."]
+position = Vector3(-6.5, 2.6, 0)
+light_color = Color(1, 0.9, 0.75, 1)
+light_energy = 1.2
+omni_range = 6.0
+
+[node name="Jack" parent="." instance=ExtResource("5_jack")]
+
+[node name="Worker" parent="." node_paths=PackedStringArray("plots_grid", "idle_spot") instance=ExtResource("6_worker")]
+plots_grid = NodePath("../NavRegion/PlotsGrid")
+idle_spot = NodePath("../SpawnPoints/worker_idle")
+
+[node name="CameraRig" type="Node3D" parent="." node_paths=PackedStringArray("camera")]
+rotation = Vector3(0, 0.785398, 0)
+script = ExtResource("7_camera")
+camera = NodePath("Camera")
+zoom_min = 6.0
+zoom_max = 24.0
+bounds = Rect2(-9, -6, 18, 12)
+
+[node name="Camera" type="Camera3D" parent="CameraRig"]
+projection = 1
+size = 15.0
+
+[node name="SpawnPoints" type="Node3D" parent="."]
+
+[node name="from_elevator" type="Marker3D" parent="SpawnPoints"]
+position = Vector3(-6.2, 0, 0.8)
+
+[node name="worker_idle" type="Marker3D" parent="SpawnPoints"]
+position = Vector3(-6, 0, -3.5)
+
+[node name="Hud" parent="." instance=ExtResource("8_hud")]
