@@ -47,6 +47,7 @@ const ERRORS: Dictionary[String, String] = {
 	CommandResult.LYING_LOW: "Ферма затихла — курьеры сидят дома.",
 	CommandResult.NOTHING_TO_PACK: "Фасовать нечего — сначала собери урожай.",
 	CommandResult.NO_PARCEL: "Посылок нет.",
+	CommandResult.EVICTED: "Лорд Эшкомб расторг аренду. Поле больше не ваше, мистер Кэллоуэй.",
 }
 
 

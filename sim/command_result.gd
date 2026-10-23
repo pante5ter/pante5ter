@@ -32,6 +32,7 @@ const COURIER_BUSY: String = "courier_busy"
 const LYING_LOW: String = "lying_low"
 const NOTHING_TO_PACK: String = "nothing_to_pack"
 const NO_PARCEL: String = "no_parcel"
+const EVICTED: String = "evicted"
 
 var ok: bool = false
 var error: String = ""

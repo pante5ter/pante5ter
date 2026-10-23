@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="RentDef" format=3]
+
+[ext_resource type="Script" path="res://content/defs/rent_def.gd" id="1_rent"]
+
+[resource]
+script = ExtResource("1_rent")
+amount = 1500
+period_hours = 48.0
+first_due_hours = 48.0
+evict_after_missed = 3
+missed_suspicion = 10.0

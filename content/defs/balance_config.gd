@@ -14,6 +14,7 @@ extends Resource
 @export var problems: ProblemsDef
 @export var suspicion: SuspicionDef
 @export var raids: RaidsDef
+@export var rent: RentDef
 @export var milestones: Array[MilestoneDef] = []
 
 @export_group("Care")

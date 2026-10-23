@@ -1,8 +1,8 @@
 class_name SimState
 extends RefCounted
 
-const SAVE_VERSION: int = 6
-const REQUIRED_SAVE_KEYS: Array[String] = ["save_version", "clock", "rng", "economy", "inventory", "plots", "workers", "supplies", "orders", "progress", "problems", "suspicion", "raids", "couriers", "packing", "event_log"]
+const SAVE_VERSION: int = 7
+const REQUIRED_SAVE_KEYS: Array[String] = ["save_version", "clock", "rng", "economy", "inventory", "plots", "workers", "supplies", "orders", "progress", "problems", "suspicion", "raids", "couriers", "packing", "rent", "event_log"]
 
 var config: BalanceConfig
 var clock: SimClock
@@ -20,6 +20,7 @@ var suspicion: Suspicion
 var raids: Raids
 var couriers: Couriers
 var packing: Packing
+var rent: Rent
 
 
 func _init(balance: BalanceConfig, seed_value: int) -> void:
@@ -43,10 +44,13 @@ func _init(balance: BalanceConfig, seed_value: int) -> void:
 	packing = Packing.new(balance.orders, inventory, event_log)
 	problems = Problems.new(balance.problems, grow, supplies, rng, event_log)
 	raids = Raids.new(balance.raids, rng, inventory, economy, orders, workers, suspicion, event_log, empire_value)
+	rent = Rent.new(balance.rent, economy, suspicion, event_log)
 	progress.update(empire_value(), clock.elapsed_game_seconds)
 
 
 func apply(command: SimCommand) -> CommandResult:
+	if rent.evicted:
+		return CommandResult.failure(CommandResult.EVICTED)
 	var result := _apply(command)
 	progress.update(empire_value(), clock.elapsed_game_seconds)
 	return result
@@ -128,6 +132,7 @@ func _next_event_time() -> float:
 	var next := minf(workers.next_event_time(), minf(supplies.next_event_time(), orders.next_event_time()))
 	next = minf(next, minf(problems.next_event_time(), suspicion.next_event_time()))
 	next = minf(next, minf(couriers.next_event_time(), packing.next_event_time()))
+	next = minf(next, rent.next_event_time())
 	return minf(next, raids.next_event_time())
 
 
@@ -140,6 +145,7 @@ func _process_events(now: float) -> void:
 	raids.process(now)
 	suspicion.process(now)
 	workers.process(now)
+	rent.process(now)
 
 
 func _grow_unless_quiet(now: float, game_seconds: float) -> void:
@@ -163,7 +169,7 @@ func _advance_time(real_seconds: float) -> CommandResult:
 			clock.advance(remaining)
 			remaining = 0.0
 		_process_events(clock.elapsed_game_seconds)
-		if remaining <= 0.0:
+		if remaining <= 0.0 or rent.evicted:
 			break
 	return CommandResult.success()
 
@@ -185,6 +191,7 @@ func to_dict() -> Dictionary:
 		"raids": raids.to_dict(),
 		"couriers": couriers.to_dict(),
 		"packing": packing.to_dict(),
+		"rent": rent.to_dict(),
 		"event_log": event_log.to_array(),
 	}
 
@@ -222,4 +229,5 @@ func _load_dict(data: Dictionary) -> void:
 	raids.load_dict(data["raids"] as Dictionary)
 	couriers.load_dict(data["couriers"] as Dictionary)
 	packing.load_dict(data["packing"] as Dictionary)
+	rent.load_dict(data["rent"] as Dictionary)
 	event_log.load_array(data["event_log"] as Array)
