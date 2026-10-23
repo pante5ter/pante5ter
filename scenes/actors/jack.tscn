@@ -1,60 +1,21 @@
 [gd_scene format=3]
 
 [ext_resource type="Script" path="res://scenes/common/walker.gd" id="1_walker"]
+[ext_resource type="Script" path="res://scenes/common/character_model.gd" id="2_model"]
+[ext_resource type="PackedScene" path="res://assets/kenney_mini_characters/character-male-a.glb" id="3_mesh"]
 
-[sub_resource type="CapsuleMesh" id="CapsuleMesh_body"]
-radius = 0.28
-height = 1.5
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_coat"]
-albedo_color = Color(0.17, 0.22, 0.36, 1)
-roughness = 0.9
-
-[sub_resource type="SphereMesh" id="SphereMesh_head"]
-radius = 0.17
-height = 0.34
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_skin"]
-albedo_color = Color(0.86, 0.68, 0.55, 1)
-roughness = 0.9
-
-[sub_resource type="CylinderMesh" id="CylinderMesh_cap"]
-top_radius = 0.17
-bottom_radius = 0.2
-height = 0.08
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_cap"]
-albedo_color = Color(0.32, 0.27, 0.2, 1)
-roughness = 1.0
-
-[sub_resource type="BoxMesh" id="BoxMesh_peak"]
-size = Vector3(0.28, 0.03, 0.14)
-
-[node name="Jack" type="Node3D" node_paths=PackedStringArray("agent")]
+[node name="Jack" type="Node3D" node_paths=PackedStringArray("agent", "model")]
 script = ExtResource("1_walker")
 speed = 4.0
 agent = NodePath("Agent")
+model = NodePath("Model")
 
 [node name="Agent" type="NavigationAgent3D" parent="."]
 path_desired_distance = 0.3
 target_desired_distance = 0.35
 
-[node name="Body" type="MeshInstance3D" parent="."]
-position = Vector3(0, 0.75, 0)
-mesh = SubResource("CapsuleMesh_body")
-surface_material_override/0 = SubResource("StandardMaterial3D_coat")
+[node name="Model" type="Node3D" parent="."]
+scale = Vector3(2.6, 2.6, 2.6)
+script = ExtResource("2_model")
 
-[node name="Head" type="MeshInstance3D" parent="."]
-position = Vector3(0, 1.62, 0)
-mesh = SubResource("SphereMesh_head")
-surface_material_override/0 = SubResource("StandardMaterial3D_skin")
-
-[node name="Cap" type="MeshInstance3D" parent="."]
-position = Vector3(0, 1.77, 0)
-mesh = SubResource("CylinderMesh_cap")
-surface_material_override/0 = SubResource("StandardMaterial3D_cap")
-
-[node name="Peak" type="MeshInstance3D" parent="."]
-position = Vector3(0, 1.75, 0.2)
-mesh = SubResource("BoxMesh_peak")
-surface_material_override/0 = SubResource("StandardMaterial3D_cap")
+[node name="Mesh" parent="Model" instance=ExtResource("3_mesh")]

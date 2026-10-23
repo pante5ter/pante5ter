@@ -8,6 +8,20 @@
 [ext_resource type="PackedScene" path="res://scenes/actors/jack.tscn" id="6_jack"]
 [ext_resource type="Script" path="res://scenes/common/iso_camera_rig.gd" id="7_camera"]
 [ext_resource type="PackedScene" path="res://scenes/ui/hud.tscn" id="8_hud"]
+[ext_resource type="Script" path="res://scenes/common/model_row.gd" id="9_row"]
+[ext_resource type="Script" path="res://scenes/common/character_model.gd" id="10_model"]
+[ext_resource type="PackedScene" path="res://scenes/actors/standing_person.tscn" id="11_person"]
+[ext_resource type="PackedScene" path="res://assets/kenney_mini_characters/character-male-c.glb" id="12_worker_mesh"]
+[ext_resource type="PackedScene" path="res://assets/kenney_nature_kit/tree_oak.glb" id="13_tree_oak"]
+[ext_resource type="PackedScene" path="res://assets/kenney_nature_kit/tree_default.glb" id="14_tree_default"]
+[ext_resource type="PackedScene" path="res://assets/kenney_nature_kit/tree_detailed.glb" id="15_tree_detailed"]
+[ext_resource type="PackedScene" path="res://assets/kenney_nature_kit/plant_bushLarge.glb" id="16_bush"]
+[ext_resource type="PackedScene" path="res://assets/kenney_nature_kit/crops_wheatStageB.glb" id="17_wheat"]
+[ext_resource type="PackedScene" path="res://assets/kenney_survival_kit/box.glb" id="18_box"]
+[ext_resource type="PackedScene" path="res://assets/kenney_survival_kit/bucket.glb" id="19_bucket"]
+[ext_resource type="PackedScene" path="res://assets/kenney_survival_kit/barrel.glb" id="20_barrel"]
+[ext_resource type="PackedScene" path="res://assets/kenney_survival_kit/box-large.glb" id="21_box_large"]
+[ext_resource type="PackedScene" path="res://assets/kenney_nature_kit/plant_bush.glb" id="22_small_bush"]
 
 [sub_resource type="Environment" id="Environment_field"]
 background_mode = 1
@@ -43,22 +57,11 @@ size = Vector3(3, 0.04, 9.5)
 albedo_color = Color(0.55, 0.42, 0.28, 1)
 roughness = 1.0
 
-[sub_resource type="BoxMesh" id="BoxMesh_crop_row"]
-size = Vector3(30, 0.7, 1.1)
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_wheat"]
-albedo_color = Color(0.82, 0.7, 0.36, 1)
-roughness = 1.0
+[sub_resource type="BoxMesh" id="BoxMesh_crop_soil"]
+size = Vector3(31, 0.03, 20.5)
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_hedge"]
 size = Vector3(60, 1.6, 1.2)
-
-[sub_resource type="BoxMesh" id="BoxMesh_hedge"]
-size = Vector3(60, 1.6, 1.2)
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_hedge"]
-albedo_color = Color(0.2, 0.36, 0.18, 1)
-roughness = 1.0
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_manor"]
 size = Vector3(18, 7, 6)
@@ -80,23 +83,6 @@ roughness = 0.9
 [sub_resource type="CylinderShape3D" id="CylinderShape3D_trunk"]
 height = 3.0
 radius = 0.4
-
-[sub_resource type="CylinderMesh" id="CylinderMesh_trunk"]
-top_radius = 0.25
-bottom_radius = 0.35
-height = 3.0
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_bark"]
-albedo_color = Color(0.36, 0.25, 0.16, 1)
-roughness = 1.0
-
-[sub_resource type="SphereMesh" id="SphereMesh_crown"]
-radius = 2.0
-height = 3.4
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_crown"]
-albedo_color = Color(0.22, 0.42, 0.2, 1)
-roughness = 1.0
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_container"]
 size = Vector3(2.44, 2.6, 6)
@@ -125,52 +111,9 @@ size = Vector3(1.9, 0.05, 0.3)
 albedo_color = Color(0.5, 0.38, 0.24, 1)
 roughness = 1.0
 
-[sub_resource type="CylinderMesh" id="CylinderMesh_paint"]
-top_radius = 0.1
-bottom_radius = 0.1
-height = 0.22
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_paint"]
-albedo_color = Color(0.7, 0.2, 0.15, 1)
-roughness = 0.6
-
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_person"]
 radius = 0.35
 height = 1.8
-
-[sub_resource type="CapsuleMesh" id="CapsuleMesh_person"]
-radius = 0.28
-height = 1.5
-
-[sub_resource type="SphereMesh" id="SphereMesh_head"]
-radius = 0.17
-height = 0.34
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_skin"]
-albedo_color = Color(0.84, 0.66, 0.54, 1)
-roughness = 0.9
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_buyer_coat"]
-albedo_color = Color(0.3, 0.3, 0.32, 1)
-roughness = 0.9
-
-[sub_resource type="CylinderMesh" id="CylinderMesh_bowler"]
-top_radius = 0.15
-bottom_radius = 0.17
-height = 0.2
-
-[sub_resource type="CylinderMesh" id="CylinderMesh_brim"]
-top_radius = 0.26
-bottom_radius = 0.26
-height = 0.03
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_black"]
-albedo_color = Color(0.08, 0.08, 0.08, 1)
-roughness = 0.7
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_candidate"]
-albedo_color = Color(0.45, 0.33, 0.2, 1)
-roughness = 0.9
 
 [node name="Field" type="Node3D" node_paths=PackedStringArray("nav_region", "jack", "camera_rig", "hud", "spawn_points")]
 script = ExtResource("1_level")
@@ -218,57 +161,92 @@ mesh = SubResource("BoxMesh_path_branch")
 surface_material_override/0 = SubResource("StandardMaterial3D_dirt")
 
 [node name="Crops" type="Node3D" parent="NavRegion"]
-position = Vector3(-9, 0.35, 0)
+position = Vector3(-9, 0, -15)
 
-[node name="Row0" type="MeshInstance3D" parent="NavRegion/Crops"]
-position = Vector3(0, 0, -24)
-mesh = SubResource("BoxMesh_crop_row")
-surface_material_override/0 = SubResource("StandardMaterial3D_wheat")
+[node name="Soil" type="MeshInstance3D" parent="NavRegion/Crops"]
+position = Vector3(0, 0.015, 0)
+mesh = SubResource("BoxMesh_crop_soil")
+surface_material_override/0 = SubResource("StandardMaterial3D_dirt")
 
-[node name="Row1" type="MeshInstance3D" parent="NavRegion/Crops"]
-position = Vector3(0, 0, -22)
-mesh = SubResource("BoxMesh_crop_row")
-surface_material_override/0 = SubResource("StandardMaterial3D_wheat")
+[node name="Row0" type="Node3D" parent="NavRegion/Crops"]
+position = Vector3(0, 0, -9)
+script = ExtResource("9_row")
+model = ExtResource("17_wheat")
+count = 22
+spacing = Vector3(1.35, 0, 0)
+model_scale = 2.6
 
-[node name="Row2" type="MeshInstance3D" parent="NavRegion/Crops"]
-position = Vector3(0, 0, -20)
-mesh = SubResource("BoxMesh_crop_row")
-surface_material_override/0 = SubResource("StandardMaterial3D_wheat")
+[node name="Row1" type="Node3D" parent="NavRegion/Crops"]
+position = Vector3(0, 0, -7)
+script = ExtResource("9_row")
+model = ExtResource("17_wheat")
+count = 22
+spacing = Vector3(1.35, 0, 0)
+model_scale = 2.6
 
-[node name="Row3" type="MeshInstance3D" parent="NavRegion/Crops"]
-position = Vector3(0, 0, -18)
-mesh = SubResource("BoxMesh_crop_row")
-surface_material_override/0 = SubResource("StandardMaterial3D_wheat")
+[node name="Row2" type="Node3D" parent="NavRegion/Crops"]
+position = Vector3(0, 0, -5)
+script = ExtResource("9_row")
+model = ExtResource("17_wheat")
+count = 22
+spacing = Vector3(1.35, 0, 0)
+model_scale = 2.6
 
-[node name="Row4" type="MeshInstance3D" parent="NavRegion/Crops"]
-position = Vector3(0, 0, -16)
-mesh = SubResource("BoxMesh_crop_row")
-surface_material_override/0 = SubResource("StandardMaterial3D_wheat")
+[node name="Row3" type="Node3D" parent="NavRegion/Crops"]
+position = Vector3(0, 0, -3)
+script = ExtResource("9_row")
+model = ExtResource("17_wheat")
+count = 22
+spacing = Vector3(1.35, 0, 0)
+model_scale = 2.6
 
-[node name="Row5" type="MeshInstance3D" parent="NavRegion/Crops"]
-position = Vector3(0, 0, -14)
-mesh = SubResource("BoxMesh_crop_row")
-surface_material_override/0 = SubResource("StandardMaterial3D_wheat")
+[node name="Row4" type="Node3D" parent="NavRegion/Crops"]
+position = Vector3(0, 0, -1)
+script = ExtResource("9_row")
+model = ExtResource("17_wheat")
+count = 22
+spacing = Vector3(1.35, 0, 0)
+model_scale = 2.6
 
-[node name="Row6" type="MeshInstance3D" parent="NavRegion/Crops"]
-position = Vector3(0, 0, -12)
-mesh = SubResource("BoxMesh_crop_row")
-surface_material_override/0 = SubResource("StandardMaterial3D_wheat")
+[node name="Row5" type="Node3D" parent="NavRegion/Crops"]
+position = Vector3(0, 0, 1)
+script = ExtResource("9_row")
+model = ExtResource("17_wheat")
+count = 22
+spacing = Vector3(1.35, 0, 0)
+model_scale = 2.6
 
-[node name="Row7" type="MeshInstance3D" parent="NavRegion/Crops"]
-position = Vector3(0, 0, -10)
-mesh = SubResource("BoxMesh_crop_row")
-surface_material_override/0 = SubResource("StandardMaterial3D_wheat")
+[node name="Row6" type="Node3D" parent="NavRegion/Crops"]
+position = Vector3(0, 0, 3)
+script = ExtResource("9_row")
+model = ExtResource("17_wheat")
+count = 22
+spacing = Vector3(1.35, 0, 0)
+model_scale = 2.6
 
-[node name="Row8" type="MeshInstance3D" parent="NavRegion/Crops"]
-position = Vector3(0, 0, -8)
-mesh = SubResource("BoxMesh_crop_row")
-surface_material_override/0 = SubResource("StandardMaterial3D_wheat")
+[node name="Row7" type="Node3D" parent="NavRegion/Crops"]
+position = Vector3(0, 0, 5)
+script = ExtResource("9_row")
+model = ExtResource("17_wheat")
+count = 22
+spacing = Vector3(1.35, 0, 0)
+model_scale = 2.6
 
-[node name="Row9" type="MeshInstance3D" parent="NavRegion/Crops"]
-position = Vector3(0, 0, -6)
-mesh = SubResource("BoxMesh_crop_row")
-surface_material_override/0 = SubResource("StandardMaterial3D_wheat")
+[node name="Row8" type="Node3D" parent="NavRegion/Crops"]
+position = Vector3(0, 0, 7)
+script = ExtResource("9_row")
+model = ExtResource("17_wheat")
+count = 22
+spacing = Vector3(1.35, 0, 0)
+model_scale = 2.6
+
+[node name="Row9" type="Node3D" parent="NavRegion/Crops"]
+position = Vector3(0, 0, 9)
+script = ExtResource("9_row")
+model = ExtResource("17_wheat")
+count = 22
+spacing = Vector3(1.35, 0, 0)
+model_scale = 2.6
 
 [node name="Hedge" type="StaticBody3D" parent="NavRegion"]
 position = Vector3(0, 0.8, -26.5)
@@ -277,9 +255,13 @@ collision_mask = 0
 [node name="Shape" type="CollisionShape3D" parent="NavRegion/Hedge"]
 shape = SubResource("BoxShape3D_hedge")
 
-[node name="Mesh" type="MeshInstance3D" parent="NavRegion/Hedge"]
-mesh = SubResource("BoxMesh_hedge")
-surface_material_override/0 = SubResource("StandardMaterial3D_hedge")
+[node name="Bushes" type="Node3D" parent="NavRegion/Hedge"]
+position = Vector3(0, -0.8, 0)
+script = ExtResource("9_row")
+model = ExtResource("16_bush")
+count = 30
+spacing = Vector3(2, 0, 0)
+model_scale = 6.0
 
 [node name="Manor" type="StaticBody3D" parent="NavRegion"]
 position = Vector3(-6, 3.5, -31)
@@ -306,15 +288,8 @@ collision_mask = 0
 position = Vector3(0, 1.5, 0)
 shape = SubResource("CylinderShape3D_trunk")
 
-[node name="Trunk" type="MeshInstance3D" parent="NavRegion/TreeA"]
-position = Vector3(0, 1.5, 0)
-mesh = SubResource("CylinderMesh_trunk")
-surface_material_override/0 = SubResource("StandardMaterial3D_bark")
-
-[node name="Crown" type="MeshInstance3D" parent="NavRegion/TreeA"]
-position = Vector3(0, 3.8, 0)
-mesh = SubResource("SphereMesh_crown")
-surface_material_override/0 = SubResource("StandardMaterial3D_crown")
+[node name="Model" parent="NavRegion/TreeA" instance=ExtResource("13_tree_oak")]
+transform = Transform3D(5.5, 0, 0, 0, 5.5, 0, 0, 0, 5.5, 0, 0, 0)
 
 [node name="TreeB" type="StaticBody3D" parent="NavRegion"]
 position = Vector3(20, 0, 14)
@@ -324,15 +299,8 @@ collision_mask = 0
 position = Vector3(0, 1.5, 0)
 shape = SubResource("CylinderShape3D_trunk")
 
-[node name="Trunk" type="MeshInstance3D" parent="NavRegion/TreeB"]
-position = Vector3(0, 1.5, 0)
-mesh = SubResource("CylinderMesh_trunk")
-surface_material_override/0 = SubResource("StandardMaterial3D_bark")
-
-[node name="Crown" type="MeshInstance3D" parent="NavRegion/TreeB"]
-position = Vector3(0, 3.8, 0)
-mesh = SubResource("SphereMesh_crown")
-surface_material_override/0 = SubResource("StandardMaterial3D_crown")
+[node name="Model" parent="NavRegion/TreeB" instance=ExtResource("14_tree_default")]
+transform = Transform3D(5.5, 0, 0, 0, 5.5, 0, 0, 0, 5.5, 0, 0, 0)
 
 [node name="TreeC" type="StaticBody3D" parent="NavRegion"]
 position = Vector3(24, 0, -8)
@@ -342,15 +310,8 @@ collision_mask = 0
 position = Vector3(0, 1.5, 0)
 shape = SubResource("CylinderShape3D_trunk")
 
-[node name="Trunk" type="MeshInstance3D" parent="NavRegion/TreeC"]
-position = Vector3(0, 1.5, 0)
-mesh = SubResource("CylinderMesh_trunk")
-surface_material_override/0 = SubResource("StandardMaterial3D_bark")
-
-[node name="Crown" type="MeshInstance3D" parent="NavRegion/TreeC"]
-position = Vector3(0, 3.8, 0)
-mesh = SubResource("SphereMesh_crown")
-surface_material_override/0 = SubResource("StandardMaterial3D_crown")
+[node name="Model" parent="NavRegion/TreeC" instance=ExtResource("15_tree_detailed")]
+transform = Transform3D(5.5, 0, 0, 0, 5.5, 0, 0, 0, 5.5, 0, 0, 0)
 
 [node name="TreeD" type="StaticBody3D" parent="NavRegion"]
 position = Vector3(14, 0, -16)
@@ -360,15 +321,8 @@ collision_mask = 0
 position = Vector3(0, 1.5, 0)
 shape = SubResource("CylinderShape3D_trunk")
 
-[node name="Trunk" type="MeshInstance3D" parent="NavRegion/TreeD"]
-position = Vector3(0, 1.5, 0)
-mesh = SubResource("CylinderMesh_trunk")
-surface_material_override/0 = SubResource("StandardMaterial3D_bark")
-
-[node name="Crown" type="MeshInstance3D" parent="NavRegion/TreeD"]
-position = Vector3(0, 3.8, 0)
-mesh = SubResource("SphereMesh_crown")
-surface_material_override/0 = SubResource("StandardMaterial3D_crown")
+[node name="Model" parent="NavRegion/TreeD" instance=ExtResource("13_tree_oak")]
+transform = Transform3D(5.5, 0, 0, 0, 5.5, 0, 0, 0, 5.5, 0, 0, 0)
 
 [node name="Container" type="StaticBody3D" parent="NavRegion" node_paths=PackedStringArray("door", "approach")]
 position = Vector3(9, 0, -10)
@@ -419,20 +373,26 @@ position = Vector3(0, 1.65, 0.17)
 mesh = SubResource("BoxMesh_shelf_plank")
 surface_material_override/0 = SubResource("StandardMaterial3D_shelf")
 
-[node name="PaintA" type="MeshInstance3D" parent="NavRegion/Container/Shelf"]
-position = Vector3(-0.6, 0.585, 0.17)
-mesh = SubResource("CylinderMesh_paint")
-surface_material_override/0 = SubResource("StandardMaterial3D_paint")
+[node name="BoxLow" parent="NavRegion/Container/Shelf" instance=ExtResource("18_box")]
+transform = Transform3D(1.4, 0, 0, 0, 1.4, 0, 0, 0, 1.4, -0.5, 0.475, 0.17)
 
-[node name="PaintB" type="MeshInstance3D" parent="NavRegion/Container/Shelf"]
-position = Vector3(0.4, 1.185, 0.17)
-mesh = SubResource("CylinderMesh_paint")
-surface_material_override/0 = SubResource("StandardMaterial3D_paint")
+[node name="BucketLow" parent="NavRegion/Container/Shelf" instance=ExtResource("19_bucket")]
+transform = Transform3D(1.4, 0, 0, 0, 1.4, 0, 0, 0, 1.4, 0.45, 0.475, 0.17)
 
-[node name="PaintC" type="MeshInstance3D" parent="NavRegion/Container/Shelf"]
-position = Vector3(-0.2, 1.785, 0.17)
-mesh = SubResource("CylinderMesh_paint")
-surface_material_override/0 = SubResource("StandardMaterial3D_paint")
+[node name="BoxMiddle" parent="NavRegion/Container/Shelf" instance=ExtResource("18_box")]
+transform = Transform3D(1.2, 0, 0, 0, 1.2, 0, 0, 0, 1.2, 0.35, 1.075, 0.17)
+
+[node name="BucketHigh" parent="NavRegion/Container/Shelf" instance=ExtResource("19_bucket")]
+transform = Transform3D(1.4, 0, 0, 0, 1.4, 0, 0, 0, 1.4, -0.3, 1.675, 0.17)
+
+[node name="BarrelA" parent="NavRegion/Container" instance=ExtResource("20_barrel")]
+transform = Transform3D(3, 0, 0, 0, 3, 0, 0, 0, 3, 1.9, 0, 2.2)
+
+[node name="BarrelB" parent="NavRegion/Container" instance=ExtResource("20_barrel")]
+transform = Transform3D(3, 0, 0, 0, 3, 0, 0, 0, 3, 1.95, 0, 1.3)
+
+[node name="Crate" parent="NavRegion/Container" instance=ExtResource("21_box_large")]
+transform = Transform3D(0, 0, 3, 0, 3, 0, -3, 0, 0, -2.1, 0, -1.5)
 
 [node name="Label" type="Label3D" parent="NavRegion/Container"]
 position = Vector3(0, 3.4, 0)
@@ -457,25 +417,7 @@ approach = NodePath("Approach")
 position = Vector3(0, 0.9, 0)
 shape = SubResource("CapsuleShape3D_person")
 
-[node name="Body" type="MeshInstance3D" parent="NavRegion/Buyer"]
-position = Vector3(0, 0.75, 0)
-mesh = SubResource("CapsuleMesh_person")
-surface_material_override/0 = SubResource("StandardMaterial3D_buyer_coat")
-
-[node name="Head" type="MeshInstance3D" parent="NavRegion/Buyer"]
-position = Vector3(0, 1.62, 0)
-mesh = SubResource("SphereMesh_head")
-surface_material_override/0 = SubResource("StandardMaterial3D_skin")
-
-[node name="Bowler" type="MeshInstance3D" parent="NavRegion/Buyer"]
-position = Vector3(0, 1.85, 0)
-mesh = SubResource("CylinderMesh_bowler")
-surface_material_override/0 = SubResource("StandardMaterial3D_black")
-
-[node name="Brim" type="MeshInstance3D" parent="NavRegion/Buyer"]
-position = Vector3(0, 1.76, 0)
-mesh = SubResource("CylinderMesh_brim")
-surface_material_override/0 = SubResource("StandardMaterial3D_black")
+[node name="Person" parent="NavRegion/Buyer" instance=ExtResource("11_person")]
 
 [node name="Label" type="Label3D" parent="NavRegion/Buyer"]
 position = Vector3(0, 2.4, 0)
@@ -503,15 +445,11 @@ shape = SubResource("CapsuleShape3D_person")
 
 [node name="Visual" type="Node3D" parent="NavRegion/Candidate"]
 
-[node name="Body" type="MeshInstance3D" parent="NavRegion/Candidate/Visual"]
-position = Vector3(0, 0.75, 0)
-mesh = SubResource("CapsuleMesh_person")
-surface_material_override/0 = SubResource("StandardMaterial3D_candidate")
+[node name="Model" type="Node3D" parent="NavRegion/Candidate/Visual"]
+transform = Transform3D(2.6, 0, 0, 0, 2.6, 0, 0, 0, 2.6, 0, 0, 0)
+script = ExtResource("10_model")
 
-[node name="Head" type="MeshInstance3D" parent="NavRegion/Candidate/Visual"]
-position = Vector3(0, 1.62, 0)
-mesh = SubResource("SphereMesh_head")
-surface_material_override/0 = SubResource("StandardMaterial3D_skin")
+[node name="Mesh" parent="NavRegion/Candidate/Visual/Model" instance=ExtResource("12_worker_mesh")]
 
 [node name="Label" type="Label3D" parent="NavRegion/Candidate/Visual"]
 position = Vector3(0, 2.4, 0)
@@ -521,6 +459,9 @@ no_depth_test = true
 text = "Ищет работу"
 font_size = 40
 outline_size = 10
+
+[node name="Bush" parent="NavRegion/Candidate" instance=ExtResource("22_small_bush")]
+transform = Transform3D(4, 0, 0, 0, 4, 0, 0, 0, 4, 1.2, 0, 0.4)
 
 [node name="Approach" type="Marker3D" parent="NavRegion/Candidate"]
 position = Vector3(0, 0, -1.5)

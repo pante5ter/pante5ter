@@ -84,6 +84,20 @@ func test_full_loop_through_commands() -> void:
 	assert_eq(state.event_log.of_type(EventLog.PRODUCT_SOLD).size(), 1)
 
 
+func test_growth_finishes_on_time_when_clock_is_not_round() -> void:
+	var state := SimState.new(_balance, 1)
+	_apply_ok(state, AdvanceTimeCommand.new(0.0173))
+	_apply_ok(state, PlantCommand.new(0))
+	var strain := _balance.strain
+	var hours_left := strain.seed_hours + strain.sprout_hours + strain.bush_hours
+	while hours_left > 0.0:
+		_apply_ok(state, WaterCommand.new(0))
+		var step := minf(hours_left, strain.water_capacity_hours)
+		_apply_ok(state, AdvanceTimeCommand.new(_real_seconds_for_game_hours(step)))
+		hours_left -= step
+	assert_eq(state.grow.plot(0).stage, Plot.Stage.READY)
+
+
 func test_events_carry_game_time() -> void:
 	var state := SimState.new(_balance, 1)
 	_apply_ok(state, AdvanceTimeCommand.new(_real_seconds_for_game_hours(3.0)))

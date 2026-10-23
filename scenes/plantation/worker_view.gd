@@ -4,17 +4,13 @@ extends Walker
 const RETRY_SECONDS: float = 1.0
 const ARRIVE_DISTANCE: float = 0.8
 const WORK_OFFSET: Vector3 = Vector3(0.7, 0.0, 0.0)
-const BOB_HEIGHT: float = 0.12
-const BOB_SPEED: float = 8.0
 
 @export var plots_grid: PlotsGrid
 @export var idle_spot: Marker3D
 @export var status_label: Label3D
-@export var body: Node3D
 
 var _target: Vector3 = Vector3.INF
 var _retry_left: float = 0.0
-var _work_phase: float = 0.0
 var _was_hired: bool = false
 
 
@@ -37,9 +33,11 @@ func _process(delta: float) -> void:
 		_retry_left = RETRY_SECONDS
 		move_to(target)
 	status_label.text = UiText.worker_status(workers)
-	var working := workers.task != Workers.Task.NONE and not far and not is_moving()
-	_work_phase = _work_phase + delta * BOB_SPEED if working else 0.0
-	body.position.y = absf(sin(_work_phase)) * BOB_HEIGHT
+	if workers.task != Workers.Task.NONE and not far and not is_moving():
+		_face(plots_grid.view_for(workers.task_plot_id).global_position)
+		model.play_work()
+	elif not is_moving():
+		model.play_idle()
 
 
 func _desired_target(workers: Workers) -> Vector3:
@@ -49,3 +47,9 @@ func _desired_target(workers: Workers) -> Vector3:
 	if view == null:
 		return idle_spot.global_position
 	return view.approach_position() + WORK_OFFSET
+
+
+func _face(point: Vector3) -> void:
+	var flat := Vector3(point.x - global_position.x, 0.0, point.z - global_position.z)
+	if flat.length() > 0.01:
+		rotation.y = atan2(flat.x, flat.z)

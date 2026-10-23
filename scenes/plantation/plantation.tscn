@@ -8,6 +8,14 @@
 [ext_resource type="PackedScene" path="res://scenes/actors/worker.tscn" id="6_worker"]
 [ext_resource type="Script" path="res://scenes/common/iso_camera_rig.gd" id="7_camera"]
 [ext_resource type="PackedScene" path="res://scenes/ui/hud.tscn" id="8_hud"]
+[ext_resource type="PackedScene" path="res://assets/kenney_survival_kit/workbench.glb" id="9_workbench"]
+[ext_resource type="PackedScene" path="res://assets/kenney_survival_kit/barrel.glb" id="10_barrel"]
+[ext_resource type="PackedScene" path="res://assets/kenney_survival_kit/bucket.glb" id="11_bucket"]
+[ext_resource type="PackedScene" path="res://assets/kenney_survival_kit/box-large.glb" id="12_box_large"]
+[ext_resource type="PackedScene" path="res://assets/kenney_survival_kit/box.glb" id="13_box"]
+[ext_resource type="PackedScene" path="res://assets/kenney_survival_kit/tool-shovel.glb" id="14_shovel"]
+[ext_resource type="PackedScene" path="res://assets/kenney_survival_kit/tool-hoe.glb" id="15_hoe"]
+[ext_resource type="PackedScene" path="res://assets/kenney_survival_kit/resource-planks.glb" id="16_planks"]
 
 [sub_resource type="Environment" id="Environment_bunker"]
 background_mode = 1
@@ -229,6 +237,41 @@ position = Vector3(-6.5, 2.6, 0)
 light_color = Color(1, 0.9, 0.75, 1)
 light_energy = 1.2
 omni_range = 6.0
+
+[node name="Props" type="Node3D" parent="."]
+
+[node name="Workbench" parent="Props" instance=ExtResource("9_workbench")]
+transform = Transform3D(3.5, 0, 0.0, 0, 3.5, 0, 0.0, 0, 3.5, -6.6, 0, -6.2)
+
+[node name="BucketA" parent="Props" instance=ExtResource("11_bucket")]
+transform = Transform3D(3.5, 0, 0.0, 0, 3.5, 0, 0.0, 0, 3.5, -4.9, 0, -6.3)
+
+[node name="BucketB" parent="Props" instance=ExtResource("11_bucket")]
+transform = Transform3D(3.5, 0, 0.0, 0, 3.5, 0, 0.0, 0, 3.5, -4.3, 0, -6.5)
+
+[node name="Shovel" parent="Props" instance=ExtResource("14_shovel")]
+transform = Transform3D(3.5, 0, 0.0, 0, 3.5, 0, 0.0, 0, 3.5, -8.0, 0, -6.6)
+
+[node name="Hoe" parent="Props" instance=ExtResource("15_hoe")]
+transform = Transform3D(3.5, 0, 0.0, 0, 3.5, 0, 0.0, 0, 3.5, -7.6, 0, -6.6)
+
+[node name="BarrelA" parent="Props" instance=ExtResource("10_barrel")]
+transform = Transform3D(3.0, 0, 0.0, 0, 3.0, 0, 0.0, 0, 3.0, 7.8, 0, -6.2)
+
+[node name="BarrelB" parent="Props" instance=ExtResource("10_barrel")]
+transform = Transform3D(3.0, 0, 0.0, 0, 3.0, 0, 0.0, 0, 3.0, 8.7, 0, -6.0)
+
+[node name="BarrelC" parent="Props" instance=ExtResource("10_barrel")]
+transform = Transform3D(3.0, 0, 0.0, 0, 3.0, 0, 0.0, 0, 3.0, 9.1, 0, -5.0)
+
+[node name="CrateA" parent="Props" instance=ExtResource("12_box_large")]
+transform = Transform3D(0.0, 0, -3.0, 0, 3.0, 0, 3.0, 0, 0.0, 8.9, 0, 5.0)
+
+[node name="CrateB" parent="Props" instance=ExtResource("13_box")]
+transform = Transform3D(3.0, 0, 0.0, 0, 3.0, 0, 0.0, 0, 3.0, 8.2, 0, 6.0)
+
+[node name="Planks" parent="Props" instance=ExtResource("16_planks")]
+transform = Transform3D(0.0, 0, -3.0, 0, 3.0, 0, 3.0, 0, 0.0, 6.6, 0, 6.0)
 
 [node name="Jack" parent="." instance=ExtResource("5_jack")]
 

@@ -43,15 +43,22 @@ func apply(command: SimCommand) -> CommandResult:
 
 
 func _advance_time(real_seconds: float) -> CommandResult:
-	var end_time := clock.elapsed_game_seconds + clock.real_to_game(real_seconds)
+	var remaining := clock.real_to_game(real_seconds)
 	while true:
 		var now := clock.elapsed_game_seconds
-		var stop_at := minf(workers.next_event_time(), end_time)
-		if stop_at > now:
-			grow.advance(now, stop_at - now)
-			clock.advance_to(stop_at)
+		var event_time := workers.next_event_time()
+		var until_event := event_time - now
+		if until_event < remaining:
+			if until_event > 0.0:
+				grow.advance(now, until_event)
+				clock.advance_to(event_time)
+				remaining -= until_event
+		else:
+			grow.advance(now, remaining)
+			clock.advance(remaining)
+			remaining = 0.0
 		workers.process(clock.elapsed_game_seconds)
-		if clock.elapsed_game_seconds >= end_time:
+		if remaining <= 0.0:
 			break
 	return CommandResult.success()
 
