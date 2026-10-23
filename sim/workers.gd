@@ -151,9 +151,9 @@ func to_dict() -> Dictionary:
 		"hired": hired,
 		"task": task_name(task),
 		"task_plot_id": task_plot_id,
-		"task_ends_at": task_ends_at,
-		"next_check_at": next_check_at,
-		"next_wage_at": next_wage_at,
+		"task_ends_at": ExactFloat.encode(task_ends_at),
+		"next_check_at": ExactFloat.encode(next_check_at),
+		"next_wage_at": ExactFloat.encode(next_wage_at),
 	}
 
 
@@ -161,6 +161,6 @@ func load_dict(data: Dictionary) -> void:
 	hired = data["hired"] == true
 	task = Task.get(String(data["task"]).to_upper(), Task.NONE) as Task
 	task_plot_id = int(data["task_plot_id"])
-	task_ends_at = float(data["task_ends_at"])
-	next_check_at = float(data["next_check_at"])
-	next_wage_at = float(data["next_wage_at"])
+	task_ends_at = ExactFloat.decode(data["task_ends_at"])
+	next_check_at = ExactFloat.decode(data["next_check_at"])
+	next_wage_at = ExactFloat.decode(data["next_wage_at"])

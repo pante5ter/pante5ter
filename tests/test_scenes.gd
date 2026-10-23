@@ -18,6 +18,7 @@ func after_each() -> void:
 func _open(path: String) -> Level:
 	var level := (load(path) as PackedScene).instantiate() as Level
 	add_child_autoqfree(level)
+	await wait_until(level.is_navigation_ready, 5.0)
 	await wait_physics_frames(SETTLE_FRAMES)
 	Game.is_running = false
 	return level

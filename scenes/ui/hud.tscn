@@ -24,20 +24,21 @@ corner_radius_top_right = 4
 corner_radius_bottom_right = 4
 corner_radius_bottom_left = 4
 
-[node name="Hud" type="CanvasLayer" node_paths=PackedStringArray("money_label", "time_label", "stock_label", "worker_label", "message_label", "hover_label")]
+[node name="Hud" type="CanvasLayer" node_paths=PackedStringArray("money_label", "time_label", "stock_label", "worker_label", "objective_label", "message_label", "hover_label")]
 script = ExtResource("1_hud")
 money_label = NodePath("Stats/Rows/Money")
 time_label = NodePath("Stats/Rows/Time")
 stock_label = NodePath("Stats/Rows/Stock")
 worker_label = NodePath("Stats/Rows/Worker")
+objective_label = NodePath("Stats/Rows/Objective")
 message_label = NodePath("Message")
 hover_label = NodePath("Hover")
 
 [node name="Stats" type="PanelContainer" parent="."]
 offset_left = 12.0
 offset_top = 12.0
-offset_right = 312.0
-offset_bottom = 132.0
+offset_right = 392.0
+offset_bottom = 160.0
 mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
 
@@ -66,6 +67,13 @@ layout_mode = 2
 theme_override_colors/font_color = Color(0.75, 0.85, 0.75, 1)
 theme_override_font_sizes/font_size = 16
 text = "Работника нет"
+
+[node name="Objective" type="Label" parent="Stats/Rows"]
+custom_minimum_size = Vector2(360, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.96, 0.84, 0.45, 1)
+theme_override_font_sizes/font_size = 15
+autowrap_mode = 3
 
 [node name="Controls" type="Label" parent="."]
 anchors_preset = 1

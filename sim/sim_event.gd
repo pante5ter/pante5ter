@@ -12,7 +12,7 @@ func to_dict() -> Dictionary:
 	return {
 		"seq": seq,
 		"type": type,
-		"game_time": game_time,
+		"game_time": ExactFloat.encode(game_time),
 		"actors": Array(actors),
 		"data": data,
 	}
@@ -22,7 +22,7 @@ static func from_dict(source: Dictionary) -> SimEvent:
 	var event := SimEvent.new()
 	event.seq = int(source["seq"])
 	event.type = String(source["type"])
-	event.game_time = float(source["game_time"])
+	event.game_time = ExactFloat.decode(source["game_time"])
 	event.actors = PackedStringArray(source["actors"] as Array)
 	event.data = source["data"] as Dictionary
 	return event

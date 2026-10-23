@@ -5,6 +5,7 @@ const DEFAULT_SAVE_PATH: String = "user://save.json"
 
 var sim: SimState
 var is_running: bool = false
+var save_path: String = DEFAULT_SAVE_PATH
 var _balance: BalanceConfig
 
 
@@ -21,9 +22,11 @@ func new_game(seed_value: int) -> void:
 	sim = SimState.new(_get_balance(), seed_value)
 
 
-func save_game(path: String = DEFAULT_SAVE_PATH) -> Error:
+func save_game(path: String = "") -> Error:
 	if sim == null:
 		return ERR_UNCONFIGURED
+	if path.is_empty():
+		path = save_path
 	var temp_path := path + ".tmp"
 	var file := FileAccess.open(temp_path, FileAccess.WRITE)
 	if file == null:
@@ -33,7 +36,9 @@ func save_game(path: String = DEFAULT_SAVE_PATH) -> Error:
 	return DirAccess.rename_absolute(temp_path, path)
 
 
-func load_game(path: String = DEFAULT_SAVE_PATH) -> Error:
+func load_game(path: String = "") -> Error:
+	if path.is_empty():
+		path = save_path
 	if not FileAccess.file_exists(path):
 		return ERR_FILE_NOT_FOUND
 	var text := FileAccess.get_file_as_string(path)

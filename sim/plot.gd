@@ -33,16 +33,16 @@ func to_dict() -> Dictionary:
 	return {
 		"id": id,
 		"stage": stage_name(stage),
-		"progress_seconds": progress_seconds,
-		"water_seconds": water_seconds,
-		"dry_seconds": dry_seconds,
+		"progress_seconds": ExactFloat.encode(progress_seconds),
+		"water_seconds": ExactFloat.encode(water_seconds),
+		"dry_seconds": ExactFloat.encode(dry_seconds),
 	}
 
 
 static func from_dict(data: Dictionary) -> Plot:
 	var plot := Plot.new(int(data["id"]))
 	plot.stage = Stage.get(String(data["stage"]).to_upper(), Stage.EMPTY) as Stage
-	plot.progress_seconds = float(data["progress_seconds"])
-	plot.water_seconds = float(data["water_seconds"])
-	plot.dry_seconds = float(data["dry_seconds"])
+	plot.progress_seconds = ExactFloat.decode(data["progress_seconds"])
+	plot.water_seconds = ExactFloat.decode(data["water_seconds"])
+	plot.dry_seconds = ExactFloat.decode(data["dry_seconds"])
 	return plot

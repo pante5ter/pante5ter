@@ -3,10 +3,13 @@ extends Interactable
 
 
 func hover_text() -> String:
-	var count := Game.sim.inventory.count()
-	if count == 0:
+	var products := Game.sim.inventory.products()
+	if products.is_empty():
 		return "Покупатель — пока нечего продавать"
-	return "Покупатель — продать урожай (%d шт.)" % count
+	var total := 0
+	for product: Product in products:
+		total += Game.sim.economy.price_for(product.quality)
+	return "Покупатель — продать урожай (%d шт. за %s)" % [products.size(), UiText.money(total)]
 
 
 func interact(level: Level) -> void:

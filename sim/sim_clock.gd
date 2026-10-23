@@ -34,8 +34,8 @@ func hour_of_day() -> float:
 
 
 func to_dict() -> Dictionary:
-	return {"elapsed_game_seconds": elapsed_game_seconds}
+	return {"elapsed_game_seconds": ExactFloat.encode(elapsed_game_seconds)}
 
 
 func load_dict(data: Dictionary) -> void:
-	elapsed_game_seconds = float(data["elapsed_game_seconds"])
+	elapsed_game_seconds = ExactFloat.decode(data["elapsed_game_seconds"])

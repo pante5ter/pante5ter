@@ -22,6 +22,10 @@ func is_busy() -> bool:
 	return _busy
 
 
+func expect_spawn(spawn: String) -> void:
+	_pending_spawn = spawn
+
+
 func take_spawn() -> String:
 	var spawn := _pending_spawn
 	_pending_spawn = ""
@@ -32,7 +36,7 @@ func go_to(scene_path: String, spawn: String) -> void:
 	if _busy:
 		return
 	_busy = true
-	_pending_spawn = spawn
+	expect_spawn(spawn)
 	_overlay.mouse_filter = Control.MOUSE_FILTER_STOP
 	await _fade_to(1.0)
 	get_tree().change_scene_to_file(scene_path)

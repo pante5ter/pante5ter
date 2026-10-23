@@ -178,3 +178,24 @@ func test_from_json_rejects_unknown_version() -> void:
 	var data := SimState.new(_balance, 1).to_dict()
 	data["save_version"] = SimState.SAVE_VERSION + 1
 	assert_null(SimState.from_json(JSON.stringify(data), _balance))
+
+
+func test_save_round_trip_is_exact_for_awkward_times() -> void:
+	for step: int in 200:
+		var state := SimState.new(_balance, 3)
+		_apply_ok(state, AdvanceTimeCommand.new(0.0137 * float(step + 1)))
+		_apply_ok(state, PlantCommand.new(0))
+		_apply_ok(state, WaterCommand.new(0))
+		_apply_ok(state, AdvanceTimeCommand.new(0.731 * float(step + 1)))
+		var saved := state.to_json()
+		var loaded := SimState.from_json(saved, _balance)
+		if loaded.to_json() != saved:
+			fail_test("save drifted after step %d" % step)
+			return
+	pass_test("all round trips exact")
+
+
+func test_from_json_rejects_unreadable_clock() -> void:
+	var data := SimState.new(_balance, 1).to_dict()
+	data["clock"] = {"elapsed_game_seconds": 12.5}
+	assert_null(SimState.from_json(JSON.stringify(data), _balance))

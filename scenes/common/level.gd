@@ -11,6 +11,8 @@ const RAY_LENGTH: float = 500.0
 @export var spawn_points: Node3D
 @export var default_spawn: String = "start"
 
+var _navigation_ready: bool = false
+
 
 func _ready() -> void:
 	nav_region.bake_navigation_mesh(false)
@@ -18,6 +20,17 @@ func _ready() -> void:
 	jack.global_position = spawn
 	camera_rig.focus(spawn)
 	Game.is_running = true
+
+
+func is_navigation_ready() -> bool:
+	return _navigation_ready
+
+
+func _refresh_navigation_ready() -> void:
+	var map := get_world_3d().navigation_map
+	if NavigationServer3D.map_get_iteration_id(map) == 0:
+		return
+	_navigation_ready = NavigationServer3D.map_get_closest_point_owner(map, jack.global_position) == nav_region.get_rid()
 
 
 func show_message(text: String) -> void:
@@ -28,7 +41,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	var click := event as InputEventMouseButton
 	if click == null or not click.pressed or click.button_index != MOUSE_BUTTON_LEFT:
 		return
-	if SceneRouter.is_busy():
+	if SceneRouter.is_busy() or not _navigation_ready:
 		return
 	var hit := _pick(click.position)
 	if hit.is_empty():
@@ -42,6 +55,8 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _physics_process(_delta: float) -> void:
+	if not _navigation_ready:
+		_refresh_navigation_ready()
 	var hit := _pick(get_viewport().get_mouse_position())
 	var interactable: Interactable = null
 	if not hit.is_empty():

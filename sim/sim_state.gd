@@ -1,7 +1,7 @@
 class_name SimState
 extends RefCounted
 
-const SAVE_VERSION: int = 2
+const SAVE_VERSION: int = 3
 const REQUIRED_SAVE_KEYS: Array[String] = ["save_version", "clock", "rng", "economy", "inventory", "plots", "workers", "event_log"]
 
 var config: BalanceConfig
@@ -89,6 +89,8 @@ static func from_json(text: String, balance: BalanceConfig) -> SimState:
 		return null
 	var state := SimState.new(balance, 0)
 	state._load_dict(data)
+	if is_nan(state.clock.elapsed_game_seconds):
+		return null
 	return state
 
 

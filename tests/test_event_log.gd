@@ -24,6 +24,19 @@ func test_seq_increments_in_order() -> void:
 	assert_eq(event_log.last().type, "c")
 
 
+func test_since_returns_only_newer_events() -> void:
+	var event_log := EventLog.new()
+	event_log.record("a", 0.0, PackedStringArray())
+	event_log.record("b", 1.0, PackedStringArray())
+	event_log.record("c", 2.0, PackedStringArray())
+	var types: Array[String] = []
+	for event: SimEvent in event_log.since(1):
+		types.append(event.type)
+	assert_eq(types, ["b", "c"])
+	assert_eq(event_log.since(3).size(), 0)
+	assert_eq(event_log.since(-4).size(), 3)
+
+
 func test_of_type_filters() -> void:
 	var event_log := EventLog.new()
 	event_log.record(EventLog.PLOT_WATERED, 0.0, PackedStringArray())

@@ -38,6 +38,13 @@ func of_type(type: String) -> Array[SimEvent]:
 	return matching
 
 
+func since(seq: int) -> Array[SimEvent]:
+	var result: Array[SimEvent] = []
+	for index: int in range(maxi(seq, 0), _entries.size()):
+		result.append(_entries[index])
+	return result
+
+
 func size() -> int:
 	return _entries.size()
 

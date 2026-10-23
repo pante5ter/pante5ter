@@ -1,0 +1,103 @@
+extends GutTest
+
+const BALANCE_PATH: String = "res://content/balance.tres"
+const FALLBACK_ERROR: String = "Не получилось."
+
+var _balance: BalanceConfig
+
+
+func before_all() -> void:
+	_balance = load(BALANCE_PATH) as BalanceConfig
+
+
+func _new_state() -> SimState:
+	return SimState.new(_balance, 1)
+
+
+func _real_seconds_for_game_hours(hours: float) -> float:
+	return hours * SimClock.GAME_SECONDS_PER_HOUR * _balance.real_seconds_per_game_day / SimClock.GAME_SECONDS_PER_DAY
+
+
+func test_every_stage_has_a_name() -> void:
+	for stage: int in Plot.Stage.values():
+		assert_ne(UiText.stage(stage as Plot.Stage), "?", "stage %d has no name" % stage)
+
+
+func test_every_command_error_has_a_text() -> void:
+	var script := CommandResult.new().get_script() as Script
+	var constants: Dictionary = script.get_script_constant_map()
+	assert_gt(constants.size(), 0)
+	for code: Variant in constants.values():
+		if code is String:
+			assert_ne(UiText.error(code as String), FALLBACK_ERROR, "no text for %s" % code)
+
+
+func test_clock_shows_day_from_one_and_minutes() -> void:
+	var clock := SimClock.new(_balance.real_seconds_per_game_day)
+	assert_eq(UiText.clock(clock), "День 1 · 00:00")
+	clock.advance(SimClock.GAME_SECONDS_PER_DAY + 7.5 * SimClock.GAME_SECONDS_PER_HOUR)
+	assert_eq(UiText.clock(clock), "День 2 · 07:30")
+
+
+func test_capitalized_handles_cyrillic_and_empty() -> void:
+	assert_eq(UiText.capitalized("готово к сбору"), "Готово к сбору")
+	assert_eq(UiText.capitalized(""), "")
+
+
+func test_worker_status_follows_the_worker() -> void:
+	var state := _new_state()
+	assert_eq(UiText.worker_status(state.workers), "Работника нет")
+	state.apply(HireWorkerCommand.new())
+	assert_string_contains(UiText.worker_status(state.workers), "ждёт работы")
+	state.apply(AdvanceTimeCommand.new(0.0))
+	assert_string_contains(UiText.worker_status(state.workers), "сажает")
+
+
+func test_objective_walks_the_player_through_the_loop() -> void:
+	var state := _new_state()
+	assert_string_contains(UiText.objective(state), "посади")
+	state.apply(PlantCommand.new(0))
+	assert_string_contains(UiText.objective(state), "Полей")
+	state.apply(WaterCommand.new(0))
+	assert_string_contains(UiText.objective(state), "Найми")
+	state.apply(HireWorkerCommand.new())
+	assert_string_contains(UiText.objective(state), "Жди")
+
+
+func test_objective_points_at_harvest_and_then_the_buyer() -> void:
+	var state := _new_state()
+	var strain := _balance.strain
+	state.apply(PlantCommand.new(0))
+	var hours_left := strain.seed_hours + strain.sprout_hours + strain.bush_hours
+	while hours_left > 0.0:
+		state.apply(WaterCommand.new(0))
+		var step := minf(hours_left, strain.water_capacity_hours)
+		state.apply(AdvanceTimeCommand.new(_real_seconds_for_game_hours(step)))
+		hours_left -= step
+	assert_string_contains(UiText.objective(state), "Собери")
+	state.apply(HarvestCommand.new(0))
+	assert_string_contains(UiText.objective(state), "покупателю")
+
+
+func test_objective_skips_hiring_when_wage_is_unaffordable() -> void:
+	var balance := _balance.duplicate() as BalanceConfig
+	balance.starting_money = balance.worker.daily_wage - 1
+	var state := SimState.new(balance, 1)
+	state.apply(PlantCommand.new(0))
+	state.apply(WaterCommand.new(0))
+	assert_string_contains(UiText.objective(state), "Жди")
+
+
+func test_announcements_cover_worker_and_plot_news() -> void:
+	var state := _new_state()
+	var event_log := state.event_log
+	var quit := event_log.record(EventLog.WORKER_QUIT, 0.0, PackedStringArray([Workers.ACTOR]), {"reason": "unpaid", "money": 0})
+	var paid := event_log.record(EventLog.WORKER_PAID, 0.0, PackedStringArray([Workers.ACTOR]), {"wage": 150, "money": 10})
+	var dried := event_log.record(EventLog.PLOT_DRIED_OUT, 0.0, PackedStringArray(), {"plot_id": 2})
+	var ripe := event_log.record(EventLog.PLOT_STAGE_CHANGED, 0.0, PackedStringArray(), {"plot_id": 0, "stage": "ready"})
+	var sprout := event_log.record(EventLog.PLOT_STAGE_CHANGED, 0.0, PackedStringArray(), {"plot_id": 0, "stage": "sprout"})
+	assert_string_contains(UiText.announcement(quit, state), "ушёл")
+	assert_string_contains(UiText.announcement(paid, state), "£150")
+	assert_string_contains(UiText.announcement(dried, state), "Грядка 3")
+	assert_string_contains(UiText.announcement(ripe, state), "созрела")
+	assert_eq(UiText.announcement(sprout, state), "")

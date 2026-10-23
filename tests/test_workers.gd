@@ -175,3 +175,20 @@ func test_player_taking_the_workers_plot_is_harmless() -> void:
 	assert_eq(_events_by(state, EventLog.PLOT_PLANTED, Workers.ACTOR).filter(
 		func(event: SimEvent) -> bool: return int(event.data["plot_id"]) == contested).size(), 0)
 	assert_true(state.workers.hired)
+
+
+func test_thirty_days_with_a_worker_stay_profitable_and_bounded() -> void:
+	var state := SimState.new(_balance, 11)
+	state.apply(HireWorkerCommand.new())
+	var lowest_money := state.economy.money
+	for day: int in 30:
+		_advance_hours(state, 24.0, 1.0)
+		lowest_money = mini(lowest_money, state.economy.money)
+		for product: Product in state.inventory.products():
+			state.apply(SellCommand.new(product.id))
+	var profit_per_day := float(state.economy.money - _balance.starting_money) / 30.0
+	gut.p("worker economy: %.0f per game day, %d events in 30 days" % [profit_per_day, state.event_log.size()])
+	assert_true(state.workers.hired, "worker must not quit while the farm pays him")
+	assert_true(lowest_money >= 0)
+	assert_gt(profit_per_day, float(_balance.worker.daily_wage))
+	assert_lt(state.event_log.size(), 30 * 200, "event log must not explode")
