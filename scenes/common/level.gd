@@ -1,7 +1,8 @@
 class_name Level
 extends Node3D
 
-const CLICK_MASK: int = 0b11
+const CLICK_MASK: int = 0b111
+const DRAG_THRESHOLD: float = 8.0
 const RAY_LENGTH: float = 500.0
 
 @export var nav_region: NavigationRegion3D
@@ -12,6 +13,9 @@ const RAY_LENGTH: float = 500.0
 @export var default_spawn: String = "start"
 
 var _navigation_ready: bool = false
+var _pressing: bool = false
+var _dragging: bool = false
+var _press_position: Vector2 = Vector2.ZERO
 
 
 func _ready() -> void:
@@ -37,13 +41,42 @@ func show_message(text: String) -> void:
 	hud.show_message(text)
 
 
+func rebake_navigation() -> void:
+	nav_region.bake_navigation_mesh(false)
+
+
 func _unhandled_input(event: InputEvent) -> void:
-	var click := event as InputEventMouseButton
-	if click == null or not click.pressed or click.button_index != MOUSE_BUTTON_LEFT:
+	var motion := event as InputEventMouseMotion
+	if motion != null and _pressing:
+		if not _dragging and motion.position.distance_to(_press_position) > DRAG_THRESHOLD:
+			_dragging = true
+		if _dragging:
+			camera_rig.drag(motion.relative)
+			get_viewport().set_input_as_handled()
+		return
+	var button := event as InputEventMouseButton
+	if button == null or button.button_index != MOUSE_BUTTON_LEFT:
+		return
+	get_viewport().set_input_as_handled()
+	if button.pressed:
+		_pressing = true
+		_dragging = false
+		_press_position = button.position
+		return
+	var was_click := _pressing and not _dragging
+	_pressing = false
+	_dragging = false
+	if was_click:
+		_click(button.position)
+
+
+func _click(screen_position: Vector2) -> void:
+	if hud.is_blocking_world():
+		hud.close_actions()
 		return
 	if SceneRouter.is_busy() or not _navigation_ready:
 		return
-	var hit := _pick(click.position)
+	var hit := _pick(screen_position)
 	if hit.is_empty():
 		return
 	var interactable := hit["collider"] as Interactable
@@ -51,7 +84,6 @@ func _unhandled_input(event: InputEvent) -> void:
 		jack.move_to(interactable.approach_position(), interactable.interact.bind(self))
 	else:
 		jack.move_to(hit["position"] as Vector3)
-	get_viewport().set_input_as_handled()
 
 
 func _physics_process(_delta: float) -> void:

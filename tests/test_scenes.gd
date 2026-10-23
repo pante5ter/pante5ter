@@ -32,6 +32,23 @@ func _flat_distance(a: Vector3, b: Vector3) -> float:
 	return Vector2(a.x, a.z).distance_to(Vector2(b.x, b.z))
 
 
+func _hours_to_real(hours: float) -> float:
+	return hours * Game.sim.config.real_seconds_per_game_day / 24.0
+
+
+func _choose(level: Level, label: String) -> void:
+	assert_true(level.hud.action_menu.visible, "a menu should be open before choosing '%s'" % label)
+	assert_true(level.hud.action_menu.choose_label(label), "no action starting with '%s'" % label)
+
+
+func _grow_to_ready(plot_id: int) -> void:
+	var guard := 0
+	while Game.sim.grow.plot(plot_id).stage != Plot.Stage.READY and guard < 200:
+		Game.sim.apply(WaterCommand.new(plot_id))
+		Game.sim.apply(AdvanceTimeCommand.new(_hours_to_real(0.25)))
+		guard += 1
+
+
 func test_field_bakes_navigation_and_places_jack_at_start() -> void:
 	var level := await _open(FIELD_SCENE)
 	assert_gt(level.nav_region.navigation_mesh.get_polygon_count(), 0)
@@ -55,65 +72,126 @@ func test_plantation_shows_one_bed_per_plot() -> void:
 	assert_gt(level.nav_region.navigation_mesh.get_polygon_count(), 0)
 
 
-func test_clicking_beds_plants_then_waters() -> void:
+func test_bed_menu_plants_waters_and_cares() -> void:
 	var level := await _open(PLANTATION_SCENE)
 	var bed := _plots_grid(level).view_for(0)
 	bed.interact(level)
+	_choose(level, "Посадить «%s»" % Game.sim.config.strain.display_name)
 	assert_eq(Game.sim.grow.plot(0).stage, Plot.Stage.SEED)
-	assert_eq(Game.sim.grow.plot(0).water_seconds, 0.0)
 	bed.interact(level)
+	_choose(level, "Полить")
 	assert_gt(Game.sim.grow.plot(0).water_seconds, 0.0)
-	assert_eq(Game.sim.event_log.last().type, EventLog.PLOT_WATERED)
+	bed.interact(level)
+	var fertilize := level.hud.action_menu.actions().filter(func(action: UiAction) -> bool: return action.label.begins_with("Удобрить"))
+	assert_eq(fertilize.size(), 1)
+	assert_false((fertilize[0] as UiAction).enabled, "no fertilizer bought yet")
 
 
-func test_clicking_a_ripe_bed_harvests_it() -> void:
+func test_bed_menu_offers_premium_only_with_seeds() -> void:
 	var level := await _open(PLANTATION_SCENE)
-	var strain := Game.sim.config.strain
-	var growth_hours := strain.seed_hours + strain.sprout_hours + strain.bush_hours
+	var premium := Game.sim.config.extra_strains[0]
+	var bed := _plots_grid(level).view_for(2)
+	var before := bed.actions(level).filter(func(action: UiAction) -> bool: return action.label.contains(premium.display_name))
+	assert_false((before[0] as UiAction).enabled)
+	Game.sim.economy.earn(1000)
+	Game.sim.apply(BuyCommand.new(Supplies.seed_item(premium.id), 1))
+	Game.sim.apply(AdvanceTimeCommand.new(_hours_to_real(Game.sim.config.delivery_hours + 0.01)))
+	bed.interact(level)
+	_choose(level, "Посадить «%s»" % premium.display_name)
+	assert_eq(Game.sim.grow.plot(2).strain_id, premium.id)
+
+
+func test_ripe_bed_menu_harvests() -> void:
+	var level := await _open(PLANTATION_SCENE)
 	Game.sim.apply(PlantCommand.new(1))
-	var hours_left := growth_hours
-	while hours_left > 0.0:
-		Game.sim.apply(WaterCommand.new(1))
-		var step := minf(hours_left, strain.water_capacity_hours)
-		Game.sim.apply(AdvanceTimeCommand.new(step * Game.sim.config.real_seconds_per_game_day / 24.0))
-		hours_left -= step
-	assert_eq(Game.sim.grow.plot(1).stage, Plot.Stage.READY)
+	_grow_to_ready(1)
 	_plots_grid(level).view_for(1).interact(level)
+	_choose(level, "Собрать урожай")
 	assert_eq(Game.sim.grow.plot(1).stage, Plot.Stage.EMPTY)
 	assert_eq(Game.sim.inventory.count(), 1)
 
 
-func test_buyer_sells_everything_on_hand() -> void:
+func test_buying_a_bed_adds_it_to_the_plantation() -> void:
+	var level := await _open(PLANTATION_SCENE)
+	var before := _plots_grid(level).views().size()
+	Game.sim.economy.earn(Game.sim.config.plot_price)
+	assert_true(Game.sim.apply(BuyPlotCommand.new()).ok)
+	await wait_process_frames(2)
+	assert_eq(_plots_grid(level).views().size(), before + 1)
+
+
+func test_stash_takes_a_matching_order_and_the_courier_shows_up() -> void:
 	var level := await _open(FIELD_SCENE)
-	Game.sim.inventory.create(Game.sim.config.strain.id, 40)
-	Game.sim.inventory.create(Game.sim.config.strain.id, 80)
+	Game.sim.apply(AdvanceTimeCommand.new(_hours_to_real(Game.sim.config.orders.first_order_hours + 0.01)))
+	var order := Game.sim.orders.all()[0]
+	for index: int in order.quantity:
+		Game.sim.inventory.create(Game.sim.config.strain.id, 100)
+	var stash := level.get_node("NavRegion/Stash") as Stash
+	stash.interact(level)
+	_choose(level, "Положить заказ #%d" % order.id)
+	assert_eq(Game.sim.orders.find(order.id).status, Order.Status.DROPPED)
+	var courier := level.get_node("Courier") as CourierView
+	await wait_process_frames(2)
+	assert_false(courier.visible, "the courier comes only shortly before pickup")
+	var pickup_in := Game.sim.orders.find(order.id).pickup_at - Game.sim.clock.elapsed_game_seconds
+	Game.sim.apply(AdvanceTimeCommand.new(_hours_to_real(pickup_in / SimClock.GAME_SECONDS_PER_HOUR - CourierView.WALK_HOURS / 2.0)))
+	await wait_process_frames(2)
+	assert_true(courier.visible)
 	var money := Game.sim.economy.money
-	(level.get_node("NavRegion/Buyer") as Buyer).interact(level)
-	assert_eq(Game.sim.inventory.count(), 0)
-	assert_eq(Game.sim.economy.money, money + Game.sim.economy.price_for(40) + Game.sim.economy.price_for(80))
-	assert_eq(Game.sim.event_log.of_type(EventLog.PRODUCT_SOLD).size(), 2)
+	Game.sim.apply(AdvanceTimeCommand.new(_hours_to_real(CourierView.WALK_HOURS)))
+	assert_eq(Game.sim.economy.money, money + order.reward)
 
 
-func test_candidate_gets_hired_and_leaves_the_field() -> void:
+func test_stash_lists_orders_it_cannot_fill_as_disabled() -> void:
+	var level := await _open(FIELD_SCENE)
+	Game.sim.apply(AdvanceTimeCommand.new(_hours_to_real(Game.sim.config.orders.first_order_hours + 0.01)))
+	var actions := (level.get_node("NavRegion/Stash") as Stash).actions(level)
+	assert_eq(actions.size(), 1)
+	assert_false(actions[0].enabled)
+
+
+func test_candidate_asks_before_hiring_and_then_walks_to_the_container() -> void:
 	var level := await _open(FIELD_SCENE)
 	var candidate := level.get_node("NavRegion/Candidate") as WorkerCandidate
 	candidate.interact(level)
+	assert_false(Game.sim.workers.hired, "opening the menu must not hire")
+	_choose(level, "Нанять")
 	assert_true(Game.sim.workers.hired)
 	await wait_process_frames(2)
 	assert_false(candidate.visual.visible)
 	assert_eq(candidate.collision_layer, 0)
+	var walkers := level.get_node("NavRegion").get_children().filter(func(node: Node) -> bool: return node is Walker)
+	assert_eq(walkers.size(), 1, "the new hand walks off visibly")
+	var walker := walkers[0] as Walker
+	var target := (level.get_node("NavRegion/Container/Approach") as Node3D).global_position
+	var start := _flat_distance(walker.global_position, target)
+	await wait_seconds(1.0)
+	assert_lt(_flat_distance(walker.global_position, target), start)
 
 
-func test_hired_worker_walks_to_his_bed() -> void:
+func test_fresh_hire_arrives_from_the_lift_and_walks_to_his_bed() -> void:
 	Game.sim.apply(HireWorkerCommand.new())
 	Game.sim.apply(AdvanceTimeCommand.new(0.0))
 	var level := await _open(PLANTATION_SCENE)
 	var worker := level.get_node("Worker") as WorkerView
 	var bed := _plots_grid(level).view_for(Game.sim.workers.task_plot_id)
 	assert_true(worker.visible)
-	var start_distance := _flat_distance(worker.global_position, bed.approach_position())
-	await wait_until(func() -> bool: return _flat_distance(worker.global_position, bed.approach_position()) < 1.2, 6.0)
-	assert_lt(_flat_distance(worker.global_position, bed.approach_position()), minf(start_distance, 1.2))
+	await wait_until(func() -> bool: return _flat_distance(worker.global_position, bed.approach_position()) < 1.2, 8.0)
+	assert_lt(_flat_distance(worker.global_position, bed.approach_position()), 1.2)
+
+
+func test_talking_to_the_worker_can_fire_him() -> void:
+	Game.sim.apply(HireWorkerCommand.new())
+	var level := await _open(PLANTATION_SCENE)
+	await wait_process_frames(2)
+	var talk := level.get_node("Worker/Talk") as WorkerTalk
+	assert_eq(talk.collision_layer, WorkerView.WORKER_LAYER)
+	talk.interact(level)
+	_choose(level, "Уволить")
+	assert_false(Game.sim.workers.hired)
+	await wait_process_frames(2)
+	assert_eq(talk.collision_layer, 0)
+	assert_false((level.get_node("Worker") as WorkerView).visible)
 
 
 func test_worker_is_hidden_until_hired() -> void:

@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://scenes/common/level.gd" id="1_level"]
 [ext_resource type="Script" path="res://scenes/common/elevator.gd" id="2_elevator"]
-[ext_resource type="Script" path="res://scenes/field/buyer.gd" id="3_buyer"]
+[ext_resource type="Script" path="res://scenes/field/stash.gd" id="3_stash"]
 [ext_resource type="Script" path="res://scenes/field/worker_candidate.gd" id="4_candidate"]
 [ext_resource type="Script" path="res://scenes/field/day_night.gd" id="5_day_night"]
 [ext_resource type="PackedScene" path="res://scenes/actors/jack.tscn" id="6_jack"]
@@ -10,8 +10,11 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/hud.tscn" id="8_hud"]
 [ext_resource type="Script" path="res://scenes/common/model_row.gd" id="9_row"]
 [ext_resource type="Script" path="res://scenes/common/character_model.gd" id="10_model"]
-[ext_resource type="PackedScene" path="res://scenes/actors/standing_person.tscn" id="11_person"]
-[ext_resource type="PackedScene" path="res://assets/kenney_mini_characters/character-male-c.glb" id="12_worker_mesh"]
+[ext_resource type="Script" path="res://scenes/field/courier_view.gd" id="11_courier"]
+[ext_resource type="PackedScene" path="res://assets/kenney_mini_characters/character-male-d.glb" id="23_courier_mesh"]
+[ext_resource type="PackedScene" path="res://assets/kenney_survival_kit/chest.glb" id="24_chest"]
+[ext_resource type="PackedScene" path="res://scenes/actors/farmhand.tscn" id="25_farmhand"]
+[ext_resource type="PackedScene" path="res://assets/kenney_mini_characters/character-male-b.glb" id="12_worker_mesh"]
 [ext_resource type="PackedScene" path="res://assets/kenney_nature_kit/tree_oak.glb" id="13_tree_oak"]
 [ext_resource type="PackedScene" path="res://assets/kenney_nature_kit/tree_default.glb" id="14_tree_default"]
 [ext_resource type="PackedScene" path="res://assets/kenney_nature_kit/tree_detailed.glb" id="15_tree_detailed"]
@@ -36,6 +39,7 @@ geometry_parsed_geometry_type = 1
 agent_radius = 0.5
 agent_height = 1.5
 agent_max_climb = 0.25
+geometry_collision_mask = 3
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_ground"]
 size = Vector3(70, 1, 70)
@@ -110,6 +114,9 @@ size = Vector3(1.9, 0.05, 0.3)
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_shelf"]
 albedo_color = Color(0.5, 0.38, 0.24, 1)
 roughness = 1.0
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_stash"]
+size = Vector3(1.2, 0.9, 0.9)
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_person"]
 radius = 0.35
@@ -406,37 +413,46 @@ outline_size = 10
 [node name="Approach" type="Marker3D" parent="NavRegion/Container"]
 position = Vector3(0, 0, 4.4)
 
-[node name="Buyer" type="StaticBody3D" parent="NavRegion" node_paths=PackedStringArray("approach")]
-position = Vector3(-14, 0, 7.2)
+[node name="Stash" type="StaticBody3D" parent="NavRegion" node_paths=PackedStringArray("approach")]
+position = Vector3(-25, 0, -3)
 collision_layer = 2
 collision_mask = 0
-script = ExtResource("3_buyer")
+script = ExtResource("3_stash")
 approach = NodePath("Approach")
 
-[node name="Shape" type="CollisionShape3D" parent="NavRegion/Buyer"]
-position = Vector3(0, 0.9, 0)
-shape = SubResource("CapsuleShape3D_person")
+[node name="Shape" type="CollisionShape3D" parent="NavRegion/Stash"]
+position = Vector3(0, 0.45, 0)
+shape = SubResource("BoxShape3D_stash")
 
-[node name="Person" parent="NavRegion/Buyer" instance=ExtResource("11_person")]
+[node name="Chest" parent="NavRegion/Stash" instance=ExtResource("24_chest")]
+transform = Transform3D(3.5, 0, 0, 0, 3.5, 0, 0, 0, 3.5, 0, 0, 0)
 
-[node name="Label" type="Label3D" parent="NavRegion/Buyer"]
-position = Vector3(0, 2.4, 0)
+[node name="BushA" parent="NavRegion/Stash" instance=ExtResource("22_small_bush")]
+transform = Transform3D(5, 0, 0, 0, 5, 0, 0, 0, 5, -1.1, 0, -0.6)
+
+[node name="BushB" parent="NavRegion/Stash" instance=ExtResource("16_bush")]
+transform = Transform3D(5, 0, 0, 0, 5, 0, 0, 0, 5, 1.0, 0, -0.9)
+
+[node name="Label" type="Label3D" parent="NavRegion/Stash"]
+position = Vector3(0, 2.0, 0)
 pixel_size = 0.008
 billboard = 1
 no_depth_test = true
-text = "Покупатель"
+text = "Тайник"
 font_size = 40
 outline_size = 10
 
-[node name="Approach" type="Marker3D" parent="NavRegion/Buyer"]
-position = Vector3(0, 0, -1.5)
+[node name="Approach" type="Marker3D" parent="NavRegion/Stash"]
+position = Vector3(1.6, 0, 0.8)
 
-[node name="Candidate" type="StaticBody3D" parent="NavRegion" node_paths=PackedStringArray("visual", "approach")]
+[node name="Candidate" type="StaticBody3D" parent="NavRegion" node_paths=PackedStringArray("visual", "leave_target", "approach")]
 position = Vector3(-7, 0, 7.2)
 collision_layer = 2
 collision_mask = 0
 script = ExtResource("4_candidate")
 visual = NodePath("Visual")
+leave_target = NodePath("../Container/Approach")
+walker_scene = ExtResource("25_farmhand")
 approach = NodePath("Approach")
 
 [node name="Shape" type="CollisionShape3D" parent="NavRegion/Candidate"]
@@ -466,6 +482,19 @@ transform = Transform3D(4, 0, 0, 0, 4, 0, 0, 0, 4, 1.2, 0, 0.4)
 [node name="Approach" type="Marker3D" parent="NavRegion/Candidate"]
 position = Vector3(0, 0, -1.5)
 
+[node name="Courier" type="Node3D" parent="." node_paths=PackedStringArray("road_point", "stash_point", "model")]
+visible = false
+script = ExtResource("11_courier")
+road_point = NodePath("../SpawnPoints/road_west")
+stash_point = NodePath("../NavRegion/Stash/Approach")
+model = NodePath("Model")
+
+[node name="Model" type="Node3D" parent="Courier"]
+transform = Transform3D(2.6, 0, 0, 0, 2.6, 0, 0, 0, 2.6, 0, 0, 0)
+script = ExtResource("10_model")
+
+[node name="Mesh" parent="Courier/Model" instance=ExtResource("23_courier_mesh")]
+
 [node name="Jack" parent="." instance=ExtResource("6_jack")]
 
 [node name="CameraRig" type="Node3D" parent="." node_paths=PackedStringArray("camera")]
@@ -485,5 +514,8 @@ position = Vector3(-20, 0, 4)
 
 [node name="from_elevator" type="Marker3D" parent="SpawnPoints"]
 position = Vector3(9, 0, -5.4)
+
+[node name="road_west" type="Marker3D" parent="SpawnPoints"]
+position = Vector3(-34, 0, 4)
 
 [node name="Hud" parent="." instance=ExtResource("8_hud")]

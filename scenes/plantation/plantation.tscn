@@ -30,6 +30,7 @@ geometry_parsed_geometry_type = 1
 agent_radius = 0.5
 agent_height = 1.5
 agent_max_climb = 0.25
+geometry_collision_mask = 3
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_floor"]
 size = Vector3(20, 1, 14)
@@ -87,15 +88,6 @@ size = Vector3(0.06, 2.4, 2.0)
 albedo_color = Color(0.62, 0.55, 0.25, 1)
 metallic = 0.4
 roughness = 0.6
-
-[sub_resource type="BoxMesh" id="BoxMesh_lamp"]
-size = Vector3(8, 0.1, 0.35)
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_lamp"]
-albedo_color = Color(1, 0.6, 0.95, 1)
-emission_enabled = true
-emission = Color(1, 0.45, 0.9, 1)
-emission_energy_multiplier = 2.0
 
 [node name="Plantation" type="Node3D" node_paths=PackedStringArray("nav_region", "jack", "camera_rig", "hud", "spawn_points")]
 script = ExtResource("1_level")
@@ -210,28 +202,6 @@ position = Vector3(1.5, 0, 0)
 script = ExtResource("3_grid")
 plot_scene = ExtResource("4_plot")
 
-[node name="LampNorth" type="MeshInstance3D" parent="."]
-position = Vector3(1.5, 2.9, -2)
-mesh = SubResource("BoxMesh_lamp")
-surface_material_override/0 = SubResource("StandardMaterial3D_lamp")
-
-[node name="LampSouth" type="MeshInstance3D" parent="."]
-position = Vector3(1.5, 2.9, 2)
-mesh = SubResource("BoxMesh_lamp")
-surface_material_override/0 = SubResource("StandardMaterial3D_lamp")
-
-[node name="GrowLightNorth" type="OmniLight3D" parent="."]
-position = Vector3(1.5, 2.6, -2)
-light_color = Color(1, 0.62, 0.92, 1)
-light_energy = 2.5
-omni_range = 8.0
-
-[node name="GrowLightSouth" type="OmniLight3D" parent="."]
-position = Vector3(1.5, 2.6, 2)
-light_color = Color(1, 0.62, 0.92, 1)
-light_energy = 2.5
-omni_range = 8.0
-
 [node name="ElevatorLight" type="OmniLight3D" parent="."]
 position = Vector3(-6.5, 2.6, 0)
 light_color = Color(1, 0.9, 0.75, 1)
@@ -275,9 +245,10 @@ transform = Transform3D(0.0, 0, -3.0, 0, 3.0, 0, 3.0, 0, 0.0, 6.6, 0, 6.0)
 
 [node name="Jack" parent="." instance=ExtResource("5_jack")]
 
-[node name="Worker" parent="." node_paths=PackedStringArray("plots_grid", "idle_spot") instance=ExtResource("6_worker")]
+[node name="Worker" parent="." node_paths=PackedStringArray("plots_grid", "idle_spot", "arrival_spot") instance=ExtResource("6_worker")]
 plots_grid = NodePath("../NavRegion/PlotsGrid")
 idle_spot = NodePath("../SpawnPoints/worker_idle")
+arrival_spot = NodePath("../SpawnPoints/from_elevator")
 
 [node name="CameraRig" type="Node3D" parent="." node_paths=PackedStringArray("camera")]
 rotation = Vector3(0, 0.785398, 0)
@@ -285,7 +256,7 @@ script = ExtResource("7_camera")
 camera = NodePath("Camera")
 zoom_min = 6.0
 zoom_max = 24.0
-bounds = Rect2(-9, -6, 18, 12)
+bounds = Rect2(-9, -7, 18, 14)
 
 [node name="Camera" type="Camera3D" parent="CameraRig"]
 projection = 1

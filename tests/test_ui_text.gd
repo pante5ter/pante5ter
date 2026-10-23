@@ -76,7 +76,7 @@ func test_objective_points_at_harvest_and_then_the_buyer() -> void:
 		hours_left -= step
 	assert_string_contains(UiText.objective(state), "Собери")
 	state.apply(HarvestCommand.new(0))
-	assert_string_contains(UiText.objective(state), "покупателю")
+	assert_string_contains(UiText.objective(state), "аказ", "with goods on hand the goal is about orders")
 
 
 func test_objective_skips_hiring_when_wage_is_unaffordable() -> void:
@@ -101,3 +101,30 @@ func test_announcements_cover_worker_and_plot_news() -> void:
 	assert_string_contains(UiText.announcement(dried, state), "Грядка 3")
 	assert_string_contains(UiText.announcement(ripe, state), "созрела")
 	assert_eq(UiText.announcement(sprout, state), "")
+
+
+func test_real_duration_shows_real_minutes_and_seconds() -> void:
+	var state := _new_state()
+	var one_real_minute := 60.0 * SimClock.GAME_SECONDS_PER_DAY / _balance.real_seconds_per_game_day
+	assert_eq(UiText.real_duration(one_real_minute * 2.5, state), "2:30")
+	assert_eq(UiText.real_duration(-5.0, state), "0:00")
+
+
+func test_order_and_delivery_news() -> void:
+	var state := _new_state()
+	var event_log := state.event_log
+	var received := event_log.record(EventLog.ORDER_RECEIVED, 0.0, PackedStringArray(), {"order_id": 4, "quantity": 3, "min_quality": 55, "reward": 420})
+	var paid := event_log.record(EventLog.ORDER_PAID, 0.0, PackedStringArray(), {"order_id": 4, "reward": 420, "money": 900})
+	var expired := event_log.record(EventLog.ORDER_EXPIRED, 0.0, PackedStringArray(), {"order_id": 5})
+	var delivered := event_log.record(EventLog.SUPPLY_DELIVERED, 0.0, PackedStringArray(), {"item": Supplies.FERTILIZER, "quantity": 2})
+	assert_string_contains(UiText.announcement(received, state), "£420")
+	assert_string_contains(UiText.announcement(paid, state), "Курьер")
+	assert_string_contains(UiText.announcement(expired, state), "#5")
+	assert_string_contains(UiText.announcement(delivered, state), "удобрение × 2")
+
+
+func test_item_names() -> void:
+	var state := _new_state()
+	var premium := _balance.extra_strains[0]
+	assert_eq(UiText.item_name(Supplies.FERTILIZER, state), "удобрение")
+	assert_eq(UiText.item_name(Supplies.seed_item(premium.id), state), "семена «%s»" % premium.display_name)

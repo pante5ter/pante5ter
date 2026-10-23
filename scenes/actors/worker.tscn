@@ -2,11 +2,17 @@
 
 [ext_resource type="Script" path="res://scenes/plantation/worker_view.gd" id="1_worker"]
 [ext_resource type="Script" path="res://scenes/common/character_model.gd" id="2_model"]
-[ext_resource type="PackedScene" path="res://assets/kenney_mini_characters/character-male-c.glb" id="3_mesh"]
+[ext_resource type="PackedScene" path="res://assets/kenney_mini_characters/character-male-b.glb" id="3_mesh"]
+[ext_resource type="Script" path="res://scenes/plantation/worker_talk.gd" id="4_talk"]
 
-[node name="Worker" type="Node3D" node_paths=PackedStringArray("status_label", "agent", "model")]
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_body"]
+radius = 0.45
+height = 1.8
+
+[node name="Worker" type="Node3D" node_paths=PackedStringArray("status_label", "talk", "agent", "model")]
 script = ExtResource("1_worker")
 status_label = NodePath("Status")
+talk = NodePath("Talk")
 speed = 3.0
 agent = NodePath("Agent")
 model = NodePath("Model")
@@ -20,6 +26,15 @@ scale = Vector3(2.6, 2.6, 2.6)
 script = ExtResource("2_model")
 
 [node name="Mesh" parent="Model" instance=ExtResource("3_mesh")]
+
+[node name="Talk" type="StaticBody3D" parent="."]
+collision_layer = 0
+collision_mask = 0
+script = ExtResource("4_talk")
+
+[node name="Shape" type="CollisionShape3D" parent="Talk"]
+position = Vector3(0, 0.9, 0)
+shape = SubResource("CapsuleShape3D_body")
 
 [node name="Status" type="Label3D" parent="."]
 position = Vector3(0, 2.4, 0)

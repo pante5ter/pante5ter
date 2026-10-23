@@ -32,12 +32,27 @@ func _open(path: String) -> Level:
 	return level
 
 
+func _mouse_button(level: Level, at: Vector2, pressed: bool) -> void:
+	var button := InputEventMouseButton.new()
+	button.button_index = MOUSE_BUTTON_LEFT
+	button.pressed = pressed
+	button.position = at
+	level._unhandled_input(button)
+
+
 func _click_world(level: Level, point: Vector3) -> void:
-	var click := InputEventMouseButton.new()
-	click.button_index = MOUSE_BUTTON_LEFT
-	click.pressed = true
-	click.position = level.camera_rig.camera.unproject_position(point)
-	level._unhandled_input(click)
+	var at := level.camera_rig.camera.unproject_position(point)
+	_mouse_button(level, at, true)
+	_mouse_button(level, at, false)
+
+
+func _drag(level: Level, from: Vector2, to: Vector2) -> void:
+	_mouse_button(level, from, true)
+	var motion := InputEventMouseMotion.new()
+	motion.position = to
+	motion.relative = to - from
+	level._unhandled_input(motion)
+	_mouse_button(level, to, false)
 
 
 func _press_key(target: Node, keycode: Key) -> void:
@@ -81,7 +96,7 @@ func test_every_field_interactable_can_be_reached_from_start() -> void:
 func test_every_bed_and_work_spot_can_be_reached_in_the_plantation() -> void:
 	var level := await _open(PLANTATION_SCENE)
 	var start := level.jack.global_position
-	var targets := _interactables(level)
+	var targets := _interactables(level).filter(func(target: Interactable) -> bool: return not target is WorkerTalk)
 	assert_eq(targets.size(), Game.sim.grow.plots().size() + 1)
 	for target: Interactable in targets:
 		_assert_reachable(level, start, target.approach_position(), target.name)
@@ -98,32 +113,86 @@ func test_clicking_the_ground_walks_jack_there() -> void:
 	assert_lt(_flat_distance(level.jack.global_position, target), REACH_TOLERANCE)
 
 
-func test_clicking_the_buyer_walks_over_and_sells() -> void:
+func test_clicking_the_stash_walks_over_and_opens_its_menu() -> void:
 	var level := await _open(FIELD_SCENE)
-	Game.sim.inventory.create(Game.sim.config.strain.id, 70)
-	var buyer := level.get_node("NavRegion/Buyer") as Buyer
-	assert_string_contains(buyer.hover_text(), UiText.money(Game.sim.economy.price_for(70)))
-	_click_world(level, buyer.global_position + Vector3(0.0, 0.9, 0.0))
-	await wait_until(func() -> bool: return Game.sim.inventory.count() == 0, WALK_TIMEOUT)
-	assert_eq(Game.sim.inventory.count(), 0)
-	assert_string_contains(level.hud.message_label.text, "Продано 1 шт.")
+	var stash := level.get_node("NavRegion/Stash") as Stash
+	_click_world(level, stash.global_position + Vector3(0.0, 0.4, 0.0))
+	await wait_until(func() -> bool: return level.hud.action_menu.visible, WALK_TIMEOUT)
+	assert_true(level.hud.action_menu.visible)
+	assert_lt(_flat_distance(level.jack.global_position, stash.approach_position()), REACH_TOLERANCE)
 
 
-func test_clicking_the_candidate_hires_him() -> void:
+func test_clicking_the_candidate_opens_a_hiring_menu() -> void:
 	var level := await _open(FIELD_SCENE)
 	var candidate := level.get_node("NavRegion/Candidate") as WorkerCandidate
 	_click_world(level, candidate.global_position + Vector3(0.0, 0.9, 0.0))
-	await wait_until(func() -> bool: return Game.sim.workers.hired, WALK_TIMEOUT)
+	await wait_until(func() -> bool: return level.hud.action_menu.visible, WALK_TIMEOUT)
+	assert_false(Game.sim.workers.hired)
+	assert_true(level.hud.action_menu.choose_label("Нанять"))
 	assert_true(Game.sim.workers.hired)
 
 
-func test_clicking_a_bed_walks_over_and_plants() -> void:
+func test_clicking_a_bed_walks_over_and_offers_planting() -> void:
 	var level := await _open(PLANTATION_SCENE)
 	var bed := (level.get_node("NavRegion/PlotsGrid") as PlotsGrid).view_for(4)
 	_click_world(level, bed.global_position + Vector3(0.0, 0.3, 0.0))
-	await wait_until(func() -> bool: return Game.sim.grow.plot(4).stage == Plot.Stage.SEED, WALK_TIMEOUT)
-	assert_eq(Game.sim.grow.plot(4).stage, Plot.Stage.SEED)
+	await wait_until(func() -> bool: return level.hud.action_menu.visible, WALK_TIMEOUT)
 	assert_lt(_flat_distance(level.jack.global_position, bed.approach_position()), REACH_TOLERANCE)
+	assert_true(level.hud.action_menu.choose_label("Посадить"))
+	assert_eq(Game.sim.grow.plot(4).stage, Plot.Stage.SEED)
+
+
+func test_clicking_the_world_while_a_menu_is_open_only_closes_it() -> void:
+	var level := await _open(FIELD_SCENE)
+	var actions: Array[UiAction] = []
+	level.hud.show_actions("test", actions)
+	var start := level.jack.global_position
+	_click_world(level, start + Vector3(3.0, 0.0, 0.0))
+	await wait_physics_frames(5)
+	assert_false(level.hud.action_menu.visible)
+	assert_false(level.jack.is_moving())
+	assert_lt(_flat_distance(level.jack.global_position, start), 0.01)
+
+
+func test_dragging_pans_the_camera_without_walking() -> void:
+	var level := await _open(FIELD_SCENE)
+	var camera_before := level.camera_rig.position
+	var jack_before := level.jack.global_position
+	_drag(level, Vector2(800.0, 450.0), Vector2(600.0, 450.0))
+	await wait_physics_frames(5)
+	assert_gt(level.camera_rig.position.distance_to(camera_before), 1.0)
+	assert_false(level.jack.is_moving())
+	assert_lt(_flat_distance(level.jack.global_position, jack_before), 0.01)
+
+
+func test_tab_opens_the_phone_and_buying_there_orders_a_delivery() -> void:
+	var level := await _open(FIELD_SCENE)
+	_press_key(level.hud, KEY_TAB)
+	assert_true(level.hud.phone.visible)
+	level.hud.phone.buy(Supplies.FERTILIZER, 1)
+	assert_eq(Game.sim.supplies.pending_deliveries().size(), 1)
+	assert_string_contains(level.hud.message_label.text, "Доставка")
+	_press_key(level.hud, KEY_TAB)
+	assert_false(level.hud.phone.visible)
+
+
+func test_escape_pauses_time_and_closes_menus_first() -> void:
+	var level := await _open(FIELD_SCENE)
+	Game.is_running = true
+	var actions: Array[UiAction] = []
+	level.hud.show_actions("test", actions)
+	_press_key(level.hud, KEY_ESCAPE)
+	assert_false(level.hud.action_menu.visible)
+	assert_false(level.hud.pause_menu.visible)
+	_press_key(level.hud, KEY_ESCAPE)
+	assert_true(level.hud.pause_menu.visible)
+	assert_false(Game.is_running)
+	var clock := Game.sim.clock.elapsed_game_seconds
+	await wait_process_frames(5)
+	assert_eq(Game.sim.clock.elapsed_game_seconds, clock)
+	_press_key(level.hud, KEY_ESCAPE)
+	assert_false(level.hud.pause_menu.visible)
+	assert_true(Game.is_running)
 
 
 func test_lift_exit_spawns_jack_next_to_the_container() -> void:
@@ -147,6 +216,7 @@ func test_hud_shows_the_state_and_the_goal() -> void:
 	var hud := level.hud
 	assert_eq(hud.money_label.text, UiText.money(Game.sim.economy.money))
 	assert_string_contains(hud.objective_label.text, "посади")
+	assert_null(hud.get_node_or_null("Controls"), "control hints moved to the Esc menu")
 	assert_eq(hud.worker_label.text, "Работника нет")
 
 

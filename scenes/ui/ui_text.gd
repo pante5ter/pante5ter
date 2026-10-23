@@ -50,6 +50,18 @@ static func clock(sim_clock: SimClock) -> String:
 	return "День %d · %02d:%02d" % [sim_clock.day() + 1, whole_hour, minute]
 
 
+static func real_duration(game_seconds: float, sim: SimState) -> String:
+	var real_seconds := maxi(ceili(maxf(game_seconds, 0.0) * sim.config.real_seconds_per_game_day / SimClock.GAME_SECONDS_PER_DAY), 0)
+	return "%d:%02d" % [floori(real_seconds / 60.0), real_seconds % 60]
+
+
+static func item_name(item: String, sim: SimState) -> String:
+	if item == Supplies.FERTILIZER:
+		return "удобрение"
+	var strain := sim.config.find_strain(item.trim_prefix(Supplies.SEED_PREFIX))
+	return "семена «%s»" % strain.display_name if strain != null else item
+
+
 static func stage(value: Plot.Stage) -> String:
 	return STAGE_NAMES.get(value, "?")
 
@@ -72,8 +84,6 @@ static func worker_status(workers: Workers) -> String:
 
 
 static func objective(sim: SimState) -> String:
-	if sim.inventory.count() > 0:
-		return "Продай урожай покупателю у дороги."
 	var any_planted := false
 	var any_ready := false
 	var any_dry := false
@@ -83,6 +93,8 @@ static func objective(sim: SimState) -> String:
 		any_dry = any_dry or (plot.is_growing() and plot.water_seconds <= 0.0)
 	if any_ready:
 		return "Собери созревший урожай на плантации."
+	if sim.inventory.count() > 0:
+		return _selling_objective(sim)
 	if any_dry:
 		return "Полей сухие грядки на плантации."
 	if not any_planted:
@@ -90,7 +102,17 @@ static func objective(sim: SimState) -> String:
 	var worker := sim.workers.definition()
 	if not sim.workers.hired and sim.economy.money >= worker.daily_wage:
 		return "Найми %s у дороги — он будет сам ухаживать за грядками." % worker.display_name
-	return "Жди урожай и следи, чтобы грядки не пересыхали."
+	return "Жди урожай. Пока растёт — закажи семена и удобрения в телефоне (Tab), обрежь кусты."
+
+
+static func _selling_objective(sim: SimState) -> String:
+	var orders := sim.orders.all()
+	for order: Order in orders:
+		if sim.orders.can_fill(order):
+			return "Положи заказ в тайник у западного края поля."
+	if orders.is_empty():
+		return "Жди заказ — он придёт в телефон (Tab)."
+	return "Заказам нужно качество выше — удобряй и обрезай кусты."
 
 
 static func announcement(event: SimEvent, sim: SimState) -> String:
@@ -102,6 +124,14 @@ static func announcement(event: SimEvent, sim: SimState) -> String:
 			return "Зарплата %s: %s." % [worker.display_name, money(int(event.data["wage"]))]
 		EventLog.PLOT_DRIED_OUT:
 			return "Грядка %d пересохла — рост остановился." % plot_number(int(event.data["plot_id"]))
+		EventLog.ORDER_RECEIVED:
+			return "Новый заказ в телефоне: %d шт., качество %d+, %s." % [int(event.data["quantity"]), int(event.data["min_quality"]), money(int(event.data["reward"]))]
+		EventLog.ORDER_PAID:
+			return "Курьер забрал заказ #%d: +%s." % [int(event.data["order_id"]), money(int(event.data["reward"]))]
+		EventLog.ORDER_EXPIRED:
+			return "Заказ #%d сгорел — не успели." % int(event.data["order_id"])
+		EventLog.SUPPLY_DELIVERED:
+			return "Посылка в ящике у контейнера: %s × %d." % [item_name(String(event.data["item"]), sim), int(event.data["quantity"])]
 		EventLog.PLOT_STAGE_CHANGED:
 			if String(event.data["stage"]) == Plot.stage_name(Plot.Stage.READY):
 				return "Грядка %d созрела." % plot_number(int(event.data["plot_id"]))

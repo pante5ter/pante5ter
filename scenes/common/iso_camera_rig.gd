@@ -5,7 +5,7 @@ extends Node3D
 @export var pitch_degrees: float = 35.264
 @export var distance: float = 60.0
 @export var pan_speed: float = 14.0
-@export var edge_scroll: bool = true
+@export var edge_scroll: bool = false
 @export var edge_margin: float = 12.0
 @export var zoom_min: float = 6.0
 @export var zoom_max: float = 40.0
@@ -30,6 +30,15 @@ func _ready() -> void:
 
 func focus(point: Vector3) -> void:
 	position = _clamped(Vector3(point.x, 0.0, point.z))
+
+
+func drag(screen_delta: Vector2) -> void:
+	var world_per_pixel := camera.size / maxf(get_viewport().get_visible_rect().size.y, 1.0)
+	var forward := Vector3(-sin(rotation.y), 0.0, -cos(rotation.y))
+	var right := Vector3(cos(rotation.y), 0.0, -sin(rotation.y))
+	var pitch := deg_to_rad(pitch_degrees)
+	var move := -right * screen_delta.x * world_per_pixel + forward * screen_delta.y * world_per_pixel / maxf(sin(pitch), 0.1)
+	position = _clamped(position + move)
 
 
 func _unhandled_input(event: InputEvent) -> void:
