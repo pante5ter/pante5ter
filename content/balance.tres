@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="BalanceConfig" format=3]
+
+[ext_resource type="Script" path="res://content/defs/balance_config.gd" id="1_balance"]
+[ext_resource type="Resource" path="res://content/strains/basic_strain.tres" id="2_strain"]
+
+[resource]
+script = ExtResource("1_balance")
+real_seconds_per_game_day = 600.0
+starting_money = 500
+plot_count = 6
+strain = ExtResource("2_strain")
