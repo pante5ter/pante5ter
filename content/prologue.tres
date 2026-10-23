@@ -1,0 +1,43 @@
+[gd_resource type="Resource" script_class="DialogueDef" format=3]
+
+[ext_resource type="Script" path="res://content/defs/dialogue_def.gd" id="1_dialogue"]
+[ext_resource type="Script" path="res://content/defs/dialogue_line_def.gd" id="2_line"]
+
+[sub_resource type="Resource" id="Resource_line_1"]
+script = ExtResource("2_line")
+speaker = ""
+text = "Ночь. Дождь. Поле лорда Эшкомба."
+
+[sub_resource type="Resource" id="Resource_line_2"]
+script = ExtResource("2_line")
+speaker = "Лорд Эшкомб"
+text = "Простите, что принимаю вас в поле, мистер Кэллоуэй. Дом теперь принадлежит банку больше, чем мне. К весне его продадут за долги."
+
+[sub_resource type="Resource" id="Resource_line_3"]
+script = ExtResource("2_line")
+speaker = "Джек"
+text = "Я плачу, ваш дом не продают. Мне нужно только поле."
+
+[sub_resource type="Resource" id="Resource_line_4"]
+script = ExtResource("2_line")
+speaker = "Лорд Эшкомб"
+text = "Только поле. Да. Разумеется. Я, пожалуй, не стану спрашивать, что именно вы собираетесь… сеять."
+
+[sub_resource type="Resource" id="Resource_line_5"]
+script = ExtResource("2_line")
+speaker = "Джек"
+text = "И не надо, милорд. Так вам будет спокойнее спать."
+
+[sub_resource type="Resource" id="Resource_line_6"]
+script = ExtResource("2_line")
+speaker = "Лорд Эшкомб"
+text = "Что ж… Тогда, полагаю, по рукам. Отец сдавал это поле под овёс. Овёс, как видите, дом не спас."
+
+[sub_resource type="Resource" id="Resource_line_7"]
+script = ExtResource("2_line")
+speaker = "Финн"
+text = "Контейнер на краю поля. Стеллаж отодвигается, за ним лифт. Внизу, в отличие от всего графства, сухо. Начнём, мистер Кэллоуэй."
+
+[resource]
+script = ExtResource("1_dialogue")
+lines = Array[ExtResource("2_line")]([SubResource("Resource_line_1"), SubResource("Resource_line_2"), SubResource("Resource_line_3"), SubResource("Resource_line_4"), SubResource("Resource_line_5"), SubResource("Resource_line_6"), SubResource("Resource_line_7")])

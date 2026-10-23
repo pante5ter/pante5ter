@@ -4,6 +4,7 @@ extends Node3D
 const CLICK_MASK: int = 0b111
 const DRAG_THRESHOLD: float = 8.0
 const RAY_LENGTH: float = 500.0
+const PROLOGUE_PATH: String = "res://content/prologue.tres"
 
 @export var nav_region: NavigationRegion3D
 @export var jack: Walker
@@ -24,6 +25,13 @@ func _ready() -> void:
 	jack.global_position = spawn
 	camera_rig.focus(spawn)
 	Game.is_running = true
+	if _is_opening_level() and Game.take_fresh_start():
+		hud.play_dialogue((load(PROLOGUE_PATH) as DialogueDef).lines)
+
+
+## A new game starts in the main scene, so only that level opens with the prologue.
+func _is_opening_level() -> bool:
+	return scene_file_path == str(ProjectSettings.get_setting("application/run/main_scene"))
 
 
 func is_navigation_ready() -> bool:
