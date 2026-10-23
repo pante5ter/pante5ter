@@ -1,0 +1,658 @@
+{
+  "texture": "res://assets/textures/palette_atlas.png",
+  "size_px": 256,
+  "cell_px": 32,
+  "uv_rule": "Put every UV of a face at the swatch centre 'uv'. Godot/Blender: v measured from top (flip to 1-v in Blender).",
+  "groups": [
+    "Природа",
+    "Земля и камень",
+    "Постройки",
+    "Индустрия",
+    "Одежда",
+    "Кожа и волосы",
+    "Подземелье",
+    "Акценты"
+  ],
+  "swatches": {
+    "grass_deep": {
+      "hex": "#3E5A3A",
+      "row": 0,
+      "col": 0,
+      "uv": [
+        0.0625,
+        0.0625
+      ],
+      "emissive": false
+    },
+    "grass_mid": {
+      "hex": "#56724A",
+      "row": 0,
+      "col": 1,
+      "uv": [
+        0.1875,
+        0.0625
+      ],
+      "emissive": false
+    },
+    "grass_light": {
+      "hex": "#7A8F5C",
+      "row": 0,
+      "col": 2,
+      "uv": [
+        0.3125,
+        0.0625
+      ],
+      "emissive": false
+    },
+    "hedge": {
+      "hex": "#2F4A33",
+      "row": 0,
+      "col": 3,
+      "uv": [
+        0.4375,
+        0.0625
+      ],
+      "emissive": false
+    },
+    "moss": {
+      "hex": "#6B7A45",
+      "row": 0,
+      "col": 4,
+      "uv": [
+        0.5625,
+        0.0625
+      ],
+      "emissive": false
+    },
+    "hay": {
+      "hex": "#B9A46A",
+      "row": 0,
+      "col": 5,
+      "uv": [
+        0.6875,
+        0.0625
+      ],
+      "emissive": false
+    },
+    "wheat": {
+      "hex": "#D2BE84",
+      "row": 0,
+      "col": 6,
+      "uv": [
+        0.8125,
+        0.0625
+      ],
+      "emissive": false
+    },
+    "dead_leaf": {
+      "hex": "#8A6A3E",
+      "row": 0,
+      "col": 7,
+      "uv": [
+        0.9375,
+        0.0625
+      ],
+      "emissive": false
+    },
+    "mud_dark": {
+      "hex": "#3F3329",
+      "row": 1,
+      "col": 0,
+      "uv": [
+        0.0625,
+        0.1875
+      ],
+      "emissive": false
+    },
+    "mud": {
+      "hex": "#5E4B3A",
+      "row": 1,
+      "col": 1,
+      "uv": [
+        0.1875,
+        0.1875
+      ],
+      "emissive": false
+    },
+    "path_dirt": {
+      "hex": "#7D6650",
+      "row": 1,
+      "col": 2,
+      "uv": [
+        0.3125,
+        0.1875
+      ],
+      "emissive": false
+    },
+    "gravel": {
+      "hex": "#8C877C",
+      "row": 1,
+      "col": 3,
+      "uv": [
+        0.4375,
+        0.1875
+      ],
+      "emissive": false
+    },
+    "cotswold": {
+      "hex": "#C9B27E",
+      "row": 1,
+      "col": 4,
+      "uv": [
+        0.5625,
+        0.1875
+      ],
+      "emissive": false
+    },
+    "cotswold_shadow": {
+      "hex": "#9E8758",
+      "row": 1,
+      "col": 5,
+      "uv": [
+        0.6875,
+        0.1875
+      ],
+      "emissive": false
+    },
+    "slate": {
+      "hex": "#4A4F57",
+      "row": 1,
+      "col": 6,
+      "uv": [
+        0.8125,
+        0.1875
+      ],
+      "emissive": false
+    },
+    "flint": {
+      "hex": "#6E7178",
+      "row": 1,
+      "col": 7,
+      "uv": [
+        0.9375,
+        0.1875
+      ],
+      "emissive": false
+    },
+    "brick": {
+      "hex": "#8A4A3A",
+      "row": 2,
+      "col": 0,
+      "uv": [
+        0.0625,
+        0.3125
+      ],
+      "emissive": false
+    },
+    "brick_dark": {
+      "hex": "#6A372C",
+      "row": 2,
+      "col": 1,
+      "uv": [
+        0.1875,
+        0.3125
+      ],
+      "emissive": false
+    },
+    "roof_slate": {
+      "hex": "#3B3F47",
+      "row": 2,
+      "col": 2,
+      "uv": [
+        0.3125,
+        0.3125
+      ],
+      "emissive": false
+    },
+    "plaster": {
+      "hex": "#D8CFBE",
+      "row": 2,
+      "col": 3,
+      "uv": [
+        0.4375,
+        0.3125
+      ],
+      "emissive": false
+    },
+    "timber": {
+      "hex": "#4A3A2C",
+      "row": 2,
+      "col": 4,
+      "uv": [
+        0.5625,
+        0.3125
+      ],
+      "emissive": false
+    },
+    "oak": {
+      "hex": "#7A5A3A",
+      "row": 2,
+      "col": 5,
+      "uv": [
+        0.6875,
+        0.3125
+      ],
+      "emissive": false
+    },
+    "door_green": {
+      "hex": "#2E4A3E",
+      "row": 2,
+      "col": 6,
+      "uv": [
+        0.8125,
+        0.3125
+      ],
+      "emissive": false
+    },
+    "window_frame": {
+      "hex": "#E6E0D2",
+      "row": 2,
+      "col": 7,
+      "uv": [
+        0.9375,
+        0.3125
+      ],
+      "emissive": false
+    },
+    "container_rust": {
+      "hex": "#8C3B2E",
+      "row": 3,
+      "col": 0,
+      "uv": [
+        0.0625,
+        0.4375
+      ],
+      "emissive": false
+    },
+    "container_red": {
+      "hex": "#A14A35",
+      "row": 3,
+      "col": 1,
+      "uv": [
+        0.1875,
+        0.4375
+      ],
+      "emissive": false
+    },
+    "container_green": {
+      "hex": "#3F5B4A",
+      "row": 3,
+      "col": 2,
+      "uv": [
+        0.3125,
+        0.4375
+      ],
+      "emissive": false
+    },
+    "corrugated": {
+      "hex": "#7C8288",
+      "row": 3,
+      "col": 3,
+      "uv": [
+        0.4375,
+        0.4375
+      ],
+      "emissive": false
+    },
+    "steel": {
+      "hex": "#9AA0A6",
+      "row": 3,
+      "col": 4,
+      "uv": [
+        0.5625,
+        0.4375
+      ],
+      "emissive": false
+    },
+    "steel_dark": {
+      "hex": "#4C5157",
+      "row": 3,
+      "col": 5,
+      "uv": [
+        0.6875,
+        0.4375
+      ],
+      "emissive": false
+    },
+    "rust": {
+      "hex": "#7A4A2A",
+      "row": 3,
+      "col": 6,
+      "uv": [
+        0.8125,
+        0.4375
+      ],
+      "emissive": false
+    },
+    "hazard_yellow": {
+      "hex": "#C9A23A",
+      "row": 3,
+      "col": 7,
+      "uv": [
+        0.9375,
+        0.4375
+      ],
+      "emissive": false
+    },
+    "tweed_brown": {
+      "hex": "#6B5640",
+      "row": 4,
+      "col": 0,
+      "uv": [
+        0.0625,
+        0.5625
+      ],
+      "emissive": false
+    },
+    "tweed_green": {
+      "hex": "#5A5F44",
+      "row": 4,
+      "col": 1,
+      "uv": [
+        0.1875,
+        0.5625
+      ],
+      "emissive": false
+    },
+    "navy_suit": {
+      "hex": "#2C3446",
+      "row": 4,
+      "col": 2,
+      "uv": [
+        0.3125,
+        0.5625
+      ],
+      "emissive": false
+    },
+    "charcoal": {
+      "hex": "#3A3A3D",
+      "row": 4,
+      "col": 3,
+      "uv": [
+        0.4375,
+        0.5625
+      ],
+      "emissive": false
+    },
+    "camel_coat": {
+      "hex": "#A88A62",
+      "row": 4,
+      "col": 4,
+      "uv": [
+        0.5625,
+        0.5625
+      ],
+      "emissive": false
+    },
+    "shirt_cream": {
+      "hex": "#E9E2D0",
+      "row": 4,
+      "col": 5,
+      "uv": [
+        0.6875,
+        0.5625
+      ],
+      "emissive": false
+    },
+    "cap_grey": {
+      "hex": "#6A6660",
+      "row": 4,
+      "col": 6,
+      "uv": [
+        0.8125,
+        0.5625
+      ],
+      "emissive": false
+    },
+    "tie_burgundy": {
+      "hex": "#6E2B33",
+      "row": 4,
+      "col": 7,
+      "uv": [
+        0.9375,
+        0.5625
+      ],
+      "emissive": false
+    },
+    "skin_1": {
+      "hex": "#F1D2B6",
+      "row": 5,
+      "col": 0,
+      "uv": [
+        0.0625,
+        0.6875
+      ],
+      "emissive": false
+    },
+    "skin_2": {
+      "hex": "#E0B08C",
+      "row": 5,
+      "col": 1,
+      "uv": [
+        0.1875,
+        0.6875
+      ],
+      "emissive": false
+    },
+    "skin_3": {
+      "hex": "#C68B63",
+      "row": 5,
+      "col": 2,
+      "uv": [
+        0.3125,
+        0.6875
+      ],
+      "emissive": false
+    },
+    "skin_4": {
+      "hex": "#9C6644",
+      "row": 5,
+      "col": 3,
+      "uv": [
+        0.4375,
+        0.6875
+      ],
+      "emissive": false
+    },
+    "skin_5": {
+      "hex": "#6E452E",
+      "row": 5,
+      "col": 4,
+      "uv": [
+        0.5625,
+        0.6875
+      ],
+      "emissive": false
+    },
+    "skin_6": {
+      "hex": "#4A2E20",
+      "row": 5,
+      "col": 5,
+      "uv": [
+        0.6875,
+        0.6875
+      ],
+      "emissive": false
+    },
+    "hair_dark": {
+      "hex": "#2A2420",
+      "row": 5,
+      "col": 6,
+      "uv": [
+        0.8125,
+        0.6875
+      ],
+      "emissive": false
+    },
+    "hair_fair": {
+      "hex": "#B8955E",
+      "row": 5,
+      "col": 7,
+      "uv": [
+        0.9375,
+        0.6875
+      ],
+      "emissive": false
+    },
+    "concrete": {
+      "hex": "#6F6E6A",
+      "row": 6,
+      "col": 0,
+      "uv": [
+        0.0625,
+        0.8125
+      ],
+      "emissive": false
+    },
+    "concrete_dark": {
+      "hex": "#4A4946",
+      "row": 6,
+      "col": 1,
+      "uv": [
+        0.1875,
+        0.8125
+      ],
+      "emissive": false
+    },
+    "soil": {
+      "hex": "#3A2C22",
+      "row": 6,
+      "col": 2,
+      "uv": [
+        0.3125,
+        0.8125
+      ],
+      "emissive": false
+    },
+    "plant_young": {
+      "hex": "#7FA35A",
+      "row": 6,
+      "col": 3,
+      "uv": [
+        0.4375,
+        0.8125
+      ],
+      "emissive": false
+    },
+    "plant_mid": {
+      "hex": "#5A8A45",
+      "row": 6,
+      "col": 4,
+      "uv": [
+        0.5625,
+        0.8125
+      ],
+      "emissive": false
+    },
+    "plant_ripe": {
+      "hex": "#3F6E3A",
+      "row": 6,
+      "col": 5,
+      "uv": [
+        0.6875,
+        0.8125
+      ],
+      "emissive": false
+    },
+    "pot_black": {
+      "hex": "#26272A",
+      "row": 6,
+      "col": 6,
+      "uv": [
+        0.8125,
+        0.8125
+      ],
+      "emissive": false
+    },
+    "lamp_warm": {
+      "hex": "#F2C46B",
+      "row": 6,
+      "col": 7,
+      "uv": [
+        0.9375,
+        0.8125
+      ],
+      "emissive": true
+    },
+    "brass": {
+      "hex": "#B08D4A",
+      "row": 7,
+      "col": 0,
+      "uv": [
+        0.0625,
+        0.9375
+      ],
+      "emissive": false
+    },
+    "money_green": {
+      "hex": "#6E8F5E",
+      "row": 7,
+      "col": 1,
+      "uv": [
+        0.1875,
+        0.9375
+      ],
+      "emissive": false
+    },
+    "police_blue": {
+      "hex": "#2F5D9E",
+      "row": 7,
+      "col": 2,
+      "uv": [
+        0.3125,
+        0.9375
+      ],
+      "emissive": true
+    },
+    "alert_red": {
+      "hex": "#B83A32",
+      "row": 7,
+      "col": 3,
+      "uv": [
+        0.4375,
+        0.9375
+      ],
+      "emissive": true
+    },
+    "black": {
+      "hex": "#1C1C1E",
+      "row": 7,
+      "col": 4,
+      "uv": [
+        0.5625,
+        0.9375
+      ],
+      "emissive": false
+    },
+    "dark_grey": {
+      "hex": "#3A3A3C",
+      "row": 7,
+      "col": 5,
+      "uv": [
+        0.6875,
+        0.9375
+      ],
+      "emissive": false
+    },
+    "light_grey": {
+      "hex": "#B5B5B0",
+      "row": 7,
+      "col": 6,
+      "uv": [
+        0.8125,
+        0.9375
+      ],
+      "emissive": false
+    },
+    "white": {
+      "hex": "#EDEBE6",
+      "row": 7,
+      "col": 7,
+      "uv": [
+        0.9375,
+        0.9375
+      ],
+      "emissive": false
+    }
+  }
+}
