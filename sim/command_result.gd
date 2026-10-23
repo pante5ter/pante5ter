@@ -27,6 +27,11 @@ const NO_PROBLEM: String = "no_problem"
 const NO_RAID: String = "no_raid"
 const UNKNOWN_CHOICE: String = "unknown_choice"
 const UNKNOWN_WORKER: String = "unknown_worker"
+const TOO_MANY_COURIERS: String = "too_many_couriers"
+const COURIER_BUSY: String = "courier_busy"
+const LYING_LOW: String = "lying_low"
+const NOTHING_TO_PACK: String = "nothing_to_pack"
+const NO_PARCEL: String = "no_parcel"
 
 var ok: bool = false
 var error: String = ""

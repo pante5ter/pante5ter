@@ -199,9 +199,12 @@ func test_thirty_days_with_a_worker_stay_profitable_and_bounded() -> void:
 	for hour: int in 30 * 24:
 		_advance_hours(state, 1.0, 1.0)
 		lowest_money = mini(lowest_money, state.economy.money)
-		for order: Order in state.orders.all():
+		for order: Order in state.orders.with_status(Order.Status.OFFERED):
+			state.apply(AnswerOrderCommand.new(order.id, Orders.ACCEPT))
+		state.apply(PackCommand.new())
+		for order: Order in state.orders.with_status(Order.Status.ACCEPTED):
 			if state.orders.can_fill(order):
-				state.apply(DropOrderCommand.new(order.id))
+				state.apply(DispatchCommand.new(order.id, Couriers.JACK))
 	var profit_per_day := float(state.economy.money - _balance.starting_money) / 30.0
 	gut.p("worker economy: %.0f per game day, %d events in 30 days" % [profit_per_day, state.event_log.size()])
 	assert_true(state.workers.hired, "worker must not quit while the farm pays him")

@@ -4,7 +4,7 @@ extends RefCounted
 const MAX_LEVEL: float = 100.0
 
 var level: float = 0.0
-var entrance_masked: bool = false
+var quiet: bool = false
 var inspection_at: float = INF
 var next_tick_at: float = 0.0
 
@@ -30,11 +30,11 @@ func add(amount: float) -> void:
 	level = clampf(level + amount, 0.0, MAX_LEVEL)
 
 
-func mask(masked: bool, now: float, actor: String) -> CommandResult:
-	if entrance_masked == masked:
+func lie_low(on: bool, now: float, actor: String) -> CommandResult:
+	if quiet == on:
 		return CommandResult.failure(CommandResult.ALREADY_DONE)
-	entrance_masked = masked
-	_event_log.record(EventLog.ENTRANCE_MASKED if masked else EventLog.ENTRANCE_UNMASKED, now, PackedStringArray([actor]), {})
+	quiet = on
+	_event_log.record(EventLog.WENT_QUIET if on else EventLog.BACK_TO_WORK, now, PackedStringArray([actor]), {})
 	return CommandResult.success()
 
 
@@ -63,7 +63,7 @@ func _tick(at: float) -> void:
 
 func _inspect(now: float) -> void:
 	inspection_at = INF
-	if entrance_masked:
+	if quiet:
 		add(-_def.relief_when_hidden)
 		_event_log.record(EventLog.INSPECTION_PASSED, now, PackedStringArray(["inspector"]), {"level": roundi(level)})
 		return
@@ -80,7 +80,7 @@ func _inspect(now: float) -> void:
 func to_dict() -> Dictionary:
 	return {
 		"level": ExactFloat.encode(level),
-		"entrance_masked": entrance_masked,
+		"quiet": quiet,
 		"inspection_at": ExactFloat.encode(inspection_at),
 		"next_tick_at": ExactFloat.encode(next_tick_at),
 	}
@@ -88,6 +88,6 @@ func to_dict() -> Dictionary:
 
 func load_dict(data: Dictionary) -> void:
 	level = ExactFloat.decode(data["level"])
-	entrance_masked = data["entrance_masked"] == true
+	quiet = data["quiet"] == true
 	inspection_at = ExactFloat.decode(data["inspection_at"])
 	next_tick_at = ExactFloat.decode(data["next_tick_at"])

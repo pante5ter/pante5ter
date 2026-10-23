@@ -8,6 +8,8 @@ extends Resource
 @export var extra_strains: Array[StrainDef] = []
 @export var worker: WorkerDef
 @export var worker_candidates: Array[WorkerDef] = []
+@export var courier_candidates: Array[CourierDef] = []
+@export var max_couriers: int = 2
 @export var orders: OrdersDef
 @export var problems: ProblemsDef
 @export var suspicion: SuspicionDef
@@ -44,6 +46,13 @@ func find_worker(worker_id: String) -> WorkerDef:
 		return worker
 	for candidate: WorkerDef in candidates():
 		if candidate.id == worker_id:
+			return candidate
+	return null
+
+
+func find_courier(courier_id: String) -> CourierDef:
+	for candidate: CourierDef in courier_candidates:
+		if candidate.id == courier_id:
 			return candidate
 	return null
 

@@ -4,7 +4,7 @@
 
 [resource]
 script = ExtResource("1_suspicion")
-per_drop = 9.0
+per_delivery = 9.0
 per_extra_bed_per_hour = 0.4
 quiet_beds = 6
 decay_per_hour = 1.0

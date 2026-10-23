@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="CourierDef" format=3]
+
+[ext_resource type="Script" path="res://content/defs/courier_def.gd" id="1_courier"]
+
+[resource]
+script = ExtResource("1_courier")
+id = "frank"
+display_name = "Фрэнк"
+description = "Медленный и осторожный. Берёт больше, зато доезжает."
+hire_fee = 250
+cut = 0.2
+speed = 0.8
+reliability = 0.9
+greed = 0.0

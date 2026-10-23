@@ -2,16 +2,16 @@ class_name Phone
 extends PanelContainer
 
 const REFRESH_SECONDS: float = 0.5
-const PHONE_SIZE: Vector2 = Vector2(430.0, 560.0)
-const TAB_ORDERS: int = 0
-const TAB_SHOP: int = 1
-const TAB_STOCK: int = 2
-const TAB_EMPIRE: int = 3
+const PHONE_SIZE: Vector2 = Vector2(380.0, 640.0)
+const TAB_SHOP: int = 0
+const TAB_STOCK: int = 1
+const TAB_EMPIRE: int = 2
 
 signal message(text: String)
 
 var _tabs: TabContainer
-var _orders: VBoxContainer
+var _status: Label
+var _notice: Label
 var _shop: VBoxContainer
 var _stock: VBoxContainer
 var _empire: VBoxContainer
@@ -21,20 +21,38 @@ var _refresh_left: float = 0.0
 func _ready() -> void:
 	visible = false
 	mouse_filter = Control.MOUSE_FILTER_STOP
-	add_theme_stylebox_override("panel", UiStyle.panel())
+	var body := StyleBoxFlat.new()
+	body.bg_color = Color(0.09, 0.09, 0.1, 0.98)
+	body.border_color = Color(0.02, 0.02, 0.02)
+	body.set_border_width_all(10)
+	body.set_corner_radius_all(34)
+	body.content_margin_left = 22.0
+	body.content_margin_right = 22.0
+	body.content_margin_top = 18.0
+	body.content_margin_bottom = 26.0
+	add_theme_stylebox_override("panel", body)
 	custom_minimum_size = PHONE_SIZE
 	var rows := VBoxContainer.new()
+	rows.add_theme_constant_override("separation", 8)
 	add_child(rows)
-	rows.add_child(UiStyle.label("Телефон", 18, UiStyle.ACCENT))
+	var speaker := ColorRect.new()
+	speaker.color = Color(0.25, 0.25, 0.27)
+	speaker.custom_minimum_size = Vector2(60.0, 6.0)
+	speaker.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	rows.add_child(speaker)
+	_status = UiStyle.label("", 13, UiStyle.MUTED)
+	rows.add_child(_status)
+	_notice = UiStyle.label("", 14, UiStyle.ACCENT)
+	rows.add_child(_notice)
 	_tabs = TabContainer.new()
 	_tabs.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_tabs.get_tab_bar().focus_mode = Control.FOCUS_NONE
 	rows.add_child(_tabs)
-	_orders = _add_tab("Заказы")
 	_shop = _add_tab("Магазин")
 	_stock = _add_tab("Склад")
 	_empire = _add_tab("Империя")
-	rows.add_child(UiStyle.label("Tab — закрыть", 13, UiStyle.MUTED))
+	var home := UiStyle.button("Убрать телефон  [Tab]", close)
+	rows.add_child(home)
 
 
 func _add_tab(title: String) -> VBoxContainer:
@@ -84,7 +102,10 @@ func _process(delta: float) -> void:
 func refresh() -> void:
 	_refresh_left = REFRESH_SECONDS
 	var sim := Game.sim
-	_fill_orders(sim)
+	_status.text = "%s     %s" % [UiText.clock(sim.clock), UiText.money(sim.economy.money)]
+	var calls := sim.orders.with_status(Order.Status.OFFERED).size()
+	_notice.text = ("Пропущенных звонков: %d — ответь на компьютере." % calls) if calls > 0 else ""
+	_notice.visible = calls > 0
 	_fill_shop(sim)
 	_fill_stock(sim)
 	_fill_empire(sim)
@@ -109,22 +130,6 @@ func _clear(box: VBoxContainer) -> void:
 	for child: Node in box.get_children():
 		box.remove_child(child)
 		child.queue_free()
-
-
-func _fill_orders(sim: SimState) -> void:
-	_clear(_orders)
-	var now := sim.clock.elapsed_game_seconds
-	var orders := sim.orders.all()
-	if orders.is_empty():
-		_orders.add_child(UiStyle.label("Пока тихо. Новые заказы приходят сюда.", 15, UiStyle.MUTED))
-	for order: Order in orders:
-		var text := "Заказ #%d: %d шт., качество %d+ — %s" % [order.id, order.quantity, order.min_quality, UiText.money(order.reward)]
-		if order.status == Order.Status.DROPPED:
-			text += "\nВ тайнике. Курьер заберёт через %s." % UiText.real_duration(order.pickup_at - now, sim)
-		else:
-			text += "\nСгорит через %s. %s" % [UiText.real_duration(order.deadline - now, sim), "Товар есть — неси в тайник." if sim.orders.can_fill(order) else "Подходящего товара пока нет."]
-		_orders.add_child(UiStyle.label(text))
-	_orders.add_child(UiStyle.label("Тайник — у западного края поля, возле куста. Курьер приходит сам.", 13, UiStyle.MUTED))
 
 
 func _fill_shop(sim: SimState) -> void:

@@ -68,6 +68,7 @@ func test_buying_seeds_charges_now_and_delivers_later() -> void:
 	assert_eq(state.supplies.seeds(_premium().id), 0)
 	assert_eq(state.supplies.pending_deliveries().size(), 1)
 	_advance(state, _balance.delivery_hours + 0.01)
+	state.apply(PickUpParcelCommand.new())
 	assert_eq(state.supplies.seeds(_premium().id), 3)
 	assert_eq(state.supplies.pending_deliveries().size(), 0)
 	assert_eq(state.event_log.of_type(EventLog.SUPPLY_DELIVERED).size(), 1)
@@ -95,6 +96,7 @@ func test_premium_strain_needs_seeds_and_uses_them_up() -> void:
 	assert_eq(state.apply(PlantCommand.new(0, _premium().id)).error, CommandResult.NO_SEEDS)
 	state.apply(BuyCommand.new(Supplies.seed_item(_premium().id), 1))
 	_advance(state, _balance.delivery_hours + 0.01)
+	state.apply(PickUpParcelCommand.new())
 	assert_true(state.apply(PlantCommand.new(0, _premium().id)).ok)
 	assert_eq(state.supplies.seeds(_premium().id), 0)
 	assert_eq(state.grow.plot(0).strain_id, _premium().id)
@@ -106,6 +108,7 @@ func test_premium_strain_takes_its_own_time_and_sells_higher() -> void:
 	var state := SimState.new(_rich(), 1)
 	state.apply(BuyCommand.new(Supplies.seed_item(_premium().id), 1))
 	_advance(state, _balance.delivery_hours + 0.01)
+	state.apply(PickUpParcelCommand.new())
 	state.apply(PlantCommand.new(0, _premium().id))
 	state.apply(PlantCommand.new(1))
 	state.apply(WaterCommand.new(0))
@@ -124,7 +127,9 @@ func test_fertilizer_and_pruning_raise_quality() -> void:
 	cared.apply(BuyCommand.new(Supplies.FERTILIZER, 1))
 	plain.apply(BuyCommand.new(Supplies.FERTILIZER, 1))
 	_advance(cared, _balance.delivery_hours + 0.01)
+	cared.apply(PickUpParcelCommand.new())
 	_advance(plain, _balance.delivery_hours + 0.01)
+	plain.apply(PickUpParcelCommand.new())
 	for state: SimState in [plain, cared]:
 		state.apply(PlantCommand.new(0))
 	assert_true(cared.apply(FertilizeCommand.new(0)).ok)
@@ -151,6 +156,7 @@ func test_care_rules() -> void:
 	assert_eq(state.apply(PruneCommand.new(0)).error, CommandResult.PLOT_NOT_BUSH)
 	state.apply(BuyCommand.new(Supplies.FERTILIZER, 2))
 	_advance(state, _balance.delivery_hours + 0.01)
+	state.apply(PickUpParcelCommand.new())
 	assert_true(state.apply(FertilizeCommand.new(0)).ok)
 	assert_eq(state.apply(FertilizeCommand.new(0)).error, CommandResult.ALREADY_DONE)
 	assert_eq(state.supplies.fertilizer, 1)
@@ -160,6 +166,7 @@ func test_care_bonuses_reset_with_a_new_planting() -> void:
 	var state := SimState.new(_rich(), 1)
 	state.apply(BuyCommand.new(Supplies.FERTILIZER, 1))
 	_advance(state, _balance.delivery_hours + 0.01)
+	state.apply(PickUpParcelCommand.new())
 	state.apply(PlantCommand.new(0))
 	state.apply(FertilizeCommand.new(0))
 	_grow_to_ready(state, 0)
@@ -189,73 +196,6 @@ func test_buying_a_bed_needs_money() -> void:
 	assert_eq(state.apply(BuyPlotCommand.new()).error, CommandResult.NOT_ENOUGH_MONEY)
 
 
-# --- orders
-
-func test_orders_arrive_over_time_and_respect_the_cap() -> void:
-	var state := SimState.new(_balance, 1)
-	assert_eq(state.orders.all().size(), 0)
-	_advance(state, _balance.orders.first_order_hours + 0.01)
-	assert_eq(state.orders.all().size(), 1)
-	var order := state.orders.all()[0]
-	assert_between(order.quantity, _balance.orders.quantity_min, _balance.orders.quantity_max)
-	assert_between(order.min_quality, _balance.orders.quality_min, _balance.orders.quality_max)
-	assert_gt(order.reward, 0)
-	_advance(state, _balance.orders.interval_hours * 10.0)
-	assert_true(state.orders.all().size() <= _balance.orders.max_open)
-
-
-func test_unfilled_orders_expire() -> void:
-	var state := SimState.new(_balance, 1)
-	_advance(state, _balance.orders.first_order_hours + 0.01)
-	var order_id := state.orders.all()[0].id
-	_advance(state, _balance.orders.deadline_hours + 0.01)
-	assert_null(state.orders.find(order_id))
-	assert_gt(state.event_log.of_type(EventLog.ORDER_EXPIRED).size(), 0)
-
-
-func test_dropping_an_order_takes_goods_and_pays_after_pickup() -> void:
-	var state := SimState.new(_balance, 1)
-	_advance(state, _balance.orders.first_order_hours + 0.01)
-	var order := state.orders.all()[0]
-	assert_eq(state.apply(DropOrderCommand.new(order.id)).error, CommandResult.NOT_ENOUGH_PRODUCT)
-	for index: int in order.quantity:
-		state.inventory.create(_balance.strain.id, order.min_quality)
-	state.inventory.create(_balance.strain.id, order.min_quality - 1)
-	var money := state.economy.money
-	assert_true(state.apply(DropOrderCommand.new(order.id)).ok)
-	assert_eq(state.inventory.count(), 1, "only qualifying goods leave the stock")
-	assert_eq(state.economy.money, money, "the courier pays on pickup")
-	assert_eq(state.apply(DropOrderCommand.new(order.id)).error, CommandResult.ORDER_NOT_OPEN)
-	_advance(state, _balance.orders.pickup_hours + 0.01)
-	assert_eq(state.economy.money, money + order.reward)
-	assert_null(state.orders.find(order.id))
-	assert_eq(state.apply(DropOrderCommand.new(order.id)).error, CommandResult.UNKNOWN_ORDER)
-
-
-func test_drop_uses_the_weakest_goods_that_still_qualify() -> void:
-	var state := SimState.new(_balance, 1)
-	_advance(state, _balance.orders.first_order_hours + 0.01)
-	var order := state.orders.all()[0]
-	var best := state.inventory.create(_balance.strain.id, 100)
-	for index: int in order.quantity:
-		state.inventory.create(_balance.strain.id, order.min_quality)
-	state.apply(DropOrderCommand.new(order.id))
-	assert_not_null(state.inventory.find(best.id))
-
-
-func test_dropped_order_does_not_expire_before_pickup() -> void:
-	var state := SimState.new(_balance, 1)
-	_advance(state, _balance.orders.first_order_hours + 0.01)
-	var order := state.orders.all()[0]
-	for index: int in order.quantity:
-		state.inventory.create(_balance.strain.id, 100)
-	state.apply(DropOrderCommand.new(order.id))
-	_advance(state, _balance.orders.pickup_hours + 0.01)
-	assert_eq(state.event_log.of_type(EventLog.ORDER_PAID).size(), 1)
-	for event: SimEvent in state.event_log.of_type(EventLog.ORDER_EXPIRED):
-		assert_ne(int(event.data["order_id"]), order.id)
-
-
 # --- worker
 
 func test_firing_the_worker_stops_wages() -> void:
@@ -274,6 +214,7 @@ func test_worker_replants_the_same_strain_while_seeds_last() -> void:
 	var state := SimState.new(_rich(), 4)
 	state.apply(BuyCommand.new(Supplies.seed_item(_premium().id), 2))
 	_advance(state, _balance.delivery_hours + 0.01)
+	state.apply(PickUpParcelCommand.new())
 	state.apply(PlantCommand.new(0, _premium().id))
 	_grow_to_ready(state, 0)
 	state.apply(HarvestCommand.new(0))

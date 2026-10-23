@@ -58,3 +58,19 @@ func test_time_advances_only_while_running() -> void:
 	Game.is_running = true
 	Game._process(1.0)
 	assert_gt(Game.sim.clock.elapsed_game_seconds, 0.0)
+
+
+
+func test_speed_multiplies_how_fast_time_runs() -> void:
+	Game.new_game(1)
+	Game.is_running = true
+	Game.set_speed(0)
+	Game._process(1.0)
+	var normal := Game.sim.clock.elapsed_game_seconds
+	Game.new_game(1)
+	Game.set_speed(2)
+	Game._process(1.0)
+	assert_almost_eq(Game.sim.clock.elapsed_game_seconds, normal * Game.SPEEDS[2], 0.001)
+	Game.set_speed(99)
+	assert_eq(Game.time_scale, Game.SPEEDS[Game.SPEEDS.size() - 1])
+	Game.set_speed(0)

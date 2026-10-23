@@ -1,8 +1,8 @@
 class_name SimState
 extends RefCounted
 
-const SAVE_VERSION: int = 5
-const REQUIRED_SAVE_KEYS: Array[String] = ["save_version", "clock", "rng", "economy", "inventory", "plots", "workers", "supplies", "orders", "progress", "problems", "suspicion", "raids", "event_log"]
+const SAVE_VERSION: int = 6
+const REQUIRED_SAVE_KEYS: Array[String] = ["save_version", "clock", "rng", "economy", "inventory", "plots", "workers", "supplies", "orders", "progress", "problems", "suspicion", "raids", "couriers", "packing", "event_log"]
 
 var config: BalanceConfig
 var clock: SimClock
@@ -18,6 +18,8 @@ var progress: Progress
 var problems: Problems
 var suspicion: Suspicion
 var raids: Raids
+var couriers: Couriers
+var packing: Packing
 
 
 func _init(balance: BalanceConfig, seed_value: int) -> void:
@@ -36,7 +38,9 @@ func _init(balance: BalanceConfig, seed_value: int) -> void:
 	suspicion = Suspicion.new(balance.suspicion, grow, economy, event_log)
 	workers = Workers.new(balance.worker, grow, economy, event_log)
 	workers.attach(balance, rng, inventory, suspicion)
-	orders = Orders.new(balance.orders, balance.strain, rng, inventory, economy, event_log)
+	orders = Orders.new(balance.orders, balance.strain, rng, inventory, event_log)
+	couriers = Couriers.new(balance, orders, economy, suspicion, rng, event_log)
+	packing = Packing.new(balance.orders, inventory, event_log)
 	problems = Problems.new(balance.problems, grow, supplies, rng, event_log)
 	raids = Raids.new(balance.raids, rng, inventory, economy, orders, workers, suspicion, event_log, empire_value)
 	progress.update(empire_value(), clock.elapsed_game_seconds)
@@ -52,9 +56,8 @@ func empire_value() -> int:
 	var value := economy.money + grow.plots().size() * config.plot_price
 	for product: Product in inventory.products():
 		value += economy.price_of(product)
-	for order: Order in orders.all():
-		if order.status == Order.Status.DROPPED:
-			value += order.reward
+	for order: Order in orders.with_status(Order.Status.IN_TRANSIT):
+		value += order.reward
 	return value
 
 
@@ -79,8 +82,22 @@ func _apply(command: SimCommand) -> CommandResult:
 		return workers.hire(now, command.actor, (command as HireWorkerCommand).worker_id)
 	if command is TreatCommand:
 		return problems.treat((command as TreatCommand).plot_id, now, command.actor)
-	if command is MaskEntranceCommand:
-		return suspicion.mask((command as MaskEntranceCommand).masked, now, command.actor)
+	if command is LieLowCommand:
+		return suspicion.lie_low((command as LieLowCommand).on, now, command.actor)
+	if command is AnswerOrderCommand:
+		var answer := command as AnswerOrderCommand
+		return orders.answer(answer.order_id, answer.choice, now, command.actor)
+	if command is DispatchCommand:
+		var dispatch := command as DispatchCommand
+		return couriers.dispatch(dispatch.order_id, dispatch.courier_id, now, command.actor)
+	if command is HireCourierCommand:
+		return couriers.hire((command as HireCourierCommand).courier_id, now, command.actor)
+	if command is FireCourierCommand:
+		return couriers.fire((command as FireCourierCommand).courier_id, now, command.actor)
+	if command is PackCommand:
+		return packing.start(now, command.actor)
+	if command is PickUpParcelCommand:
+		return supplies.pick_up(now, command.actor)
 	if command is RaidCommand:
 		return raids.respond((command as RaidCommand).choice, now, command.actor)
 	if command is FireWorkerCommand:
@@ -90,11 +107,6 @@ func _apply(command: SimCommand) -> CommandResult:
 		return supplies.buy(buy.item, buy.quantity, now, command.actor)
 	if command is BuyPlotCommand:
 		return _buy_plot(now, command.actor)
-	if command is DropOrderCommand:
-		var dropped := orders.drop((command as DropOrderCommand).order_id, now, command.actor)
-		if dropped.ok:
-			suspicion.add(config.suspicion.per_drop)
-		return dropped
 	return CommandResult.failure(CommandResult.UNKNOWN_COMMAND)
 
 
@@ -115,6 +127,7 @@ func _buy_plot(now: float, actor: String) -> CommandResult:
 func _next_event_time() -> float:
 	var next := minf(workers.next_event_time(), minf(supplies.next_event_time(), orders.next_event_time()))
 	next = minf(next, minf(problems.next_event_time(), suspicion.next_event_time()))
+	next = minf(next, minf(couriers.next_event_time(), packing.next_event_time()))
 	return minf(next, raids.next_event_time())
 
 
@@ -122,9 +135,16 @@ func _process_events(now: float) -> void:
 	supplies.process(now)
 	problems.process(now)
 	orders.process(now)
+	couriers.process(now)
+	packing.process(now)
 	raids.process(now)
 	suspicion.process(now)
 	workers.process(now)
+
+
+func _grow_unless_quiet(now: float, game_seconds: float) -> void:
+	if not suspicion.quiet:
+		grow.advance(now, game_seconds)
 
 
 func _advance_time(real_seconds: float) -> CommandResult:
@@ -135,11 +155,11 @@ func _advance_time(real_seconds: float) -> CommandResult:
 		var until_event := event_time - now
 		if until_event < remaining:
 			if until_event > 0.0:
-				grow.advance(now, until_event)
+				_grow_unless_quiet(now, until_event)
 				clock.advance_to(event_time)
 				remaining -= until_event
 		else:
-			grow.advance(now, remaining)
+			_grow_unless_quiet(now, remaining)
 			clock.advance(remaining)
 			remaining = 0.0
 		_process_events(clock.elapsed_game_seconds)
@@ -163,6 +183,8 @@ func to_dict() -> Dictionary:
 		"problems": problems.to_dict(),
 		"suspicion": suspicion.to_dict(),
 		"raids": raids.to_dict(),
+		"couriers": couriers.to_dict(),
+		"packing": packing.to_dict(),
 		"event_log": event_log.to_array(),
 	}
 
@@ -198,4 +220,6 @@ func _load_dict(data: Dictionary) -> void:
 	problems.load_dict(data["problems"] as Dictionary)
 	suspicion.load_dict(data["suspicion"] as Dictionary)
 	raids.load_dict(data["raids"] as Dictionary)
+	couriers.load_dict(data["couriers"] as Dictionary)
+	packing.load_dict(data["packing"] as Dictionary)
 	event_log.load_array(data["event_log"] as Array)

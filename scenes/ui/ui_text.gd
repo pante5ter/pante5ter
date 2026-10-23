@@ -34,7 +34,7 @@ const ERRORS: Dictionary[String, String] = {
 	CommandResult.INVALID_QUANTITY: "Неверное количество.",
 	CommandResult.MAX_PLOTS: "Больше грядок не поместится.",
 	CommandResult.UNKNOWN_ORDER: "Такого заказа нет.",
-	CommandResult.ORDER_NOT_OPEN: "Этот заказ уже в тайнике.",
+	CommandResult.ORDER_NOT_OPEN: "С этим заказом уже всё решено.",
 	CommandResult.NOT_ENOUGH_PRODUCT: "Не хватает товара нужного качества.",
 	CommandResult.STRAIN_LOCKED: "Этот сорт пока недоступен — вырасти империю.",
 	CommandResult.NO_SUPPLY: "Нечем лечить — закажи в телефоне.",
@@ -42,6 +42,11 @@ const ERRORS: Dictionary[String, String] = {
 	CommandResult.NO_RAID: "Никого нет.",
 	CommandResult.UNKNOWN_CHOICE: "Так нельзя.",
 	CommandResult.UNKNOWN_WORKER: "Такого работника нет.",
+	CommandResult.TOO_MANY_COURIERS: "Больше курьеров не нужно — уволь кого-нибудь.",
+	CommandResult.COURIER_BUSY: "Курьер ещё в дороге.",
+	CommandResult.LYING_LOW: "Ферма затихла — курьеры сидят дома.",
+	CommandResult.NOTHING_TO_PACK: "Фасовать нечего — сначала собери урожай.",
+	CommandResult.NO_PARCEL: "Посылок нет.",
 }
 
 
@@ -94,9 +99,30 @@ static func suspicion(sim: SimState) -> String:
 	var text := "Подозрение: %d%%" % roundi(sim.suspicion.level)
 	if sim.suspicion.inspection_pending():
 		text += " · ПРОВЕРКА через %s" % real_duration(sim.suspicion.inspection_at - sim.clock.elapsed_game_seconds, sim)
-	if sim.suspicion.entrance_masked:
-		text += " · вход замаскирован"
+	if sim.suspicion.quiet:
+		text += " · ферма затихла"
 	return text
+
+
+static func stock(sim: SimState) -> String:
+	var packed := 0
+	for product: Product in sim.inventory.products():
+		if product.packed:
+			packed += 1
+	var loose := sim.inventory.count() - packed
+	var text := "Товар: %d коробок на полке" % packed
+	if loose > 0:
+		text += ", %d нефасованных" % loose
+	if not sim.couriers.is_free(Couriers.JACK, sim.clock.elapsed_game_seconds):
+		text += "\nДжек в дороге с заказом"
+	return text
+
+
+static func courier_name(courier_id: String, sim: SimState) -> String:
+	if courier_id == Couriers.JACK:
+		return "Джек"
+	var courier := sim.config.find_courier(courier_id)
+	return courier.display_name if courier != null else courier_id
 
 
 static func item_name(item: String, sim: SimState) -> String:
@@ -133,9 +159,11 @@ static func worker_status(workers: Workers) -> String:
 
 static func objective(sim: SimState) -> String:
 	if sim.raids.pending:
-		return "У тайника гопники! Иди туда и разберись, пока не обчистили."
-	if sim.suspicion.inspection_pending() and not sim.suspicion.entrance_masked:
-		return "Едет проверка! Замаскируй вход в контейнер."
+		return "У контейнера гопники! Иди наверх и разберись, пока не обчистили."
+	if sim.suspicion.inspection_pending() and not sim.suspicion.quiet:
+		return "Едет проверка! Затихни: на компьютере выключи свет и придержи курьеров."
+	if not sim.supplies.parcel().is_empty():
+		return "У контейнера ждёт посылка — забери её."
 	var any_planted := false
 	var any_ready := false
 	var any_dry := false
@@ -146,6 +174,8 @@ static func objective(sim: SimState) -> String:
 	for plot: Plot in sim.grow.plots():
 		if not plot.problem.is_empty():
 			return "Грядка %d: %s. Вылечи её, иначе урожай пропадёт." % [plot_number(plot.id), problem(plot.problem)]
+	if not sim.orders.with_status(Order.Status.OFFERED).is_empty():
+		return "Звонит клиент — ответь на компьютере на плантации."
 	if any_ready:
 		return "Собери созревший урожай на плантации."
 	if sim.inventory.count() > 0:
@@ -160,13 +190,15 @@ static func objective(sim: SimState) -> String:
 
 
 static func _selling_objective(sim: SimState) -> String:
-	var orders := sim.orders.all()
-	for order: Order in orders:
+	if sim.packing.unpacked_count() > 0 and not sim.packing.busy():
+		return "Расфасуй урожай на столе на плантации."
+	var accepted := sim.orders.with_status(Order.Status.ACCEPTED)
+	for order: Order in accepted:
 		if sim.orders.can_fill(order):
-			return "Положи заказ в тайник у западного края поля."
-	if orders.is_empty():
-		return "Жди заказ — он придёт в телефон (Tab)."
-	return "Заказам нужно качество выше — удобряй и обрезай кусты."
+			return "Отправь заказ курьером или отвези сам — с компьютера."
+	if accepted.is_empty():
+		return "Товар на полке. Жди звонков клиентов на компьютер."
+	return "Заказу нужно качество выше — удобряй и обрезай кусты."
 
 
 static func announcement(event: SimEvent, sim: SimState) -> String:
@@ -179,15 +211,26 @@ static func announcement(event: SimEvent, sim: SimState) -> String:
 		EventLog.PLOT_DRIED_OUT:
 			return "Грядка %d пересохла — рост остановился." % plot_number(int(event.data["plot_id"]))
 		EventLog.ORDER_RECEIVED:
-			return "Новый заказ в телефоне: %d шт., качество %d+, %s." % [int(event.data["quantity"]), int(event.data["min_quality"]), money(int(event.data["reward"]))]
+			return "Звонок: нужно %d шт., качество %d+, %s. Ответь на компьютере." % [int(event.data["quantity"]), int(event.data["min_quality"]), money(int(event.data["reward"]))]
+		EventLog.ORDER_MISSED:
+			return "Клиент не дождался ответа и повесил трубку."
+		EventLog.ORDER_HAGGLED:
+			return "Клиент поворчал, но согласился на %s." % money(int(event.data["reward"]))
+		EventLog.ORDER_WALKED_AWAY:
+			return "Клиенту не понравился торг — ушёл к другим."
 		EventLog.ORDER_PAID:
-			return "Курьер забрал заказ #%d: +%s." % [int(event.data["order_id"]), money(int(event.data["reward"]))]
+			var fee := int(event.data["fee"])
+			return "Заказ #%d доставлен: +%s%s." % [int(event.data["order_id"]), money(int(event.data["reward"]) - fee), (" (курьеру %s)" % money(fee)) if fee > 0 else ""]
 		EventLog.ORDER_EXPIRED:
 			return "Заказ #%d сгорел — не успели." % int(event.data["order_id"])
+		EventLog.DELIVERY_STOPPED:
+			return "Курьера остановили по дороге — товар пропал, о ферме заговорили."
+		EventLog.COURIER_STOLE:
+			return "Курьер %s пропал вместе с товаром." % courier_name(String(event.data["courier_id"]), sim)
+		EventLog.PACKING_DONE:
+			return "Расфасовано: %d шт. — на полке склада." % int(event.data["units"])
 		EventLog.SUPPLY_DELIVERED:
-			return "Посылка в ящике у контейнера: %s × %d." % [item_name(String(event.data["item"]), sim), int(event.data["quantity"])]
-		EventLog.ORDER_STOLEN:
-			return "Заказ #%d пропал из тайника." % int(event.data["order_id"])
+			return "Посылка у контейнера: %s × %d — забери." % [item_name(String(event.data["item"]), sim), int(event.data["quantity"])]
 		EventLog.MILESTONE_REACHED:
 			var reached := sim.config.milestones[int(event.data["index"])]
 			return "Новый уровень — «%s». %s" % [reached.title, reached.description]
@@ -196,13 +239,13 @@ static func announcement(event: SimEvent, sim: SimState) -> String:
 		EventLog.WORKER_STOLE:
 			return "С грядки %d пропал урожай. Кто-то нечист на руку…" % plot_number(int(event.data["plot_id"]))
 		EventLog.INSPECTION_WARNED:
-			return "Сосед заметил неладное — скоро проверка! Замаскируй вход в контейнер."
+			return "Сосед заметил неладное — скоро проверка! Затихни: выключи свет и придержи курьеров."
 		EventLog.INSPECTION_PASSED:
 			return "Проверяющий потоптался у контейнера и ушёл ни с чем."
 		EventLog.INSPECTION_FAILED:
 			return "Проверка: пришлось откупиться на %s." % money(int(event.data["fine"]))
 		EventLog.RAID_STARTED:
-			return "У тайника гопники! Разберись, пока не обчистили."
+			return "У контейнера гопники! Разберись, пока не обчистили."
 		EventLog.RAID_RESOLVED:
 			return _raid_outcome(String(event.data["outcome"]))
 		EventLog.PLOT_STAGE_CHANGED:

@@ -1,7 +1,6 @@
 [gd_scene format=3]
 
 [ext_resource type="Script" path="res://scenes/common/level.gd" id="1_level"]
-[ext_resource type="Script" path="res://scenes/field/stash.gd" id="3_stash"]
 [ext_resource type="Script" path="res://scenes/field/worker_candidate.gd" id="4_candidate"]
 [ext_resource type="Script" path="res://scenes/field/day_night.gd" id="5_day_night"]
 [ext_resource type="PackedScene" path="res://scenes/actors/jack.tscn" id="6_jack"]
@@ -11,7 +10,6 @@
 [ext_resource type="Script" path="res://scenes/common/character_model.gd" id="10_model"]
 [ext_resource type="Script" path="res://scenes/field/courier_view.gd" id="11_courier"]
 [ext_resource type="PackedScene" path="res://assets/kenney_mini_characters/character-male-d.glb" id="23_courier_mesh"]
-[ext_resource type="PackedScene" path="res://assets/kenney_survival_kit/chest.glb" id="24_chest"]
 [ext_resource type="PackedScene" path="res://scenes/actors/farmhand.tscn" id="25_farmhand"]
 [ext_resource type="Script" path="res://scenes/field/container_entrance.gd" id="26_entrance"]
 [ext_resource type="Script" path="res://scenes/field/inspector_view.gd" id="27_inspector"]
@@ -118,16 +116,6 @@ size = Vector3(1.9, 0.05, 0.3)
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_shelf"]
 albedo_color = Color(0.5, 0.38, 0.24, 1)
 roughness = 1.0
-
-[sub_resource type="BoxMesh" id="BoxMesh_hay"]
-size = Vector3(1.2, 0.9, 0.9)
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_hay"]
-albedo_color = Color(0.725, 0.643, 0.416, 1)
-roughness = 1.0
-
-[sub_resource type="BoxShape3D" id="BoxShape3D_stash"]
-size = Vector3(1.2, 0.9, 0.9)
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_person"]
 radius = 0.35
@@ -342,12 +330,12 @@ shape = SubResource("CylinderShape3D_trunk")
 [node name="Model" parent="NavRegion/TreeD" instance=ExtResource("13_tree_oak")]
 transform = Transform3D(5.5, 0, 0, 0, 5.5, 0, 0, 0, 5.5, 0, 0, 0)
 
-[node name="Container" type="StaticBody3D" parent="NavRegion" node_paths=PackedStringArray("cover", "door", "approach")]
+[node name="Container" type="StaticBody3D" parent="NavRegion" node_paths=PackedStringArray("parcel_box", "door", "approach")]
 position = Vector3(9, 0, -10)
 collision_layer = 2
 collision_mask = 0
 script = ExtResource("26_entrance")
-cover = NodePath("Cover")
+parcel_box = NodePath("ParcelBox")
 door = NodePath("Shelf")
 door_open_offset = Vector3(1.9, 0, 0)
 destination = "res://scenes/plantation/plantation.tscn"
@@ -413,23 +401,22 @@ transform = Transform3D(3, 0, 0, 0, 3, 0, 0, 0, 3, 1.95, 0, 1.3)
 [node name="Crate" parent="NavRegion/Container" instance=ExtResource("21_box_large")]
 transform = Transform3D(0, 0, 3, 0, 3, 0, -3, 0, 0, -2.1, 0, -1.5)
 
-[node name="Cover" type="Node3D" parent="NavRegion/Container"]
+[node name="ParcelBox" type="Node3D" parent="NavRegion/Container"]
 visible = false
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.9, 0, 4.6)
 
-[node name="HayLeft" type="MeshInstance3D" parent="NavRegion/Container/Cover"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.6, 0.45, 3.6)
-mesh = SubResource("BoxMesh_hay")
-surface_material_override/0 = SubResource("StandardMaterial3D_hay")
+[node name="Crate" parent="NavRegion/Container/ParcelBox" instance=ExtResource("21_box_large")]
+transform = Transform3D(0, 0, 2.6, 0, 2.6, 0, -2.6, 0, 0, 0, 0, 0)
 
-[node name="HayRight" type="MeshInstance3D" parent="NavRegion/Container/Cover"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.65, 0.45, 3.6)
-mesh = SubResource("BoxMesh_hay")
-surface_material_override/0 = SubResource("StandardMaterial3D_hay")
-
-[node name="HayTop" type="MeshInstance3D" parent="NavRegion/Container/Cover"]
-transform = Transform3D(0.966, 0, 0.259, 0, 1, 0, -0.259, 0, 0.966, 0, 1.35, 3.55)
-mesh = SubResource("BoxMesh_hay")
-surface_material_override/0 = SubResource("StandardMaterial3D_hay")
+[node name="Label" type="Label3D" parent="NavRegion/Container/ParcelBox"]
+position = Vector3(0, 1.6, 0)
+pixel_size = 0.008
+billboard = 1
+no_depth_test = true
+modulate = Color(0.96, 0.84, 0.45, 1)
+text = "Посылка"
+font_size = 36
+outline_size = 10
 
 [node name="Label" type="Label3D" parent="NavRegion/Container"]
 position = Vector3(0, 3.4, 0)
@@ -442,38 +429,6 @@ outline_size = 10
 
 [node name="Approach" type="Marker3D" parent="NavRegion/Container"]
 position = Vector3(0, 0, 4.4)
-
-[node name="Stash" type="StaticBody3D" parent="NavRegion" node_paths=PackedStringArray("approach")]
-position = Vector3(-25, 0, -3)
-collision_layer = 2
-collision_mask = 0
-script = ExtResource("3_stash")
-approach = NodePath("Approach")
-
-[node name="Shape" type="CollisionShape3D" parent="NavRegion/Stash"]
-position = Vector3(0, 0.45, 0)
-shape = SubResource("BoxShape3D_stash")
-
-[node name="Chest" parent="NavRegion/Stash" instance=ExtResource("24_chest")]
-transform = Transform3D(3.5, 0, 0, 0, 3.5, 0, 0, 0, 3.5, 0, 0, 0)
-
-[node name="BushA" parent="NavRegion/Stash" instance=ExtResource("22_small_bush")]
-transform = Transform3D(5, 0, 0, 0, 5, 0, 0, 0, 5, -1.1, 0, -0.6)
-
-[node name="BushB" parent="NavRegion/Stash" instance=ExtResource("16_bush")]
-transform = Transform3D(5, 0, 0, 0, 5, 0, 0, 0, 5, 1.0, 0, -0.9)
-
-[node name="Label" type="Label3D" parent="NavRegion/Stash"]
-position = Vector3(0, 2.0, 0)
-pixel_size = 0.008
-billboard = 1
-no_depth_test = true
-text = "Тайник"
-font_size = 40
-outline_size = 10
-
-[node name="Approach" type="Marker3D" parent="NavRegion/Stash"]
-position = Vector3(1.6, 0, 0.8)
 
 [node name="Candidate" type="StaticBody3D" parent="NavRegion" node_paths=PackedStringArray("visual", "leave_target", "approach")]
 position = Vector3(-7, 0, 7.2)
@@ -584,7 +539,7 @@ outline_size = 10
 position = Vector3(0, 0, -1.5)
 
 [node name="Raiders" type="StaticBody3D" parent="NavRegion" node_paths=PackedStringArray("visual", "approach")]
-position = Vector3(-22.5, 0, -0.8)
+position = Vector3(12.6, 0, -5.4)
 collision_layer = 0
 collision_mask = 0
 script = ExtResource("28_gang")
@@ -621,7 +576,7 @@ font_size = 40
 outline_size = 10
 
 [node name="Approach" type="Marker3D" parent="NavRegion/Raiders"]
-position = Vector3(1.6, 0, 1.6)
+position = Vector3(-1.4, 0, 1.4)
 
 [node name="Inspector" type="Node3D" parent="." node_paths=PackedStringArray("road_point", "target_point", "model")]
 visible = false
@@ -636,18 +591,51 @@ script = ExtResource("10_model")
 
 [node name="Mesh" parent="Inspector/Model" instance=ExtResource("29_inspector_mesh")]
 
-[node name="Courier" type="Node3D" parent="." node_paths=PackedStringArray("road_point", "stash_point", "model")]
+[node name="CourierA" type="Node3D" parent="." node_paths=PackedStringArray("depot_point", "road_point", "model", "name_label")]
 visible = false
 script = ExtResource("11_courier")
+slot = 0
+depot_point = NodePath("../NavRegion/Container/Approach")
 road_point = NodePath("../SpawnPoints/road_west")
-stash_point = NodePath("../NavRegion/Stash/Approach")
 model = NodePath("Model")
+name_label = NodePath("Label")
 
-[node name="Model" type="Node3D" parent="Courier"]
+[node name="Model" type="Node3D" parent="CourierA"]
 transform = Transform3D(2.6, 0, 0, 0, 2.6, 0, 0, 0, 2.6, 0, 0, 0)
 script = ExtResource("10_model")
 
-[node name="Mesh" parent="Courier/Model" instance=ExtResource("23_courier_mesh")]
+[node name="Mesh" parent="CourierA/Model" instance=ExtResource("23_courier_mesh")]
+
+[node name="Label" type="Label3D" parent="CourierA"]
+position = Vector3(0, 2.4, 0)
+pixel_size = 0.008
+billboard = 1
+no_depth_test = true
+font_size = 34
+outline_size = 10
+
+[node name="CourierB" type="Node3D" parent="." node_paths=PackedStringArray("depot_point", "road_point", "model", "name_label")]
+visible = false
+script = ExtResource("11_courier")
+slot = 1
+depot_point = NodePath("../NavRegion/Container/Approach")
+road_point = NodePath("../SpawnPoints/road_west")
+model = NodePath("Model")
+name_label = NodePath("Label")
+
+[node name="Model" type="Node3D" parent="CourierB"]
+transform = Transform3D(2.6, 0, 0, 0, 2.6, 0, 0, 0, 2.6, 0, 0, 0)
+script = ExtResource("10_model")
+
+[node name="Mesh" parent="CourierB/Model" instance=ExtResource("23_courier_mesh")]
+
+[node name="Label" type="Label3D" parent="CourierB"]
+position = Vector3(0, 2.4, 0)
+pixel_size = 0.008
+billboard = 1
+no_depth_test = true
+font_size = 34
+outline_size = 10
 
 [node name="Jack" parent="." instance=ExtResource("6_jack")]
 

@@ -2,10 +2,12 @@ extends Node
 
 const BALANCE_PATH: String = "res://content/balance.tres"
 const DEFAULT_SAVE_PATH: String = "user://save.json"
+const SPEEDS: Array[float] = [1.0, 2.0, 4.0]
 
 var sim: SimState
 var is_running: bool = false
 var save_path: String = DEFAULT_SAVE_PATH
+var time_scale: float = 1.0
 var _balance: BalanceConfig
 
 
@@ -15,7 +17,11 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	if is_running and sim != null:
-		sim.apply(AdvanceTimeCommand.new(delta))
+		sim.apply(AdvanceTimeCommand.new(delta * time_scale))
+
+
+func set_speed(index: int) -> void:
+	time_scale = SPEEDS[clampi(index, 0, SPEEDS.size() - 1)]
 
 
 func new_game(seed_value: int) -> void:

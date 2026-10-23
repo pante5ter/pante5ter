@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="BalanceConfig" load_steps=16 format=3]
+[gd_resource type="Resource" script_class="BalanceConfig" format=3]
 
 [ext_resource type="Script" path="res://content/defs/balance_config.gd" id="1_balance"]
 [ext_resource type="Resource" path="res://content/strains/basic_strain.tres" id="2_strain"]
@@ -14,6 +14,10 @@
 [ext_resource type="Resource" path="res://content/suspicion.tres" id="12_suspicion"]
 [ext_resource type="Resource" path="res://content/raids.tres" id="13_raids"]
 [ext_resource type="Script" path="res://content/defs/milestone_def.gd" id="14_milestone_def"]
+[ext_resource type="Script" path="res://content/defs/courier_def.gd" id="15_courier_def"]
+[ext_resource type="Resource" path="res://content/couriers/harry.tres" id="16_harry"]
+[ext_resource type="Resource" path="res://content/couriers/frank.tres" id="17_frank"]
+[ext_resource type="Resource" path="res://content/couriers/pete.tres" id="18_pete"]
 
 [sub_resource type="Resource" id="Resource_milestone_1"]
 script = ExtResource("14_milestone_def")
@@ -46,6 +50,8 @@ strain = ExtResource("2_strain")
 extra_strains = Array[ExtResource("7_strain_def")]([ExtResource("4_classic"), ExtResource("5_elite")])
 worker = ExtResource("3_worker")
 worker_candidates = Array[ExtResource("8_worker_def")]([ExtResource("3_worker"), ExtResource("9_dave"), ExtResource("10_barry")])
+courier_candidates = Array[ExtResource("15_courier_def")]([ExtResource("16_harry"), ExtResource("17_frank"), ExtResource("18_pete")])
+max_couriers = 2
 orders = ExtResource("6_orders")
 problems = ExtResource("11_problems")
 suspicion = ExtResource("12_suspicion")

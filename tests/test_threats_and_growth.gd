@@ -33,7 +33,7 @@ func _advance_in_steps(state: SimState, hours: float, step: float) -> void:
 
 # --- empire value and milestones
 
-func test_empire_value_counts_money_beds_stock_and_goods_in_the_stash() -> void:
+func test_empire_value_counts_money_beds_and_stock() -> void:
 	var state := SimState.new(_config(), 1)
 	var base := state.config.starting_money + state.grow.plots().size() * state.config.plot_price
 	assert_eq(state.empire_value(), base)
@@ -105,6 +105,7 @@ func test_treating_needs_the_right_supply() -> void:
 	assert_eq(state.apply(TreatCommand.new(0)).error, CommandResult.NO_SUPPLY)
 	state.apply(BuyCommand.new(Supplies.PESTICIDE))
 	_advance(state, state.config.delivery_hours + 0.01)
+	state.apply(PickUpParcelCommand.new())
 	assert_true(state.apply(TreatCommand.new(0)).ok)
 	assert_eq(plot.problem, "")
 	assert_eq(state.supplies.count(Supplies.PESTICIDE), 0)
@@ -185,19 +186,14 @@ func test_hired_worker_survives_save_and_load() -> void:
 
 # --- suspicion and inspections
 
-func test_dropping_orders_raises_suspicion_and_it_fades() -> void:
+func test_suspicion_fades_over_time() -> void:
 	var state := SimState.new(_config(), 1)
-	_advance(state, state.config.orders.first_order_hours + 0.01)
-	var order := state.orders.all()[0]
-	for index: int in order.quantity:
-		state.inventory.create(state.config.strain.id, 100)
-	state.apply(DropOrderCommand.new(order.id))
-	assert_almost_eq(state.suspicion.level, state.config.suspicion.per_drop, 0.01)
+	state.suspicion.add(10.0)
 	_advance(state, 3.0)
-	assert_lt(state.suspicion.level, state.config.suspicion.per_drop)
+	assert_lt(state.suspicion.level, 10.0)
 
 
-func test_high_suspicion_warns_then_an_unmasked_entrance_gets_fined() -> void:
+func test_high_suspicion_warns_then_a_busy_farm_gets_fined() -> void:
 	var state := SimState.new(_config(1000), 1)
 	state.suspicion.add(state.config.suspicion.inspection_threshold + 10.0)
 	_advance(state, 1.0)
@@ -210,12 +206,11 @@ func test_high_suspicion_warns_then_an_unmasked_entrance_gets_fined() -> void:
 	assert_eq(state.economy.money, money - mini(state.config.suspicion.fine, money))
 
 
-func test_a_masked_entrance_passes_the_inspection() -> void:
+func test_a_farm_lying_low_passes_the_inspection() -> void:
 	var state := SimState.new(_config(1000), 1)
 	state.suspicion.add(state.config.suspicion.inspection_threshold + 10.0)
 	_advance(state, 1.0)
-	assert_true(state.apply(MaskEntranceCommand.new(true)).ok)
-	assert_eq(state.apply(MaskEntranceCommand.new(true)).error, CommandResult.ALREADY_DONE)
+	assert_true(state.apply(LieLowCommand.new(true)).ok)
 	var money := state.economy.money
 	var level := state.suspicion.level
 	_advance(state, state.config.suspicion.warning_hours + 0.01)
@@ -276,7 +271,7 @@ func test_giving_goods_hands_over_half() -> void:
 	assert_eq(state.inventory.count(), 1)
 
 
-func test_ignoring_raiders_loses_everything_including_the_stash() -> void:
+func test_ignoring_raiders_loses_all_the_stock() -> void:
 	var state := _raid_ready()
 	_advance(state, state.config.raids.deadline_hours + 0.01)
 	assert_false(state.raids.pending)
@@ -314,7 +309,7 @@ func test_raid_choices_need_a_raid() -> void:
 func test_threats_survive_save_and_load() -> void:
 	var state := _raid_ready()
 	state.suspicion.add(30.0)
-	state.apply(MaskEntranceCommand.new(true))
+	state.apply(LieLowCommand.new(true))
 	state.grow.plot(0).problem = Problems.MOLD
 	var saved := state.to_json()
 	var loaded := SimState.from_json(saved, state.config)

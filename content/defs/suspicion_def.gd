@@ -2,7 +2,7 @@ class_name SuspicionDef
 extends Resource
 
 @export_group("Sources")
-@export var per_drop: float = 0.0
+@export var per_delivery: float = 0.0
 @export var per_extra_bed_per_hour: float = 0.0
 @export var quiet_beds: int = 6
 @export var decay_per_hour: float = 0.0

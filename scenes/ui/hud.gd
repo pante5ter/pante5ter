@@ -19,6 +19,8 @@ const MAX_NEWS_LINES: int = 3
 var action_menu: ActionMenu
 var phone: Phone
 var pause_menu: PauseMenu
+var computer: ComputerScreen
+var speed_buttons: Array[Button] = []
 
 var _message_left: float = 0.0
 var _watched_sim: SimState
@@ -35,9 +37,23 @@ func _ready() -> void:
 	add_child(phone)
 	action_menu = ActionMenu.new()
 	add_child(action_menu)
+	computer = ComputerScreen.new()
+	computer.message.connect(show_message)
+	add_child(computer)
 	pause_menu = PauseMenu.new()
 	pause_menu.message.connect(show_message)
 	add_child(pause_menu)
+	for index: int in Game.SPEEDS.size():
+		var button := UiStyle.button("x%d" % roundi(Game.SPEEDS[index]), set_speed.bind(index))
+		button.toggle_mode = true
+		button.anchor_top = 1.0
+		button.anchor_bottom = 1.0
+		button.offset_left = 12.0 + 58.0 * float(index)
+		button.offset_right = 64.0 + 58.0 * float(index)
+		button.offset_top = -52.0
+		button.offset_bottom = -16.0
+		add_child(button)
+		speed_buttons.append(button)
 
 
 func _add_corner_button(text: String, on_pressed: Callable, anchor: Vector2, rect: Rect2) -> void:
@@ -57,13 +73,15 @@ func _process(delta: float) -> void:
 	var sim := Game.sim
 	money_label.text = UiText.money(sim.economy.money)
 	time_label.text = UiText.clock(sim.clock)
-	stock_label.text = "Урожай на руках: %d шт." % sim.inventory.count()
+	stock_label.text = UiText.stock(sim)
 	worker_label.text = UiText.worker_status(sim.workers)
 	objective_label.text = "Цель: " + UiText.objective(sim)
 	empire_label.text = UiText.empire(sim)
 	suspicion_label.text = UiText.suspicion(sim)
 	suspicion_label.modulate = Color(1.0, 0.55, 0.45) if sim.suspicion.inspection_pending() or sim.raids.pending else Color.WHITE
 	_announce_new_events(sim)
+	for index: int in speed_buttons.size():
+		speed_buttons[index].set_pressed_no_signal(is_equal_approx(Game.time_scale, Game.SPEEDS[index]))
 	_message_left = maxf(_message_left - delta, 0.0)
 	message_label.modulate.a = clampf(_message_left / MESSAGE_FADE_SECONDS, 0.0, 1.0)
 	if hover_label.visible:
@@ -91,7 +109,7 @@ func show_message(text: String) -> void:
 
 
 func set_hover(text: String) -> void:
-	var blocked := action_menu.visible or phone.visible or pause_menu.visible
+	var blocked := action_menu.visible or phone.visible or pause_menu.visible or computer.visible
 	hover_label.text = text
 	hover_label.visible = not text.is_empty() and not blocked
 
@@ -105,7 +123,17 @@ func close_actions() -> void:
 
 
 func is_blocking_world() -> bool:
-	return action_menu.visible or pause_menu.visible
+	return action_menu.visible or pause_menu.visible or computer.visible
+
+
+func open_computer() -> void:
+	action_menu.close()
+	phone.close()
+	computer.open()
+
+
+func set_speed(index: int) -> void:
+	Game.set_speed(index)
 
 
 func toggle_phone() -> void:
@@ -129,10 +157,14 @@ func _input(event: InputEvent) -> void:
 		KEY_ESCAPE:
 			if action_menu.visible:
 				action_menu.close()
+			elif computer.visible:
+				computer.close()
 			elif phone.visible:
 				phone.close()
 			else:
 				toggle_pause()
+		KEY_1, KEY_2, KEY_3:
+			set_speed(key.physical_keycode - KEY_1)
 		KEY_F5:
 			show_message("Игра сохранена." if Game.save_game() == OK else "Не удалось сохранить игру.")
 		KEY_F9:

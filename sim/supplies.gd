@@ -13,6 +13,7 @@ var _seeds: Dictionary[String, int] = {}
 var _items: Dictionary[String, int] = {}
 var _progress: Progress = null
 var _deliveries: Array[Dictionary] = []
+var _parcel: Array[Dictionary] = []
 var _config: BalanceConfig
 var _economy: Economy
 var _event_log: EventLog
@@ -117,14 +118,34 @@ func process(now: float) -> void:
 		_deliveries.erase(delivery)
 		var item := String(delivery["item"])
 		var quantity := int(delivery["quantity"])
-		if item == FERTILIZER:
-			fertilizer += quantity
-		elif TOOLS.has(item):
-			_items[item] = count(item) + quantity
-		else:
-			var strain_id := item.trim_prefix(SEED_PREFIX)
-			_seeds[strain_id] = seeds(strain_id) + quantity
+		_parcel.append({"item": item, "quantity": quantity})
 		_event_log.record(EventLog.SUPPLY_DELIVERED, now, PackedStringArray(), {"item": item, "quantity": quantity})
+
+
+func parcel() -> Array[Dictionary]:
+	return _parcel.duplicate(true)
+
+
+func pick_up(now: float, actor: String) -> CommandResult:
+	if _parcel.is_empty():
+		return CommandResult.failure(CommandResult.NO_PARCEL)
+	var items := 0
+	for entry: Dictionary in _parcel:
+		_stock(String(entry["item"]), int(entry["quantity"]))
+		items += int(entry["quantity"])
+	_parcel.clear()
+	_event_log.record(EventLog.PARCEL_PICKED_UP, now, PackedStringArray([actor]), {"items": items})
+	return CommandResult.success(items)
+
+
+func _stock(item: String, quantity: int) -> void:
+	if item == FERTILIZER:
+		fertilizer += quantity
+	elif TOOLS.has(item):
+		_items[item] = count(item) + quantity
+	else:
+		var strain_id := item.trim_prefix(SEED_PREFIX)
+		_seeds[strain_id] = seeds(strain_id) + quantity
 
 
 func to_dict() -> Dictionary:
@@ -135,7 +156,7 @@ func to_dict() -> Dictionary:
 			"quantity": delivery["quantity"],
 			"arrives_at": ExactFloat.encode(float(delivery["arrives_at"])),
 		})
-	return {"fertilizer": fertilizer, "seeds": _seeds.duplicate(), "items": _items.duplicate(), "deliveries": deliveries}
+	return {"fertilizer": fertilizer, "seeds": _seeds.duplicate(), "items": _items.duplicate(), "deliveries": deliveries, "parcel": _parcel.duplicate(true)}
 
 
 func load_dict(data: Dictionary) -> void:
@@ -148,6 +169,10 @@ func load_dict(data: Dictionary) -> void:
 	var stored_items := data["items"] as Dictionary
 	for item_id: Variant in stored_items:
 		_items[String(item_id)] = int(stored_items[item_id])
+	_parcel.clear()
+	for entry: Variant in data["parcel"] as Array:
+		var stored := entry as Dictionary
+		_parcel.append({"item": String(stored["item"]), "quantity": int(stored["quantity"])})
 	_deliveries.clear()
 	for item: Variant in data["deliveries"] as Array:
 		var delivery := item as Dictionary

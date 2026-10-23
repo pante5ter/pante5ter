@@ -89,7 +89,10 @@ func process(now: float) -> void:
 	if task != Task.NONE and now >= task_ends_at:
 		_finish_task(now)
 	if task == Task.NONE and now >= next_check_at:
-		_start_next_task(now)
+		if _suspicion != null and _suspicion.quiet:
+			next_check_at = now + _def.idle_check_minutes * 60.0
+		else:
+			_start_next_task(now)
 
 
 func _pay_wage(now: float) -> void:

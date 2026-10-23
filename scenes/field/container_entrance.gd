@@ -1,16 +1,16 @@
 class_name ContainerEntrance
 extends Elevator
 
-@export var cover: Node3D
+@export var parcel_box: Node3D
 
 
 func _process(_delta: float) -> void:
-	cover.visible = Game.sim.suspicion.entrance_masked
+	parcel_box.visible = not Game.sim.supplies.parcel().is_empty()
 
 
 func hover_text() -> String:
-	if Game.sim.suspicion.entrance_masked:
-		return "Контейнер — вход замаскирован"
+	if not Game.sim.supplies.parcel().is_empty():
+		return "Контейнер — тут посылка"
 	return hover_label
 
 
@@ -19,18 +19,16 @@ func interact(level: Level) -> void:
 
 
 func actions(level: Level) -> Array[UiAction]:
-	var masked := Game.sim.suspicion.entrance_masked
-	var result: Array[UiAction] = [UiAction.make("Спуститься на плантацию" if not masked else "Спуститься (сначала сними маскировку)", ride, not masked)]
-	if masked:
-		result.append(UiAction.make("Снять маскировку", _mask.bind(level, false)))
-	else:
-		result.append(UiAction.make("Замаскировать вход (сено и хлам)", _mask.bind(level, true)))
+	var result: Array[UiAction] = [UiAction.make("Спуститься на плантацию", ride)]
+	var parcel := Game.sim.supplies.parcel()
+	if not parcel.is_empty():
+		var items := PackedStringArray()
+		for entry: Dictionary in parcel:
+			items.append("%s × %d" % [UiText.item_name(String(entry["item"]), Game.sim), int(entry["quantity"])])
+		result.append(UiAction.make("Забрать посылку: %s" % ", ".join(items), _pick_up.bind(level)))
 	return result
 
 
-func _mask(level: Level, masked: bool) -> void:
-	var result := Game.sim.apply(MaskEntranceCommand.new(masked))
-	if not result.ok:
-		level.show_message(UiText.error(result.error))
-		return
-	level.show_message("Вход завален сеном и хламом. Пока так — вниз не спуститься." if masked else "Маскировка снята.")
+func _pick_up(level: Level) -> void:
+	var result := Game.sim.apply(PickUpParcelCommand.new())
+	level.show_message("Посылку забрал — всё на складе (телефон → Склад)." if result.ok else UiText.error(result.error))

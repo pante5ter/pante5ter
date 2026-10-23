@@ -15,6 +15,7 @@ func before_each() -> void:
 
 
 func after_each() -> void:
+	Game.set_speed(0)
 	Game.is_running = false
 	Game.save_path = Game.DEFAULT_SAVE_PATH
 	Game.new_game(7)
@@ -91,7 +92,7 @@ func test_every_field_interactable_can_be_reached_from_start() -> void:
 	var level := await _open(FIELD_SCENE)
 	var start := level.jack.global_position
 	var targets := _interactables(level).filter(func(target: Interactable) -> bool: return not target is RaiderGang)
-	assert_eq(targets.size(), 5)
+	assert_eq(targets.size(), 4)
 	for target: Interactable in targets:
 		_assert_reachable(level, start, target.approach_position(), target.name)
 	_assert_reachable(level, start, (level.get_node("SpawnPoints/from_elevator") as Node3D).global_position, "lift exit")
@@ -101,7 +102,7 @@ func test_every_bed_and_work_spot_can_be_reached_in_the_plantation() -> void:
 	var level := await _open(PLANTATION_SCENE)
 	var start := level.jack.global_position
 	var targets := _interactables(level).filter(func(target: Interactable) -> bool: return not target is WorkerTalk)
-	assert_eq(targets.size(), Game.sim.grow.plots().size() + 1)
+	assert_eq(targets.size(), Game.sim.grow.plots().size() + 3)
 	for target: Interactable in targets:
 		_assert_reachable(level, start, target.approach_position(), target.name)
 		if target is PlotView:
@@ -117,13 +118,26 @@ func test_clicking_the_ground_walks_jack_there() -> void:
 	assert_lt(_flat_distance(level.jack.global_position, target), REACH_TOLERANCE)
 
 
-func test_clicking_the_stash_walks_over_and_opens_its_menu() -> void:
+func test_clicking_the_computer_walks_over_and_opens_it() -> void:
+	var level := await _open(PLANTATION_SCENE)
+	var desk := level.get_node("NavRegion/Computer") as ComputerDesk
+	_click_world(level, desk.global_position + Vector3(0.0, 0.6, 0.0))
+	await wait_until(func() -> bool: return level.hud.computer.visible, WALK_TIMEOUT)
+	assert_true(level.hud.computer.visible)
+	assert_lt(_flat_distance(level.jack.global_position, desk.approach_position()), REACH_TOLERANCE)
+	_press_key(level.hud, KEY_ESCAPE)
+	assert_false(level.hud.computer.visible, "Esc steps away from the computer first")
+	assert_false(level.hud.pause_menu.visible)
+
+
+func test_number_keys_change_game_speed() -> void:
 	var level := await _open(FIELD_SCENE)
-	var stash := level.get_node("NavRegion/Stash") as Stash
-	_click_world(level, stash.global_position + Vector3(0.0, 0.4, 0.0))
-	await wait_until(func() -> bool: return level.hud.action_menu.visible, WALK_TIMEOUT)
-	assert_true(level.hud.action_menu.visible)
-	assert_lt(_flat_distance(level.jack.global_position, stash.approach_position()), REACH_TOLERANCE)
+	_press_key(level.hud, KEY_3)
+	assert_eq(Game.time_scale, Game.SPEEDS[2])
+	await wait_process_frames(2)
+	assert_true(level.hud.speed_buttons[2].button_pressed)
+	_press_key(level.hud, KEY_1)
+	assert_eq(Game.time_scale, Game.SPEEDS[0])
 
 
 func test_clicking_the_candidate_opens_a_hiring_menu() -> void:

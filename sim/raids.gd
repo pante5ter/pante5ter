@@ -73,12 +73,7 @@ func _roll(at: float) -> void:
 
 
 func _has_loot() -> bool:
-	if _inventory.count() > 0:
-		return true
-	for order: Order in _orders.all():
-		if order.status == Order.Status.DROPPED:
-			return true
-	return false
+	return _inventory.count() > 0
 
 
 func respond(choice: String, now: float, actor: String) -> CommandResult:
@@ -110,8 +105,7 @@ func _rob(now: float, outcome: String) -> void:
 	var taken := _inventory.count()
 	for product: Product in _inventory.products():
 		_inventory.take(product.id)
-	var lost_orders := _orders.steal_dropped()
-	_resolve(now, RAIDER_ACTOR, outcome, {"taken": taken, "lost_orders": lost_orders})
+	_resolve(now, RAIDER_ACTOR, outcome, {"taken": taken})
 
 
 func _resolve(now: float, actor: String, outcome: String, data: Dictionary) -> void:

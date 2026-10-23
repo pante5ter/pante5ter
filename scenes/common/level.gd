@@ -76,6 +76,10 @@ func _click(screen_position: Vector2) -> void:
 		return
 	if SceneRouter.is_busy() or not _navigation_ready:
 		return
+	if jack_away():
+		var back := Game.sim.couriers.busy_until.get(Couriers.JACK, 0.0) as float
+		show_message("Джек в дороге с заказом. Вернётся через %s." % UiText.real_duration(back - Game.sim.clock.elapsed_game_seconds, Game.sim))
+		return
 	var hit := _pick(screen_position)
 	if hit.is_empty():
 		return
@@ -86,9 +90,14 @@ func _click(screen_position: Vector2) -> void:
 		jack.move_to(hit["position"] as Vector3)
 
 
+func jack_away() -> bool:
+	return not Game.sim.couriers.is_free(Couriers.JACK, Game.sim.clock.elapsed_game_seconds)
+
+
 func _physics_process(_delta: float) -> void:
 	if not _navigation_ready:
 		_refresh_navigation_ready()
+	jack.visible = not jack_away()
 	var hit := _pick(get_viewport().get_mouse_position())
 	var interactable: Interactable = null
 	if not hit.is_empty():

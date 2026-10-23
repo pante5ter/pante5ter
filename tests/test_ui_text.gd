@@ -76,7 +76,7 @@ func test_objective_points_at_harvest_and_then_the_buyer() -> void:
 		hours_left -= step
 	assert_string_contains(UiText.objective(state), "Собери")
 	state.apply(HarvestCommand.new(0))
-	assert_string_contains(UiText.objective(state), "аказ", "with goods on hand the goal is about orders")
+	assert_string_contains(UiText.objective(state), "Расфасуй", "fresh harvest has to be packed first")
 
 
 func test_objective_skips_hiring_when_wage_is_unaffordable() -> void:
@@ -114,11 +114,11 @@ func test_order_and_delivery_news() -> void:
 	var state := _new_state()
 	var event_log := state.event_log
 	var received := event_log.record(EventLog.ORDER_RECEIVED, 0.0, PackedStringArray(), {"order_id": 4, "quantity": 3, "min_quality": 55, "reward": 420})
-	var paid := event_log.record(EventLog.ORDER_PAID, 0.0, PackedStringArray(), {"order_id": 4, "reward": 420, "money": 900})
+	var paid := event_log.record(EventLog.ORDER_PAID, 0.0, PackedStringArray(), {"order_id": 4, "courier_id": "frank", "reward": 420, "fee": 84, "money": 900})
 	var expired := event_log.record(EventLog.ORDER_EXPIRED, 0.0, PackedStringArray(), {"order_id": 5})
 	var delivered := event_log.record(EventLog.SUPPLY_DELIVERED, 0.0, PackedStringArray(), {"item": Supplies.FERTILIZER, "quantity": 2})
 	assert_string_contains(UiText.announcement(received, state), "£420")
-	assert_string_contains(UiText.announcement(paid, state), "Курьер")
+	assert_string_contains(UiText.announcement(paid, state), "доставлен")
 	assert_string_contains(UiText.announcement(expired, state), "#5")
 	assert_string_contains(UiText.announcement(delivered, state), "удобрение × 2")
 

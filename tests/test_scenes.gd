@@ -96,6 +96,7 @@ func test_bed_menu_offers_premium_only_with_seeds() -> void:
 	Game.sim.economy.earn(1000)
 	Game.sim.apply(BuyCommand.new(Supplies.seed_item(premium.id), 1))
 	Game.sim.apply(AdvanceTimeCommand.new(_hours_to_real(Game.sim.config.delivery_hours + 0.01)))
+	Game.sim.apply(PickUpParcelCommand.new())
 	bed.interact(level)
 	_choose(level, "Посадить «%s»" % premium.display_name)
 	assert_eq(Game.sim.grow.plot(2).strain_id, premium.id)
@@ -118,36 +119,6 @@ func test_buying_a_bed_adds_it_to_the_plantation() -> void:
 	assert_true(Game.sim.apply(BuyPlotCommand.new()).ok)
 	await wait_process_frames(2)
 	assert_eq(_plots_grid(level).views().size(), before + 1)
-
-
-func test_stash_takes_a_matching_order_and_the_courier_shows_up() -> void:
-	var level := await _open(FIELD_SCENE)
-	Game.sim.apply(AdvanceTimeCommand.new(_hours_to_real(Game.sim.config.orders.first_order_hours + 0.01)))
-	var order := Game.sim.orders.all()[0]
-	for index: int in order.quantity:
-		Game.sim.inventory.create(Game.sim.config.strain.id, 100)
-	var stash := level.get_node("NavRegion/Stash") as Stash
-	stash.interact(level)
-	_choose(level, "Положить заказ #%d" % order.id)
-	assert_eq(Game.sim.orders.find(order.id).status, Order.Status.DROPPED)
-	var courier := level.get_node("Courier") as CourierView
-	await wait_process_frames(2)
-	assert_false(courier.visible, "the courier comes only shortly before pickup")
-	var pickup_in := Game.sim.orders.find(order.id).pickup_at - Game.sim.clock.elapsed_game_seconds
-	Game.sim.apply(AdvanceTimeCommand.new(_hours_to_real(pickup_in / SimClock.GAME_SECONDS_PER_HOUR - CourierView.WALK_HOURS / 2.0)))
-	await wait_process_frames(2)
-	assert_true(courier.visible)
-	var money := Game.sim.economy.money
-	Game.sim.apply(AdvanceTimeCommand.new(_hours_to_real(CourierView.WALK_HOURS)))
-	assert_eq(Game.sim.economy.money, money + order.reward)
-
-
-func test_stash_lists_orders_it_cannot_fill_as_disabled() -> void:
-	var level := await _open(FIELD_SCENE)
-	Game.sim.apply(AdvanceTimeCommand.new(_hours_to_real(Game.sim.config.orders.first_order_hours + 0.01)))
-	var actions := (level.get_node("NavRegion/Stash") as Stash).actions(level)
-	assert_eq(actions.size(), 1)
-	assert_false(actions[0].enabled)
 
 
 func test_candidate_asks_before_hiring_and_then_walks_to_the_container() -> void:
@@ -220,23 +191,6 @@ func test_beds_stay_centred_in_the_room() -> void:
 
 
 
-func test_container_can_be_masked_and_then_refuses_the_lift() -> void:
-	var level := await _open(FIELD_SCENE)
-	var entrance := level.get_node("NavRegion/Container") as ContainerEntrance
-	entrance.interact(level)
-	_choose(level, "Замаскировать вход")
-	assert_true(Game.sim.suspicion.entrance_masked)
-	await wait_process_frames(2)
-	assert_true(entrance.cover.visible)
-	var ride := entrance.actions(level)[0]
-	assert_false(ride.enabled, "a masked entrance cannot be used")
-	entrance.interact(level)
-	_choose(level, "Снять маскировку")
-	assert_false(Game.sim.suspicion.entrance_masked)
-	await wait_process_frames(2)
-	assert_false(entrance.cover.visible)
-
-
 func test_inspector_walks_up_while_an_inspection_is_pending() -> void:
 	var level := await _open(FIELD_SCENE)
 	var inspector := level.get_node("Inspector") as InspectorView
@@ -247,7 +201,7 @@ func test_inspector_walks_up_while_an_inspection_is_pending() -> void:
 	await wait_process_frames(2)
 	assert_true(inspector.visible)
 	assert_string_contains(level.hud.suspicion_label.text, "ПРОВЕРКА")
-	assert_string_contains(level.hud.objective_label.text, "Замаскируй")
+	assert_string_contains(level.hud.objective_label.text, "Затихни")
 
 
 func test_raiders_show_up_and_can_be_paid_off() -> void:
@@ -308,3 +262,81 @@ func test_locked_strain_is_not_offered_for_planting() -> void:
 	var elite := Game.sim.config.find_strain("elite")
 	for label: Variant in labels:
 		assert_false(String(label).contains(elite.display_name))
+
+
+func _accept_first_call() -> Order:
+	Game.sim.apply(AdvanceTimeCommand.new(_hours_to_real(Game.sim.config.orders.first_order_hours + 0.01)))
+	var order := Game.sim.orders.all()[0]
+	Game.sim.apply(AnswerOrderCommand.new(order.id, Orders.ACCEPT))
+	return order
+
+
+func test_computer_answers_calls_and_ships_orders() -> void:
+	var level := await _open(PLANTATION_SCENE)
+	Game.sim.apply(AdvanceTimeCommand.new(_hours_to_real(Game.sim.config.orders.first_order_hours + 0.01)))
+	var order := Game.sim.orders.all()[0]
+	var desk := level.get_node("NavRegion/Computer") as ComputerDesk
+	await wait_process_frames(2)
+	assert_true(desk.screen_glow.visible, "a ringing computer glows")
+	desk.interact(level)
+	assert_true(level.hud.computer.visible)
+	assert_eq(level.hud.computer.current_tab(), ComputerScreen.TAB_CALLS)
+	level.hud.computer.answer(order.id, Orders.ACCEPT)
+	assert_eq(order.status, Order.Status.ACCEPTED)
+	for index: int in order.quantity:
+		Game.sim.inventory.create(Game.sim.config.strain.id, 100).packed = true
+	level.hud.computer.dispatch(order.id, Couriers.JACK)
+	assert_eq(order.status, Order.Status.IN_TRANSIT)
+	await wait_physics_frames(2)
+	assert_false(level.jack.visible, "Jack is away delivering")
+
+
+func test_bench_packs_the_harvest_onto_the_shelf() -> void:
+	var level := await _open(PLANTATION_SCENE)
+	var bench := level.get_node("NavRegion/Bench") as PackingBench
+	var shelf := level.get_node("NavRegion/Shelf/Stock") as StockShelf
+	Game.sim.inventory.create(Game.sim.config.strain.id, 60)
+	Game.sim.inventory.create(Game.sim.config.strain.id, 70)
+	await wait_process_frames(2)
+	assert_true(bench.sacks.visible)
+	assert_eq(shelf.shown_boxes(), 0)
+	bench.interact(level)
+	_choose(level, "Расфасовать")
+	assert_true(Game.sim.packing.busy())
+	Game.sim.apply(AdvanceTimeCommand.new(_hours_to_real(Game.sim.config.orders.pack_minutes_per_unit * 2.0 / 60.0 + 0.01)))
+	await wait_process_frames(2)
+	assert_eq(shelf.shown_boxes(), 2)
+	assert_false(bench.sacks.visible)
+	assert_string_contains(level.hud.stock_label.text, "2 коробок")
+
+
+func test_parcels_wait_at_the_container_and_can_be_picked_up() -> void:
+	var level := await _open(FIELD_SCENE)
+	var entrance := level.get_node("NavRegion/Container") as ContainerEntrance
+	Game.sim.apply(BuyCommand.new(Supplies.FERTILIZER, 2))
+	Game.sim.apply(AdvanceTimeCommand.new(_hours_to_real(Game.sim.config.delivery_hours + 0.01)))
+	await wait_process_frames(2)
+	assert_true(entrance.parcel_box.visible)
+	entrance.interact(level)
+	_choose(level, "Забрать посылку")
+	assert_eq(Game.sim.supplies.fertilizer, 2)
+	await wait_process_frames(2)
+	assert_false(entrance.parcel_box.visible)
+
+
+func test_hired_couriers_walk_the_road_with_orders() -> void:
+	var level := await _open(FIELD_SCENE)
+	Game.sim.economy.earn(1000)
+	Game.sim.apply(HireCourierCommand.new("harry"))
+	var order := _accept_first_call()
+	for index: int in order.quantity:
+		Game.sim.inventory.create(Game.sim.config.strain.id, 100).packed = true
+	var courier := level.get_node("CourierA") as CourierView
+	await wait_process_frames(2)
+	assert_false(courier.visible)
+	Game.sim.apply(DispatchCommand.new(order.id, "harry"))
+	Game.sim.apply(AdvanceTimeCommand.new(_hours_to_real(0.2)))
+	await wait_process_frames(2)
+	assert_true(courier.visible)
+	assert_string_contains(courier.name_label.text, "Гарри")
+	assert_false((level.get_node("CourierB") as CourierView).visible)
