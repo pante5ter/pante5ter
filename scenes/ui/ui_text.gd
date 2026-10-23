@@ -24,6 +24,18 @@ const ERRORS: Dictionary[String, String] = {
 	CommandResult.UNKNOWN_COMMAND: "Неизвестное действие.",
 	CommandResult.WORKER_ALREADY_HIRED: "Работник уже нанят.",
 	CommandResult.NOT_ENOUGH_MONEY: "Не хватает денег.",
+	CommandResult.WORKER_NOT_HIRED: "Работника нет.",
+	CommandResult.UNKNOWN_STRAIN: "Такого сорта нет.",
+	CommandResult.NO_SEEDS: "Нет семян этого сорта — закажи в телефоне.",
+	CommandResult.NO_FERTILIZER: "Нет удобрений — закажи в телефоне.",
+	CommandResult.ALREADY_DONE: "Уже сделано.",
+	CommandResult.PLOT_NOT_BUSH: "Обрезать можно только куст.",
+	CommandResult.UNKNOWN_ITEM: "Такого товара в магазине нет.",
+	CommandResult.INVALID_QUANTITY: "Неверное количество.",
+	CommandResult.MAX_PLOTS: "Больше грядок не поместится.",
+	CommandResult.UNKNOWN_ORDER: "Такого заказа нет.",
+	CommandResult.ORDER_NOT_OPEN: "Этот заказ уже в тайнике.",
+	CommandResult.NOT_ENOUGH_PRODUCT: "Не хватает товара нужного качества.",
 }
 
 

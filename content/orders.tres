@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="OrdersDef" format=3]
+
+[ext_resource type="Script" path="res://content/defs/orders_def.gd" id="1_orders"]
+
+[resource]
+script = ExtResource("1_orders")
+first_order_hours = 0.5
+interval_hours = 2.0
+deadline_hours = 8.0
+pickup_hours = 1.0
+max_open = 3
+quantity_min = 2
+quantity_max = 5
+quality_min = 40
+quality_max = 70
+quality_step = 5
+reward_multiplier = 1.3

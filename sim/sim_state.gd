@@ -1,8 +1,8 @@
 class_name SimState
 extends RefCounted
 
-const SAVE_VERSION: int = 3
-const REQUIRED_SAVE_KEYS: Array[String] = ["save_version", "clock", "rng", "economy", "inventory", "plots", "workers", "event_log"]
+const SAVE_VERSION: int = 4
+const REQUIRED_SAVE_KEYS: Array[String] = ["save_version", "clock", "rng", "economy", "inventory", "plots", "workers", "supplies", "orders", "event_log"]
 
 var config: BalanceConfig
 var clock: SimClock
@@ -12,6 +12,8 @@ var inventory: Inventory
 var grow: Grow
 var economy: Economy
 var workers: Workers
+var supplies: Supplies
+var orders: Orders
 
 
 func _init(balance: BalanceConfig, seed_value: int) -> void:
@@ -22,7 +24,11 @@ func _init(balance: BalanceConfig, seed_value: int) -> void:
 	inventory = Inventory.new()
 	grow = Grow.new(balance.strain, balance.plot_count, rng, event_log, inventory)
 	economy = Economy.new(balance.strain, balance.starting_money, event_log, inventory)
+	economy.attach(balance)
+	supplies = Supplies.new(balance, economy, event_log)
+	grow.attach(balance, supplies)
 	workers = Workers.new(balance.worker, grow, economy, event_log)
+	orders = Orders.new(balance.orders, balance.strain, rng, inventory, economy, event_log)
 
 
 func apply(command: SimCommand) -> CommandResult:
@@ -30,7 +36,12 @@ func apply(command: SimCommand) -> CommandResult:
 	if command is AdvanceTimeCommand:
 		return _advance_time((command as AdvanceTimeCommand).real_seconds)
 	if command is PlantCommand:
-		return grow.plant((command as PlantCommand).plot_id, now, command.actor)
+		var plant := command as PlantCommand
+		return grow.plant(plant.plot_id, now, command.actor, plant.strain_id)
+	if command is FertilizeCommand:
+		return grow.fertilize((command as FertilizeCommand).plot_id, now, command.actor)
+	if command is PruneCommand:
+		return grow.prune((command as PruneCommand).plot_id, now, command.actor)
 	if command is WaterCommand:
 		return grow.water((command as WaterCommand).plot_id, now, command.actor)
 	if command is HarvestCommand:
@@ -39,14 +50,47 @@ func apply(command: SimCommand) -> CommandResult:
 		return economy.sell((command as SellCommand).product_id, now, command.actor)
 	if command is HireWorkerCommand:
 		return workers.hire(now, command.actor)
+	if command is FireWorkerCommand:
+		return workers.fire(now, command.actor)
+	if command is BuyCommand:
+		var buy := command as BuyCommand
+		return supplies.buy(buy.item, buy.quantity, now, command.actor)
+	if command is BuyPlotCommand:
+		return _buy_plot(now, command.actor)
+	if command is DropOrderCommand:
+		return orders.drop((command as DropOrderCommand).order_id, now, command.actor)
 	return CommandResult.failure(CommandResult.UNKNOWN_COMMAND)
+
+
+func _buy_plot(now: float, actor: String) -> CommandResult:
+	if grow.plots().size() >= config.max_plots:
+		return CommandResult.failure(CommandResult.MAX_PLOTS)
+	if not economy.spend(config.plot_price):
+		return CommandResult.failure(CommandResult.NOT_ENOUGH_MONEY)
+	var added := grow.add_plot()
+	event_log.record(EventLog.PLOT_BOUGHT, now, PackedStringArray([actor, "plot:%d" % added.id]), {
+		"plot_id": added.id,
+		"cost": config.plot_price,
+		"money": economy.money,
+	})
+	return CommandResult.success(added.id)
+
+
+func _next_event_time() -> float:
+	return minf(workers.next_event_time(), minf(supplies.next_event_time(), orders.next_event_time()))
+
+
+func _process_events(now: float) -> void:
+	supplies.process(now)
+	orders.process(now)
+	workers.process(now)
 
 
 func _advance_time(real_seconds: float) -> CommandResult:
 	var remaining := clock.real_to_game(real_seconds)
 	while true:
 		var now := clock.elapsed_game_seconds
-		var event_time := workers.next_event_time()
+		var event_time := _next_event_time()
 		var until_event := event_time - now
 		if until_event < remaining:
 			if until_event > 0.0:
@@ -57,7 +101,7 @@ func _advance_time(real_seconds: float) -> CommandResult:
 			grow.advance(now, remaining)
 			clock.advance(remaining)
 			remaining = 0.0
-		workers.process(clock.elapsed_game_seconds)
+		_process_events(clock.elapsed_game_seconds)
 		if remaining <= 0.0:
 			break
 	return CommandResult.success()
@@ -72,6 +116,8 @@ func to_dict() -> Dictionary:
 		"inventory": inventory.to_dict(),
 		"plots": grow.to_array(),
 		"workers": workers.to_dict(),
+		"supplies": supplies.to_dict(),
+		"orders": orders.to_dict(),
 		"event_log": event_log.to_array(),
 	}
 
@@ -101,4 +147,6 @@ func _load_dict(data: Dictionary) -> void:
 	inventory.load_dict(data["inventory"] as Dictionary)
 	grow.load_array(data["plots"] as Array)
 	workers.load_dict(data["workers"] as Dictionary)
+	supplies.load_dict(data["supplies"] as Dictionary)
+	orders.load_dict(data["orders"] as Dictionary)
 	event_log.load_array(data["event_log"] as Array)

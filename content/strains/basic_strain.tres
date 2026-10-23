@@ -5,14 +5,15 @@
 [resource]
 script = ExtResource("1_strain")
 id = "basic"
-display_name = "Basic"
-seed_hours = 6.0
-sprout_hours = 12.0
-bush_hours = 18.0
-water_capacity_hours = 12.0
-base_quality = 60
+display_name = "Скороспелка"
+seed_price = 0
+seed_hours = 1.0
+sprout_hours = 2.0
+bush_hours = 3.0
+water_capacity_hours = 3.0
+base_quality = 50
 quality_variance = 10
-dry_penalty_per_hour = 2.0
-base_price = 100
+dry_penalty_per_hour = 4.0
+base_price = 80
 price_mult_at_q0 = 0.3
 price_mult_at_q100 = 2.0

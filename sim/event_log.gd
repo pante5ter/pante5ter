@@ -11,6 +11,16 @@ const WORKER_HIRED: String = "worker_hired"
 const WORKER_PAID: String = "worker_paid"
 const WORKER_QUIT: String = "worker_quit"
 const WORKER_TASK_STARTED: String = "worker_task_started"
+const WORKER_FIRED: String = "worker_fired"
+const PLOT_FERTILIZED: String = "plot_fertilized"
+const PLOT_PRUNED: String = "plot_pruned"
+const PLOT_BOUGHT: String = "plot_bought"
+const SUPPLY_ORDERED: String = "supply_ordered"
+const SUPPLY_DELIVERED: String = "supply_delivered"
+const ORDER_RECEIVED: String = "order_received"
+const ORDER_DROPPED: String = "order_dropped"
+const ORDER_PAID: String = "order_paid"
+const ORDER_EXPIRED: String = "order_expired"
 
 var _entries: Array[SimEvent] = []
 

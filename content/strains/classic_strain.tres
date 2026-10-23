@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="StrainDef" format=3]
+
+[ext_resource type="Script" path="res://content/defs/strain_def.gd" id="1_strain"]
+
+[resource]
+script = ExtResource("1_strain")
+id = "classic"
+display_name = "Классика"
+seed_price = 20
+seed_hours = 1.5
+sprout_hours = 3.0
+bush_hours = 4.5
+water_capacity_hours = 3.0
+base_quality = 65
+quality_variance = 8
+dry_penalty_per_hour = 4.0
+base_price = 120
+price_mult_at_q0 = 0.3
+price_mult_at_q100 = 2.0

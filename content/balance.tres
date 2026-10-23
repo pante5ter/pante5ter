@@ -3,6 +3,10 @@
 [ext_resource type="Script" path="res://content/defs/balance_config.gd" id="1_balance"]
 [ext_resource type="Resource" path="res://content/strains/basic_strain.tres" id="2_strain"]
 [ext_resource type="Resource" path="res://content/workers/basic_worker.tres" id="3_worker"]
+[ext_resource type="Resource" path="res://content/strains/classic_strain.tres" id="4_classic"]
+[ext_resource type="Resource" path="res://content/strains/elite_strain.tres" id="5_elite"]
+[ext_resource type="Resource" path="res://content/orders.tres" id="6_orders"]
+[ext_resource type="Script" path="res://content/defs/strain_def.gd" id="7_strain_def"]
 
 [resource]
 script = ExtResource("1_balance")
@@ -10,4 +14,12 @@ real_seconds_per_game_day = 600.0
 starting_money = 500
 plot_count = 6
 strain = ExtResource("2_strain")
+extra_strains = Array[ExtResource("7_strain_def")]([ExtResource("4_classic"), ExtResource("5_elite")])
 worker = ExtResource("3_worker")
+orders = ExtResource("6_orders")
+fertilizer_price = 15
+fertilizer_bonus = 12
+prune_bonus = 8
+delivery_hours = 1.5
+plot_price = 400
+max_plots = 12

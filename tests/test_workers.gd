@@ -2,11 +2,15 @@ extends GutTest
 
 const BALANCE_PATH: String = "res://content/balance.tres"
 
+const PREPAID_DAYS: int = 10
+
 var _balance: BalanceConfig
+var _funded: BalanceConfig
 
 
 func before_all() -> void:
 	_balance = load(BALANCE_PATH) as BalanceConfig
+	_funded = _balance_with_money(_balance.worker.daily_wage * PREPAID_DAYS)
 
 
 func _balance_with_money(money: int) -> BalanceConfig:
@@ -95,7 +99,7 @@ func test_worker_starts_a_task_right_after_hire() -> void:
 
 
 func test_worker_runs_the_plantation_alone() -> void:
-	var state := SimState.new(_balance, 3)
+	var state := SimState.new(_funded, 3)
 	state.apply(HireWorkerCommand.new())
 	_advance_hours(state, 72.0, 0.5)
 	assert_true(_events_by(state, EventLog.PLOT_PLANTED, Workers.ACTOR).size() >= _balance.plot_count)
@@ -106,7 +110,7 @@ func test_worker_runs_the_plantation_alone() -> void:
 
 
 func test_tended_plots_never_dry_out_for_long() -> void:
-	var state := SimState.new(_balance, 3)
+	var state := SimState.new(_funded, 3)
 	state.apply(HireWorkerCommand.new())
 	_advance_hours(state, 72.0, 0.5)
 	for plot: Plot in state.grow.plots():
@@ -114,11 +118,11 @@ func test_tended_plots_never_dry_out_for_long() -> void:
 
 
 func test_worker_is_paid_every_game_day() -> void:
-	var state := SimState.new(_balance, 1)
+	var state := SimState.new(_funded, 1)
 	state.apply(HireWorkerCommand.new())
 	_advance_hours(state, 49.0, 1.0)
 	assert_eq(state.event_log.of_type(EventLog.WORKER_PAID).size(), 2)
-	assert_eq(state.economy.money, _balance.starting_money - 3 * _balance.worker.daily_wage)
+	assert_eq(state.economy.money, _funded.starting_money - 3 * _balance.worker.daily_wage)
 
 
 func test_worker_quits_when_wage_cannot_be_paid() -> void:
@@ -135,8 +139,8 @@ func test_worker_quits_when_wage_cannot_be_paid() -> void:
 
 
 func test_one_big_step_matches_many_small_steps() -> void:
-	var big := SimState.new(_balance, 77)
-	var small := SimState.new(_balance, 77)
+	var big := SimState.new(_funded, 77)
+	var small := SimState.new(_funded, 77)
 	big.apply(HireWorkerCommand.new())
 	small.apply(HireWorkerCommand.new())
 	_advance_hours(big, 60.0, 60.0)
@@ -149,7 +153,7 @@ func test_one_big_step_matches_many_small_steps() -> void:
 
 
 func test_save_and_load_mid_task_continues_identically() -> void:
-	var original := SimState.new(_balance, 5)
+	var original := SimState.new(_funded, 5)
 	original.apply(HireWorkerCommand.new())
 	_advance_hours(original, 7.3, 0.5)
 	var guard := 0
@@ -157,7 +161,7 @@ func test_save_and_load_mid_task_continues_identically() -> void:
 		_advance_hours(original, 0.25, 0.25)
 		guard += 1
 	assert_ne(original.workers.task, Workers.Task.NONE)
-	var loaded := SimState.from_json(original.to_json(), _balance)
+	var loaded := SimState.from_json(original.to_json(), _funded)
 	assert_not_null(loaded)
 	assert_eq(loaded.to_json(), original.to_json())
 	_advance_hours(original, 30.0, 0.5)
@@ -181,14 +185,15 @@ func test_thirty_days_with_a_worker_stay_profitable_and_bounded() -> void:
 	var state := SimState.new(_balance, 11)
 	state.apply(HireWorkerCommand.new())
 	var lowest_money := state.economy.money
-	for day: int in 30:
-		_advance_hours(state, 24.0, 1.0)
+	for hour: int in 30 * 24:
+		_advance_hours(state, 1.0, 1.0)
 		lowest_money = mini(lowest_money, state.economy.money)
-		for product: Product in state.inventory.products():
-			state.apply(SellCommand.new(product.id))
+		for order: Order in state.orders.all():
+			if state.orders.can_fill(order):
+				state.apply(DropOrderCommand.new(order.id))
 	var profit_per_day := float(state.economy.money - _balance.starting_money) / 30.0
 	gut.p("worker economy: %.0f per game day, %d events in 30 days" % [profit_per_day, state.event_log.size()])
 	assert_true(state.workers.hired, "worker must not quit while the farm pays him")
 	assert_true(lowest_money >= 0)
 	assert_gt(profit_per_day, float(_balance.worker.daily_wage))
-	assert_lt(state.event_log.size(), 30 * 200, "event log must not explode")
+	assert_lt(state.event_log.size(), 30 * 500, "event log must not explode")

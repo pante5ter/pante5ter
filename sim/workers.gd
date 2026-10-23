@@ -46,6 +46,15 @@ func hire(now: float, actor: String) -> CommandResult:
 	return CommandResult.success()
 
 
+func fire(now: float, actor: String) -> CommandResult:
+	if not hired:
+		return CommandResult.failure(CommandResult.WORKER_NOT_HIRED)
+	hired = false
+	_clear_task()
+	_event_log.record(EventLog.WORKER_FIRED, now, PackedStringArray([actor, ACTOR]), {"worker_id": _def.id})
+	return CommandResult.success()
+
+
 func next_event_time() -> float:
 	if not hired:
 		return INF
@@ -85,7 +94,7 @@ func _pay_wage(now: float) -> void:
 func _finish_task(now: float) -> void:
 	match task:
 		Task.PLANT:
-			_grow.plant(task_plot_id, now, ACTOR)
+			_grow.plant(task_plot_id, now, ACTOR, _grow.replant_strain(_grow.plot(task_plot_id)))
 		Task.WATER:
 			_grow.water(task_plot_id, now, ACTOR)
 		Task.HARVEST:

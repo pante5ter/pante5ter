@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="StrainDef" format=3]
+
+[ext_resource type="Script" path="res://content/defs/strain_def.gd" id="1_strain"]
+
+[resource]
+script = ExtResource("1_strain")
+id = "elite"
+display_name = "Элитный"
+seed_price = 60
+seed_hours = 2.0
+sprout_hours = 4.0
+bush_hours = 6.0
+water_capacity_hours = 3.0
+base_quality = 75
+quality_variance = 6
+dry_penalty_per_hour = 5.0
+base_price = 200
+price_mult_at_q0 = 0.3
+price_mult_at_q100 = 2.0
