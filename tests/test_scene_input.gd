@@ -293,3 +293,16 @@ func _visible_stage_sets(bed: PlotView) -> int:
 		if (holder as Node3D).visible:
 			count += 1
 	return count
+
+
+func test_a_full_plantation_stays_walkable() -> void:
+	var level := await _open(PLANTATION_SCENE)
+	Game.sim.economy.earn(Game.sim.config.plot_price * Game.sim.config.max_plots)
+	while Game.sim.grow.plots().size() < Game.sim.config.max_plots:
+		Game.sim.apply(BuyPlotCommand.new())
+	await wait_process_frames(2)
+	await wait_physics_frames(SETTLE_FRAMES)
+	var start := level.jack.global_position
+	for view: PlotView in (level.get_node("NavRegion/PlotsGrid") as PlotsGrid).views():
+		_assert_reachable(level, start, view.approach_position(), view.title())
+		_assert_reachable(level, start, view.approach_position() + WorkerView.WORK_OFFSET, "work spot of %s" % view.title())

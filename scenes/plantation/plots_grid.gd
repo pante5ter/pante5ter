@@ -25,19 +25,19 @@ func _sync_beds() -> void:
 	while _views.size() > count:
 		var removed: PlotView = _views.pop_back()
 		removed.queue_free()
-	var rows := ceili(float(Game.sim.config.max_plots) / float(columns))
 	while _views.size() < count:
-		var plot_id := _views.size()
 		var view := plot_scene.instantiate() as PlotView
-		view.plot_id = plot_id
-		var column := plot_id % columns
-		var row := floori(float(plot_id) / float(columns))
+		view.plot_id = _views.size()
+		add_child(view)
+		_views.append(view)
+	var rows := ceili(float(count) / float(columns))
+	for view: PlotView in _views:
+		var column := view.plot_id % columns
+		var row := floori(float(view.plot_id) / float(columns))
 		view.position = Vector3(
 			(float(column) - float(columns - 1) / 2.0) * spacing.x,
 			0.0,
 			(float(row) - float(rows - 1) / 2.0) * spacing.y)
-		add_child(view)
-		_views.append(view)
 
 
 func view_for(plot_id: int) -> PlotView:

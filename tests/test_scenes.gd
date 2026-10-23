@@ -198,3 +198,22 @@ func test_worker_is_hidden_until_hired() -> void:
 	var level := await _open(PLANTATION_SCENE)
 	await wait_process_frames(2)
 	assert_false((level.get_node("Worker") as WorkerView).visible)
+
+
+func test_beds_stay_centred_in_the_room() -> void:
+	var level := await _open(PLANTATION_SCENE)
+	var grid := _plots_grid(level)
+	var centre := Vector3.ZERO
+	for view: PlotView in grid.views():
+		centre += view.position
+	centre /= float(grid.views().size())
+	assert_almost_eq(centre.z, 0.0, 0.01)
+	Game.sim.economy.earn(Game.sim.config.plot_price * 3)
+	for index: int in 3:
+		Game.sim.apply(BuyPlotCommand.new())
+	await wait_process_frames(2)
+	centre = Vector3.ZERO
+	for view: PlotView in grid.views():
+		centre += view.position
+	centre /= float(grid.views().size())
+	assert_almost_eq(centre.z, 0.0, 0.01)
