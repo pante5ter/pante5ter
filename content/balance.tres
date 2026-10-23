@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="BalanceConfig" format=3]
+[gd_resource type="Resource" script_class="BalanceConfig" load_steps=16 format=3]
 
 [ext_resource type="Script" path="res://content/defs/balance_config.gd" id="1_balance"]
 [ext_resource type="Resource" path="res://content/strains/basic_strain.tres" id="2_strain"]
@@ -7,6 +7,35 @@
 [ext_resource type="Resource" path="res://content/strains/elite_strain.tres" id="5_elite"]
 [ext_resource type="Resource" path="res://content/orders.tres" id="6_orders"]
 [ext_resource type="Script" path="res://content/defs/strain_def.gd" id="7_strain_def"]
+[ext_resource type="Script" path="res://content/defs/worker_def.gd" id="8_worker_def"]
+[ext_resource type="Resource" path="res://content/workers/dave_worker.tres" id="9_dave"]
+[ext_resource type="Resource" path="res://content/workers/maggie_worker.tres" id="10_maggie"]
+[ext_resource type="Resource" path="res://content/problems.tres" id="11_problems"]
+[ext_resource type="Resource" path="res://content/suspicion.tres" id="12_suspicion"]
+[ext_resource type="Resource" path="res://content/raids.tres" id="13_raids"]
+[ext_resource type="Script" path="res://content/defs/milestone_def.gd" id="14_milestone_def"]
+
+[sub_resource type="Resource" id="Resource_milestone_1"]
+script = ExtResource("14_milestone_def")
+value = 3000
+title = "Своё дело"
+description = "Лорд готов сдать ещё кусок поля: до 9 грядок."
+plot_cap = 9
+
+[sub_resource type="Resource" id="Resource_milestone_2"]
+script = ExtResource("14_milestone_def")
+value = 7000
+title = "Серьёзный человек"
+description = "Голландские поставщики продают «Элитный» сорт. Грядок до 12."
+plot_cap = 12
+unlock_strain_id = "elite"
+
+[sub_resource type="Resource" id="Resource_milestone_3"]
+script = ExtResource("14_milestone_def")
+value = 20000
+title = "Членство в клубе"
+description = "Старейший лондонский клуб присылает приглашение. Джек своего добился."
+plot_cap = 12
 
 [resource]
 script = ExtResource("1_balance")
@@ -16,10 +45,16 @@ plot_count = 6
 strain = ExtResource("2_strain")
 extra_strains = Array[ExtResource("7_strain_def")]([ExtResource("4_classic"), ExtResource("5_elite")])
 worker = ExtResource("3_worker")
+worker_candidates = Array[ExtResource("8_worker_def")]([ExtResource("3_worker"), ExtResource("9_dave"), ExtResource("10_maggie")])
 orders = ExtResource("6_orders")
+problems = ExtResource("11_problems")
+suspicion = ExtResource("12_suspicion")
+raids = ExtResource("13_raids")
+milestones = Array[ExtResource("14_milestone_def")]([SubResource("Resource_milestone_1"), SubResource("Resource_milestone_2"), SubResource("Resource_milestone_3")])
 fertilizer_price = 15
 fertilizer_bonus = 12
 prune_bonus = 8
 delivery_hours = 1.5
 plot_price = 400
+starting_plot_cap = 8
 max_plots = 12

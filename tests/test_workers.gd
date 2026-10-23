@@ -10,7 +10,18 @@ var _funded: BalanceConfig
 
 func before_all() -> void:
 	_balance = load(BALANCE_PATH) as BalanceConfig
-	_funded = _balance_with_money(_balance.worker.daily_wage * PREPAID_DAYS)
+	_funded = _calm(_balance_with_money(_balance.worker.daily_wage * PREPAID_DAYS))
+
+
+func _calm(balance: BalanceConfig) -> BalanceConfig:
+	var calm := balance.duplicate() as BalanceConfig
+	calm.problems = balance.problems.duplicate() as ProblemsDef
+	calm.problems.chance_per_hour = 0.0
+	calm.raids = balance.raids.duplicate() as RaidsDef
+	calm.raids.chance_per_night = 0.0
+	calm.suspicion = balance.suspicion.duplicate() as SuspicionDef
+	calm.suspicion.inspection_threshold = SuspicionDef.new().inspection_threshold + 1.0
+	return calm
 
 
 func _balance_with_money(money: int) -> BalanceConfig:
@@ -182,7 +193,7 @@ func test_player_taking_the_workers_plot_is_harmless() -> void:
 
 
 func test_thirty_days_with_a_worker_stay_profitable_and_bounded() -> void:
-	var state := SimState.new(_balance, 11)
+	var state := SimState.new(_calm(_balance), 11)
 	state.apply(HireWorkerCommand.new())
 	var lowest_money := state.economy.money
 	for hour: int in 30 * 24:

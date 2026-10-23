@@ -6,7 +6,12 @@
 script = ExtResource("1_worker")
 id = "tom"
 display_name = "Том"
+description = "Надёжный работяга. Немногословен, работает без спешки."
 daily_wage = 300
 task_minutes = 5.0
 idle_check_minutes = 5.0
 water_below_hours = 1.0
+competence = 1.0
+loyalty = 0.8
+greed = 0.05
+talkativeness = 2.0

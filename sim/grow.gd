@@ -8,6 +8,7 @@ var _inventory: Inventory
 var _plots: Array[Plot] = []
 var _config: BalanceConfig = null
 var _supplies: Supplies = null
+var _progress: Progress = null
 
 
 func _init(strain: StrainDef, plot_count: int, rng: SimRng, event_log: EventLog, inventory: Inventory) -> void:
@@ -19,9 +20,10 @@ func _init(strain: StrainDef, plot_count: int, rng: SimRng, event_log: EventLog,
 		_plots.append(Plot.new(plot_id))
 
 
-func attach(config: BalanceConfig, supplies: Supplies) -> void:
+func attach(config: BalanceConfig, supplies: Supplies, progress: Progress = null) -> void:
 	_config = config
 	_supplies = supplies
+	_progress = progress
 
 
 func strain_of(target: Plot) -> StrainDef:
@@ -68,6 +70,8 @@ func plant(plot_id: int, now: float, actor: String, strain_id: String = "") -> C
 		strain = _config.find_strain(strain_id) if _config != null else null
 	if strain == null:
 		return CommandResult.failure(CommandResult.UNKNOWN_STRAIN)
+	if _progress != null and not _progress.is_strain_unlocked(strain.id):
+		return CommandResult.failure(CommandResult.STRAIN_LOCKED)
 	if strain.needs_seeds() and (_supplies == null or not _supplies.take_seed(strain.id)):
 		return CommandResult.failure(CommandResult.NO_SEEDS)
 	target.reset()
@@ -142,7 +146,7 @@ func _advance_plot(target: Plot, start_time: float, game_seconds: float) -> void
 	var remaining := game_seconds
 	var now := start_time
 	while remaining > 0.0 and target.is_growing():
-		if target.water_seconds <= 0.0:
+		if target.water_seconds <= 0.0 or not target.problem.is_empty():
 			target.dry_seconds += remaining
 			return
 		var to_next_stage := _stage_duration(target) - target.progress_seconds

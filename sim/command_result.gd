@@ -21,6 +21,12 @@ const MAX_PLOTS: String = "max_plots"
 const UNKNOWN_ORDER: String = "unknown_order"
 const ORDER_NOT_OPEN: String = "order_not_open"
 const NOT_ENOUGH_PRODUCT: String = "not_enough_product"
+const STRAIN_LOCKED: String = "strain_locked"
+const NO_SUPPLY: String = "no_supply"
+const NO_PROBLEM: String = "no_problem"
+const NO_RAID: String = "no_raid"
+const UNKNOWN_CHOICE: String = "unknown_choice"
+const UNKNOWN_WORKER: String = "unknown_worker"
 
 var ok: bool = false
 var error: String = ""

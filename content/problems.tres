@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="ProblemsDef" format=3]
+
+[ext_resource type="Script" path="res://content/defs/problems_def.gd" id="1_problems"]
+
+[resource]
+script = ExtResource("1_problems")
+start_hours = 24.0
+chance_per_hour = 0.04
+pesticide_price = 20
+lamp_price = 35

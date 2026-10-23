@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="WorkerDef" format=3]
+
+[ext_resource type="Script" path="res://content/defs/worker_def.gd" id="1_worker"]
+
+[resource]
+script = ExtResource("1_worker")
+id = "maggie"
+display_name = "Мэгги"
+description = "Аккуратная, честная. По вечерам любит поболтать в пабе."
+daily_wage = 360
+task_minutes = 5.0
+idle_check_minutes = 5.0
+water_below_hours = 1.0
+competence = 1.1
+loyalty = 0.9
+greed = 0.0
+talkativeness = 9.0

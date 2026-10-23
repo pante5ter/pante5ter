@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="SuspicionDef" format=3]
+
+[ext_resource type="Script" path="res://content/defs/suspicion_def.gd" id="1_suspicion"]
+
+[resource]
+script = ExtResource("1_suspicion")
+per_drop = 9.0
+per_extra_bed_per_hour = 0.4
+quiet_beds = 6
+decay_per_hour = 1.0
+inspection_threshold = 60.0
+warning_hours = 1.5
+fine = 400
+relief_when_hidden = 35.0
+relief_when_caught = 25.0

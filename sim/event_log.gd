@@ -21,6 +21,18 @@ const ORDER_RECEIVED: String = "order_received"
 const ORDER_DROPPED: String = "order_dropped"
 const ORDER_PAID: String = "order_paid"
 const ORDER_EXPIRED: String = "order_expired"
+const ORDER_STOLEN: String = "order_stolen"
+const MILESTONE_REACHED: String = "milestone_reached"
+const PLOT_PROBLEM: String = "plot_problem"
+const PLOT_TREATED: String = "plot_treated"
+const WORKER_STOLE: String = "worker_stole"
+const INSPECTION_WARNED: String = "inspection_warned"
+const INSPECTION_PASSED: String = "inspection_passed"
+const INSPECTION_FAILED: String = "inspection_failed"
+const ENTRANCE_MASKED: String = "entrance_masked"
+const ENTRANCE_UNMASKED: String = "entrance_unmasked"
+const RAID_STARTED: String = "raid_started"
+const RAID_RESOLVED: String = "raid_resolved"
 
 var _entries: Array[SimEvent] = []
 

@@ -12,6 +12,7 @@ var strain_id: String = ""
 var last_strain_id: String = ""
 var fertilized: bool = false
 var pruned: bool = false
+var problem: String = ""
 
 
 func _init(plot_id: int = 0) -> void:
@@ -30,6 +31,7 @@ func reset() -> void:
 	strain_id = ""
 	fertilized = false
 	pruned = false
+	problem = ""
 
 
 static func stage_name(value: Stage) -> String:
@@ -47,6 +49,7 @@ func to_dict() -> Dictionary:
 		"last_strain_id": last_strain_id,
 		"fertilized": fertilized,
 		"pruned": pruned,
+		"problem": problem,
 	}
 
 
@@ -60,4 +63,5 @@ static func from_dict(data: Dictionary) -> Plot:
 	plot.last_strain_id = String(data["last_strain_id"])
 	plot.fertilized = data["fertilized"] == true
 	plot.pruned = data["pruned"] == true
+	plot.problem = String(data["problem"])
 	return plot

@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="RaidsDef" format=3]
+
+[ext_resource type="Script" path="res://content/defs/raids_def.gd" id="1_raids"]
+
+[resource]
+script = ExtResource("1_raids")
+start_hours = 24.0
+night_hour = 1.0
+chance_per_night = 0.45
+max_empire_value = 8000
+deadline_hours = 1.0
+bribe = 200
+chase_chance = 0.45
+chase_bonus_with_worker = 0.25
+chase_noise = 12.0

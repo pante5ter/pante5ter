@@ -2,11 +2,16 @@ class_name Supplies
 extends RefCounted
 
 const FERTILIZER: String = "fertilizer"
+const PESTICIDE: String = "pesticide"
+const LAMP: String = "lamp"
+const TOOLS: Array[String] = [PESTICIDE, LAMP]
 const SEED_PREFIX: String = "seed:"
 
 var fertilizer: int = 0
 
 var _seeds: Dictionary[String, int] = {}
+var _items: Dictionary[String, int] = {}
+var _progress: Progress = null
 var _deliveries: Array[Dictionary] = []
 var _config: BalanceConfig
 var _economy: Economy
@@ -17,6 +22,23 @@ func _init(config: BalanceConfig, economy: Economy, event_log: EventLog) -> void
 	_config = config
 	_economy = economy
 	_event_log = event_log
+
+
+func attach(progress: Progress) -> void:
+	_progress = progress
+
+
+func count(item: String) -> int:
+	if item == FERTILIZER:
+		return fertilizer
+	return _items.get(item, 0)
+
+
+func take_item(item: String) -> bool:
+	if count(item) <= 0:
+		return false
+	_items[item] = count(item) - 1
+	return true
 
 
 static func seed_item(strain_id: String) -> String:
@@ -44,6 +66,10 @@ func take_fertilizer() -> bool:
 func unit_price(item: String) -> int:
 	if item == FERTILIZER:
 		return _config.fertilizer_price
+	if item == PESTICIDE:
+		return _config.problems.pesticide_price
+	if item == LAMP:
+		return _config.problems.lamp_price
 	if item.begins_with(SEED_PREFIX):
 		var strain := _config.find_strain(item.trim_prefix(SEED_PREFIX))
 		if strain != null and strain.needs_seeds():
@@ -57,6 +83,8 @@ func buy(item: String, quantity: int, now: float, actor: String) -> CommandResul
 	var price := unit_price(item)
 	if price <= 0:
 		return CommandResult.failure(CommandResult.UNKNOWN_ITEM)
+	if item.begins_with(SEED_PREFIX) and _progress != null and not _progress.is_strain_unlocked(item.trim_prefix(SEED_PREFIX)):
+		return CommandResult.failure(CommandResult.STRAIN_LOCKED)
 	var cost := price * quantity
 	if not _economy.spend(cost):
 		return CommandResult.failure(CommandResult.NOT_ENOUGH_MONEY)
@@ -91,6 +119,8 @@ func process(now: float) -> void:
 		var quantity := int(delivery["quantity"])
 		if item == FERTILIZER:
 			fertilizer += quantity
+		elif TOOLS.has(item):
+			_items[item] = count(item) + quantity
 		else:
 			var strain_id := item.trim_prefix(SEED_PREFIX)
 			_seeds[strain_id] = seeds(strain_id) + quantity
@@ -105,7 +135,7 @@ func to_dict() -> Dictionary:
 			"quantity": delivery["quantity"],
 			"arrives_at": ExactFloat.encode(float(delivery["arrives_at"])),
 		})
-	return {"fertilizer": fertilizer, "seeds": _seeds.duplicate(), "deliveries": deliveries}
+	return {"fertilizer": fertilizer, "seeds": _seeds.duplicate(), "items": _items.duplicate(), "deliveries": deliveries}
 
 
 func load_dict(data: Dictionary) -> void:
@@ -114,6 +144,10 @@ func load_dict(data: Dictionary) -> void:
 	var stored_seeds := data["seeds"] as Dictionary
 	for strain_id: Variant in stored_seeds:
 		_seeds[String(strain_id)] = int(stored_seeds[strain_id])
+	_items.clear()
+	var stored_items := data["items"] as Dictionary
+	for item_id: Variant in stored_items:
+		_items[String(item_id)] = int(stored_items[item_id])
 	_deliveries.clear()
 	for item: Variant in data["deliveries"] as Array:
 		var delivery := item as Dictionary

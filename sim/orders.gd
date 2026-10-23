@@ -71,6 +71,17 @@ func drop(order_id: int, now: float, actor: String) -> CommandResult:
 	return CommandResult.success(order.id)
 
 
+func steal_dropped() -> int:
+	var stolen := 0
+	for order: Order in _orders.duplicate():
+		if order.status != Order.Status.DROPPED:
+			continue
+		_orders.erase(order)
+		stolen += 1
+		_event_log.record(EventLog.ORDER_STOLEN, order.pickup_at, PackedStringArray(["order:%d" % order.id]), {"order_id": order.id})
+	return stolen
+
+
 func next_event_time() -> float:
 	var next := next_spawn_at
 	for order: Order in _orders:

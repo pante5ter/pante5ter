@@ -36,6 +36,12 @@ const ERRORS: Dictionary[String, String] = {
 	CommandResult.UNKNOWN_ORDER: "Такого заказа нет.",
 	CommandResult.ORDER_NOT_OPEN: "Этот заказ уже в тайнике.",
 	CommandResult.NOT_ENOUGH_PRODUCT: "Не хватает товара нужного качества.",
+	CommandResult.STRAIN_LOCKED: "Этот сорт пока недоступен — вырасти империю.",
+	CommandResult.NO_SUPPLY: "Нечем лечить — закажи в телефоне.",
+	CommandResult.NO_PROBLEM: "С грядкой всё в порядке.",
+	CommandResult.NO_RAID: "Никого нет.",
+	CommandResult.UNKNOWN_CHOICE: "Так нельзя.",
+	CommandResult.UNKNOWN_WORKER: "Такого работника нет.",
 }
 
 
