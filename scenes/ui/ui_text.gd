@@ -202,6 +202,9 @@ static func objective(sim: SimState, underground: bool = false) -> String:
 		any_dry = any_dry or (plot.is_growing() and plot.water_seconds <= 0.0)
 	for plot: Plot in sim.grow.plots():
 		if not plot.problem.is_empty():
+			var cure := Problems.cure_item(plot.problem)
+			if not cure.is_empty() and sim.supplies.count(cure) <= 0:
+				return "Грядка %d: %s. На складе нет: %s — закажите в телефоне (Tab, «Магазин»), заберите посылку и займитесь грядкой." % [plot_number(plot.id), problem(plot.problem), item_name(cure, sim)]
 			return "Грядка %d: %s. Само не пройдёт — вылечите её на плантации, пока урожай цел." % [plot_number(plot.id), problem(plot.problem)]
 	if not sim.orders.with_status(Order.Status.OFFERED).is_empty():
 		return "Звонит клиент. Ответьте по телефону (Tab, «Звонки») — дважды они не звонят."
