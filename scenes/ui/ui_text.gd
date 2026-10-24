@@ -187,6 +187,9 @@ static func objective(sim: SimState, underground: bool = false) -> String:
 		return "Через %s аренда лорду — %s, а в кассе %s. Продайте товар через компьютер, иначе лорд обидится." % [real_duration(sim.rent.due_in(sim.clock.elapsed_game_seconds), sim), money(sim.rent.amount()), money(sim.economy.money)]
 	if not sim.supplies.parcel().is_empty():
 		return "У контейнера посылка. Сама она вниз не спустится — заберите её."
+	var summons := StoryText.summons(sim, underground)
+	if not summons.is_empty():
+		return summons
 	var lesson := StoryText.lesson(sim, underground)
 	if not lesson.is_empty():
 		return lesson

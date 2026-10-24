@@ -7,6 +7,7 @@ const CREW: String = "crew"
 
 ## The story waiting for Jack's choice; empty when none.
 var pending_id: String = ""
+var pending_since: float = 0.0
 var used: Array[String] = []
 var relations: Dictionary[String, int] = {}
 ## Stories built at runtime (the intrigue's accusation), rebuilt from saved state on load.
@@ -52,6 +53,14 @@ func shift(key: String, change: int) -> void:
 	relations[key] = relation(key) + change
 
 
+## Per choice: can Jack pay for it right now. The dialogue greys out the rest.
+func affordable(story: StoryDef) -> Array[bool]:
+	var flags: Array[bool] = []
+	for choice: StoryChoiceDef in story.choices:
+		flags.append(_economy.money >= choice.cost())
+	return flags
+
+
 func find(story_id: String) -> StoryDef:
 	for story: StoryDef in all():
 		if story.id == story_id:
@@ -86,9 +95,26 @@ func start(story: StoryDef, now: float, actor: String) -> bool:
 	if story == null or is_pending() or used.has(story.id) or story.choices.is_empty():
 		return false
 	pending_id = story.id
+	pending_since = now
 	used.append(story.id)
 	_event_log.record(EventLog.STORY_STARTED, now, PackedStringArray([actor]), {"story_id": story.id, "kind": story.kind})
 	return true
+
+
+func next_event_time() -> float:
+	var story := pending()
+	if story == null or story.place != StoryDef.MANOR:
+		return INF
+	return pending_since + story.wait_hours * SimClock.GAME_SECONDS_PER_HOUR
+
+
+func process(now: float) -> void:
+	var story := pending()
+	if story == null or now < next_event_time():
+		return
+	pending_id = ""
+	shift(LORD, story.ignored_relation)
+	_event_log.record(EventLog.STORY_EXPIRED, now, PackedStringArray([StoryDef.LORD]), {"story_id": story.id})
 
 
 func choose(story_id: String, index: int, now: float, actor: String) -> CommandResult:
@@ -129,11 +155,12 @@ func to_dict() -> Dictionary:
 	var saved_relations: Dictionary = {}
 	for key: String in relations:
 		saved_relations[key] = relations[key]
-	return {"pending_id": pending_id, "used": used.duplicate(), "relations": saved_relations}
+	return {"pending_id": pending_id, "pending_since": ExactFloat.encode(pending_since), "used": used.duplicate(), "relations": saved_relations}
 
 
 func load_dict(data: Dictionary) -> void:
 	pending_id = String(data["pending_id"])
+	pending_since = ExactFloat.decode(data["pending_since"]) if data.has("pending_since") else 0.0
 	used.clear()
 	for story_id: Variant in data["used"] as Array:
 		used.append(String(story_id))
