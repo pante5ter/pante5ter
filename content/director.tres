@@ -1,0 +1,32 @@
+[gd_resource type="Resource" script_class="DirectorDef" format=3]
+
+[ext_resource type="Script" path="res://content/defs/director_def.gd" id="1_director"]
+[ext_resource type="Script" path="res://content/defs/story_def.gd" id="2_story_def"]
+[ext_resource type="Resource" path="res://content/stories/neighbour_smell.tres" id="3_neighbour"]
+[ext_resource type="Resource" path="res://content/stories/reporter.tres" id="4_reporter"]
+[ext_resource type="Resource" path="res://content/stories/reggie_cousin.tres" id="5_cousin"]
+[ext_resource type="Resource" path="res://content/stories/hiker.tres" id="6_hiker"]
+[ext_resource type="Resource" path="res://content/stories/vicar_roof.tres" id="7_vicar"]
+[ext_resource type="Resource" path="res://content/stories/lord_advance.tres" id="8_advance"]
+[ext_resource type="Resource" path="res://content/stories/lord_dinner.tres" id="9_dinner"]
+
+[resource]
+script = ExtResource("1_director")
+quiet_real_seconds = 90.0
+notable_events = PackedStringArray("plot_problem", "inspection_warned", "inspection_passed", "inspection_failed", "raid_started", "raid_resolved", "delivery_stopped", "courier_stole", "milestone_reached", "rent_paid", "rent_missed", "worker_quit", "worker_stole", "helper_saved", "helper_skill_learned")
+urgent_order_weight = 3.0
+lord_visit_weight = 1.0
+rumour_weight = 1.5
+breakdown_weight = 1.0
+courier_trouble_weight = 1.0
+story_weight = 3.0
+urgent_quantity_min = 1
+urgent_quantity_max = 2
+urgent_min_quality = 40
+urgent_reward_multiplier = 2.0
+urgent_answer_hours = 0.75
+urgent_deadline_hours = 4.0
+rumour_inspection_min_suspicion = 25.0
+rumour_inspection_hours = 3.0
+courier_delay_hours = 1.0
+stories = Array[ExtResource("2_story_def")]([ExtResource("3_neighbour"), ExtResource("4_reporter"), ExtResource("5_cousin"), ExtResource("6_hiker"), ExtResource("7_vicar"), ExtResource("8_advance"), ExtResource("9_dinner")])

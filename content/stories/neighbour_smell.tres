@@ -1,0 +1,73 @@
+[gd_resource type="Resource" script_class="StoryDef" format=3]
+
+[ext_resource type="Script" path="res://content/defs/story_def.gd" id="1_story"]
+[ext_resource type="Script" path="res://content/defs/story_choice_def.gd" id="2_choice"]
+[ext_resource type="Script" path="res://content/defs/dialogue_line_def.gd" id="3_line"]
+
+[sub_resource type="Resource" id="Line_1"]
+script = ExtResource("3_line")
+speaker = ""
+text = "У ворот поля — фермер Хоббс. В резиновых сапогах и плохом настроении."
+
+[sub_resource type="Resource" id="Line_2"]
+script = ExtResource("3_line")
+speaker = "Фермер Хоббс"
+text = "Тридцать лет нюхаю свиней, мистер. Но от вашего поля по ночам тянет так, что свиньи стесняются. Что вы там растите?"
+
+[sub_resource type="Resource" id="Line_3"]
+script = ExtResource("3_line")
+speaker = "Финн"
+text = "Хоббс разговаривает в пабе со всеми. Со свиньями тоже, но те хотя бы молчат."
+
+[sub_resource type="Resource" id="Line_4"]
+script = ExtResource("3_line")
+speaker = "Фермер Хоббс"
+text = "Забор… Да, забор старый. Пока строю, я, пожалуй, и нос заткну."
+
+[sub_resource type="Resource" id="Line_5"]
+script = ExtResource("3_line")
+speaker = "Финн"
+text = "Деньги, потраченные на тишину, редко бывают лишними."
+
+[sub_resource type="Resource" id="Choice_1"]
+script = ExtResource("2_choice")
+label = "Дать £150 «на новый забор»"
+money = -150
+suspicion = -5.0
+relation_change = 1
+relation = "village"
+reply = Array[ExtResource("3_line")]([SubResource("Line_4"), SubResource("Line_5")])
+
+[sub_resource type="Resource" id="Line_6"]
+script = ExtResource("3_line")
+speaker = "Фермер Хоббс"
+text = "Силос, значит. Новомодный, видать. Ладно, мистер, живите."
+
+[sub_resource type="Resource" id="Line_7"]
+script = ExtResource("3_line")
+speaker = "Фермер Хоббс"
+text = "Я тридцать лет делаю силос, мистер. Силос так не пахнет. Силос пахнет силосом."
+
+[sub_resource type="Resource" id="Line_8"]
+script = ExtResource("3_line")
+speaker = "Финн"
+text = "Вечером он расскажет это в пабе. С выражением."
+
+[sub_resource type="Resource" id="Choice_2"]
+script = ExtResource("2_choice")
+label = "Рассказать про «новый силос»"
+chance = 0.55
+suspicion = -3.0
+relation_change = 1
+fail_suspicion = 10.0
+fail_relation_change = -1
+relation = "village"
+reply = Array[ExtResource("3_line")]([SubResource("Line_6")])
+fail_reply = Array[ExtResource("3_line")]([SubResource("Line_7"), SubResource("Line_8")])
+
+[resource]
+script = ExtResource("1_story")
+id = "neighbour_smell"
+kind = "village"
+lines = Array[ExtResource("3_line")]([SubResource("Line_1"), SubResource("Line_2"), SubResource("Line_3")])
+choices = Array[ExtResource("2_choice")]([SubResource("Choice_1"), SubResource("Choice_2")])

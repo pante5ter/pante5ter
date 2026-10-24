@@ -1,0 +1,63 @@
+[gd_resource type="Resource" script_class="StoryDef" format=3]
+
+[ext_resource type="Script" path="res://content/defs/story_def.gd" id="1_story"]
+[ext_resource type="Script" path="res://content/defs/story_choice_def.gd" id="2_choice"]
+[ext_resource type="Script" path="res://content/defs/dialogue_line_def.gd" id="3_line"]
+
+[sub_resource type="Resource" id="Line_1"]
+script = ExtResource("3_line")
+speaker = ""
+text = "Лорд Эшкомб спускается с крыльца под зонтом."
+
+[sub_resource type="Resource" id="Line_2"]
+script = ExtResource("3_line")
+speaker = "Лорд Эшкомб"
+text = "Мистер Кэллоуэй, неловкий вопрос. Банк снова пишет письма — очень вежливые и очень частые. Не заплатите ли часть аренды вперёд? Пятьсот фунтов. Исключительно между джентльменами."
+
+[sub_resource type="Resource" id="Line_3"]
+script = ExtResource("3_line")
+speaker = "Финн"
+text = "Деньги вперёд — это деньги вперёд. Зато лорд, которому помогли, — лорд, который не задаёт вопросов."
+
+[sub_resource type="Resource" id="Line_4"]
+script = ExtResource("3_line")
+speaker = "Лорд Эшкомб"
+text = "Вы спасаете мне весну. Я, знаете ли, теперь вовсе не хожу в восточное поле. Колени."
+
+[sub_resource type="Resource" id="Line_5"]
+script = ExtResource("3_line")
+speaker = "Финн"
+text = "Пятьсот фунтов уйдут в счёт следующей аренды. Это не расход, это предоплата за слепоту."
+
+[sub_resource type="Resource" id="Choice_1"]
+script = ExtResource("2_choice")
+label = "Заплатить £500 вперёд"
+money = -500
+relation_change = 2
+rent_credit = 500
+relation = "lord"
+reply = Array[ExtResource("3_line")]([SubResource("Line_4"), SubResource("Line_5")])
+
+[sub_resource type="Resource" id="Line_6"]
+script = ExtResource("3_line")
+speaker = "Лорд Эшкомб"
+text = "Разумеется. Разумеется, я понимаю. Банк тоже поймёт, я уверен."
+
+[sub_resource type="Resource" id="Line_7"]
+script = ExtResource("3_line")
+speaker = "Финн"
+text = "Он улыбнулся. Лорды улыбаются, когда обижены."
+
+[sub_resource type="Resource" id="Choice_2"]
+script = ExtResource("2_choice")
+label = "Вежливо отказать"
+relation_change = -2
+relation = "lord"
+reply = Array[ExtResource("3_line")]([SubResource("Line_6"), SubResource("Line_7")])
+
+[resource]
+script = ExtResource("1_story")
+id = "lord_advance"
+kind = "lord"
+lines = Array[ExtResource("3_line")]([SubResource("Line_1"), SubResource("Line_2"), SubResource("Line_3")])
+choices = Array[ExtResource("2_choice")]([SubResource("Choice_1"), SubResource("Choice_2")])

@@ -6,6 +6,8 @@ const LORD_ACTOR: String = "lord"
 var next_due_at: float = INF
 var missed: int = 0
 var evicted: bool = false
+## Paid ahead to the lord; comes off the next payments.
+var credit: int = 0
 
 var _def: RentDef
 var _economy: Economy
@@ -30,6 +32,10 @@ func max_missed() -> int:
 	return _def.evict_after_missed if _def != null else 0
 
 
+func add_credit(amount: int) -> void:
+	credit += maxi(amount, 0)
+
+
 func due_in(now: float) -> float:
 	return maxf(next_due_at - now, 0.0)
 
@@ -46,10 +52,12 @@ func process(now: float) -> void:
 
 
 func _collect(at: float) -> void:
-	if _economy.spend(_def.amount):
+	var due := maxi(_def.amount - credit, 0)
+	if _economy.spend(due):
+		credit = maxi(credit - _def.amount, 0)
 		missed = 0
 		_event_log.record(EventLog.RENT_PAID, at, PackedStringArray([LORD_ACTOR]), {
-			"amount": _def.amount,
+			"amount": due,
 			"money": _economy.money,
 		})
 		return
@@ -72,6 +80,7 @@ func to_dict() -> Dictionary:
 		"next_due_at": ExactFloat.encode(next_due_at),
 		"missed": missed,
 		"evicted": evicted,
+		"credit": credit,
 	}
 
 
@@ -79,3 +88,4 @@ func load_dict(data: Dictionary) -> void:
 	next_due_at = ExactFloat.decode(data["next_due_at"])
 	missed = int(data["missed"])
 	evicted = data["evicted"] == true
+	credit = int(data.get("credit", 0))

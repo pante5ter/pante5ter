@@ -21,6 +21,9 @@ func _calm(balance: BalanceConfig) -> BalanceConfig:
 	calm.raids.chance_per_night = 0.0
 	calm.suspicion = balance.suspicion.duplicate() as SuspicionDef
 	calm.suspicion.inspection_threshold = SuspicionDef.new().inspection_threshold + 1.0
+	# The first-day script holds regular calls and the director adds its own; these tests check the bare systems.
+	calm.first_day = null
+	calm.director = null
 	return calm
 
 

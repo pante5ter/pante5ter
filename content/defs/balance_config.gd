@@ -20,6 +20,9 @@ extends Resource
 @export var raids: RaidsDef
 @export var rent: RentDef
 @export var milestones: Array[MilestoneDef] = []
+## null plays without the first-day script / without the event director.
+@export var first_day: FirstDayDef
+@export var director: DirectorDef
 
 @export_group("Care")
 @export var fertilizer_price: int = 0

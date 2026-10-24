@@ -1,0 +1,69 @@
+[gd_resource type="Resource" script_class="StoryDef" format=3]
+
+[ext_resource type="Script" path="res://content/defs/story_def.gd" id="1_story"]
+[ext_resource type="Script" path="res://content/defs/story_choice_def.gd" id="2_choice"]
+[ext_resource type="Script" path="res://content/defs/dialogue_line_def.gd" id="3_line"]
+
+[sub_resource type="Resource" id="Line_1"]
+script = ExtResource("3_line")
+speaker = ""
+text = "Утро. У контейнера мужчина в анораке, с картой и термосом. Дверь контейнера приоткрыта."
+
+[sub_resource type="Resource" id="Line_2"]
+script = ExtResource("3_line")
+speaker = "Турист"
+text = "Доброе утро! Общественная тропа проходит прямо здесь, знаете ли. А у вас дверь открыта — и стеллаж такой занятный, будто на колёсиках…"
+
+[sub_resource type="Resource" id="Line_3"]
+script = ExtResource("3_line")
+speaker = "Финн"
+text = "Кто-то не закрыл дверь. Об этом позже. Сейчас — турист."
+
+[sub_resource type="Resource" id="Line_4"]
+script = ExtResource("3_line")
+speaker = "Турист"
+text = "Какой чай! И какой вы любезный. Тропа, говорите, вон там? Чудесно, чудесно."
+
+[sub_resource type="Resource" id="Line_5"]
+script = ExtResource("3_line")
+speaker = "Турист"
+text = "Спасибо за чай! А стеллаж всё-таки на колёсиках. Напишу в свой блог о сельской архитектуре."
+
+[sub_resource type="Resource" id="Line_6"]
+script = ExtResource("3_line")
+speaker = "Финн"
+text = "Блог. Боже, храни Англию."
+
+[sub_resource type="Resource" id="Choice_1"]
+script = ExtResource("2_choice")
+label = "Угостить чаем и проводить до тропы"
+chance = 0.7
+relation_change = 1
+fail_suspicion = 8.0
+relation = "village"
+reply = Array[ExtResource("3_line")]([SubResource("Line_4")])
+fail_reply = Array[ExtResource("3_line")]([SubResource("Line_5"), SubResource("Line_6")])
+
+[sub_resource type="Resource" id="Line_7"]
+script = ExtResource("3_line")
+speaker = "Турист"
+text = "Пятьдесят фунтов за то, чтобы ничего не видеть? Лучший поход в моей жизни."
+
+[sub_resource type="Resource" id="Line_8"]
+script = ExtResource("3_line")
+speaker = "Финн"
+text = "Он будет молчать. Но запомнит: взятки запоминаются лучше чая."
+
+[sub_resource type="Resource" id="Choice_2"]
+script = ExtResource("2_choice")
+label = "Сунуть £50: «Вы ничего не видели, сэр»"
+money = -50
+suspicion = 3.0
+reply = Array[ExtResource("3_line")]([SubResource("Line_7"), SubResource("Line_8")])
+
+[resource]
+script = ExtResource("1_story")
+id = "hiker"
+kind = "village"
+lines = Array[ExtResource("3_line")]([SubResource("Line_1"), SubResource("Line_2"), SubResource("Line_3")])
+choices = Array[ExtResource("2_choice")]([SubResource("Choice_1"), SubResource("Choice_2")])

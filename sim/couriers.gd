@@ -134,6 +134,15 @@ func dispatch(order_id: int, courier_id: String, now: float, actor: String) -> C
 	return CommandResult.success(order.id)
 
 
+## Held up on the road: he and the parcel arrive later.
+func delay(order: Order, game_seconds: float) -> void:
+	order.arrives_at += game_seconds
+	var courier_id := order.courier_id
+	busy_until[courier_id] = busy_until.get(courier_id, order.arrives_at) + game_seconds
+	if is_helper(courier_id):
+		_helper.extend_away(busy_until[courier_id])
+
+
 func next_event_time() -> float:
 	var next := INF
 	for order: Order in _orders.with_status(Order.Status.IN_TRANSIT):

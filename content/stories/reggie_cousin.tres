@@ -1,0 +1,61 @@
+[gd_resource type="Resource" script_class="StoryDef" format=3]
+
+[ext_resource type="Script" path="res://content/defs/story_def.gd" id="1_story"]
+[ext_resource type="Script" path="res://content/defs/story_choice_def.gd" id="2_choice"]
+[ext_resource type="Script" path="res://content/defs/dialogue_line_def.gd" id="3_line"]
+
+[sub_resource type="Resource" id="Line_1"]
+script = ExtResource("3_line")
+speaker = "Реджи"
+text = "Мистер Кэллоуэй, тут такое дело. Кузен мой, Лиам. Недавно вышел. Парень хороший, только руки у него… сами по себе. Просится на работу."
+
+[sub_resource type="Resource" id="Line_2"]
+script = ExtResource("3_line")
+speaker = "Финн"
+text = "Родня Реджи — это ещё пара глаз и ещё один язык. Решать вам."
+
+[sub_resource type="Resource" id="Line_3"]
+script = ExtResource("3_line")
+speaker = "Реджи"
+text = "Уэльс. Там овцы, там ему самое место. Спасибо, мистер Кэллоуэй. Не забуду."
+
+[sub_resource type="Resource" id="Choice_1"]
+script = ExtResource("2_choice")
+label = "Дать Лиаму £100 и отправить к тётке в Уэльс"
+money = -100
+relation_change = 1
+relation = "crew"
+reply = Array[ExtResource("3_line")]([SubResource("Line_3")])
+
+[sub_resource type="Resource" id="Line_4"]
+script = ExtResource("3_line")
+speaker = "Реджи"
+text = "Понял. Скажу, что вакансий нет. Он поймёт. Наверное."
+
+[sub_resource type="Resource" id="Line_5"]
+script = ExtResource("3_line")
+speaker = "Реджи"
+text = "Лиам обиделся. Вчера в пабе рассказывал, что у нас «целый подвал работы». Я с ним поговорю."
+
+[sub_resource type="Resource" id="Line_6"]
+script = ExtResource("3_line")
+speaker = "Финн"
+text = "Поговорите. Желательно убедительно."
+
+[sub_resource type="Resource" id="Choice_2"]
+script = ExtResource("2_choice")
+label = "Отказать: «Бизнес семейный, но не настолько»"
+chance = 0.6
+relation_change = -1
+fail_suspicion = 6.0
+fail_relation_change = -1
+relation = "crew"
+reply = Array[ExtResource("3_line")]([SubResource("Line_4")])
+fail_reply = Array[ExtResource("3_line")]([SubResource("Line_5"), SubResource("Line_6")])
+
+[resource]
+script = ExtResource("1_story")
+id = "reggie_cousin"
+kind = "village"
+lines = Array[ExtResource("3_line")]([SubResource("Line_1"), SubResource("Line_2")])
+choices = Array[ExtResource("2_choice")]([SubResource("Choice_1"), SubResource("Choice_2")])

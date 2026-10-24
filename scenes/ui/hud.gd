@@ -24,6 +24,9 @@ var phone: Phone
 var pause_menu: PauseMenu
 var computer: ComputerScreen
 var dialogue_box: DialogueBox
+var story_presenter: StoryPresenter
+## Set by the level: Finn phrases directions from where Jack stands.
+var underground: bool = false
 var speed_buttons: Array[Button] = []
 
 var _message_left: float = 0.0
@@ -66,6 +69,9 @@ func _ready() -> void:
 	dialogue_box = DIALOGUE_BOX_SCENE.instantiate() as DialogueBox
 	dialogue_box.finished.connect(_on_dialogue_finished)
 	add_child(dialogue_box)
+	story_presenter = StoryPresenter.new()
+	story_presenter.hud = self
+	add_child(story_presenter)
 
 
 func _add_corner_button(text: String, on_pressed: Callable, anchor: Vector2, rect: Rect2) -> void:
@@ -86,8 +92,8 @@ func _process(delta: float) -> void:
 	money_label.text = UiText.money(sim.economy.money)
 	time_label.text = UiText.clock(sim.clock)
 	stock_label.text = UiText.stock(sim)
-	worker_label.text = UiText.worker_status(sim.workers)
-	objective_label.text = "Финн: " + UiText.objective(sim)
+	worker_label.text = StoryText.crew_status(sim)
+	objective_label.text = "Финн: " + UiText.objective(sim, underground)
 	empire_label.text = UiText.empire(sim)
 	suspicion_label.text = UiText.suspicion(sim)
 	suspicion_label.modulate = Color(1.0, 0.55, 0.45) if sim.suspicion.inspection_pending() or sim.raids.pending else Color.WHITE
@@ -138,7 +144,8 @@ func is_blocking_world() -> bool:
 	return action_menu.visible or pause_menu.visible or computer.visible or dialogue_box.is_open()
 
 
-func play_dialogue(lines: Array[DialogueLineDef]) -> void:
+## With choices the box waits on the last line for one; its chosen signal carries the index.
+func play_dialogue(lines: Array[DialogueLineDef], choices: PackedStringArray = PackedStringArray()) -> void:
 	action_menu.close()
 	phone.close()
 	computer.close()
@@ -147,7 +154,7 @@ func play_dialogue(lines: Array[DialogueLineDef]) -> void:
 		_dialogue_was_running = Game.is_running
 		_hide_for_dialogue()
 	Game.is_running = false
-	dialogue_box.play(lines)
+	dialogue_box.play(lines, choices)
 
 
 func is_dialogue_open() -> bool:
@@ -171,6 +178,9 @@ func _on_dialogue_finished() -> void:
 
 
 func _dialogue_input(event: InputEvent) -> void:
+	if dialogue_box.is_choosing():
+		_choice_input(event)
+		return
 	var button := event as InputEventMouseButton
 	if button != null:
 		if button.button_index != MOUSE_BUTTON_LEFT:
@@ -191,6 +201,16 @@ func _dialogue_input(event: InputEvent) -> void:
 			pass
 		_:
 			return
+	get_viewport().set_input_as_handled()
+
+
+## Clicks go through to the choice buttons; the number keys pick too.
+func _choice_input(event: InputEvent) -> void:
+	var key := event as InputEventKey
+	if key == null:
+		return
+	if key.pressed and not key.echo and key.physical_keycode >= KEY_1 and key.physical_keycode <= KEY_9:
+		dialogue_box.choose(key.physical_keycode - KEY_1)
 	get_viewport().set_input_as_handled()
 
 

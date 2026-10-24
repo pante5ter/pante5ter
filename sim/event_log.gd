@@ -52,6 +52,10 @@ const HELPER_TRAINING_STARTED: String = "helper_training_started"
 const HELPER_SKILL_LEARNED: String = "helper_skill_learned"
 const HELPER_SAVED: String = "helper_saved"
 const SUPPLY_RULE_SET: String = "supply_rule_set"
+const STORY_STARTED: String = "story_started"
+const STORY_RESOLVED: String = "story_resolved"
+const DIRECTOR_EVENT: String = "director_event"
+const FIRST_DAY_STEP: String = "first_day_step"
 
 var _entries: Array[SimEvent] = []
 

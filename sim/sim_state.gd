@@ -1,11 +1,14 @@
 class_name SimState
 extends RefCounted
 
-const SAVE_VERSION: int = 8
+const SAVE_VERSION: int = 9
 ## v7 saves load too: they get a fresh helper and no packer.
 const MIGRATABLE_VERSION: int = 7
+## v8 saves load too: they skip the first-day script and the director starts counting at load.
+const V8_VERSION: int = 8
 const V7_SAVE_KEYS: Array[String] = ["save_version", "clock", "rng", "economy", "inventory", "plots", "workers", "supplies", "orders", "progress", "problems", "suspicion", "raids", "couriers", "packing", "rent", "event_log"]
 const V8_SAVE_KEYS: Array[String] = ["helper", "packer"]
+const V9_SAVE_KEYS: Array[String] = ["first_day", "director", "stories"]
 
 var config: BalanceConfig
 var clock: SimClock
@@ -26,6 +29,9 @@ var packing: Packing
 var rent: Rent
 var helper: Helper
 var packer: Packer
+var stories: Stories
+var first_day: FirstDay
+var director: Director
 
 
 func _init(balance: BalanceConfig, seed_value: int) -> void:
@@ -57,6 +63,9 @@ func _init(balance: BalanceConfig, seed_value: int) -> void:
 	workers.helper = helper
 	couriers.attach_helper(helper)
 	raids.attach_helper(helper)
+	stories = Stories.new(balance, economy, suspicion, rent, rng, event_log)
+	first_day = FirstDay.new(balance, grow, inventory, orders, problems, stories, event_log)
+	director = Director.new(balance, rng, orders, problems, suspicion, raids, couriers, stories, first_day, event_log)
 	progress.update(empire_value(), clock.elapsed_game_seconds)
 
 
@@ -64,6 +73,7 @@ func apply(command: SimCommand) -> CommandResult:
 	if rent.evicted:
 		return CommandResult.failure(CommandResult.EVICTED)
 	var result := _apply(command)
+	first_day.update(clock.elapsed_game_seconds)
 	progress.update(empire_value(), clock.elapsed_game_seconds)
 	return result
 
@@ -136,6 +146,9 @@ func _apply(command: SimCommand) -> CommandResult:
 		return supplies.buy(buy.item, buy.quantity, now, command.actor)
 	if command is BuyPlotCommand:
 		return _buy_plot(now, command.actor)
+	if command is ChooseCommand:
+		var choose := command as ChooseCommand
+		return stories.choose(choose.story_id, choose.choice, now, command.actor)
 	return CommandResult.failure(CommandResult.UNKNOWN_COMMAND)
 
 
@@ -159,6 +172,7 @@ func _next_event_time() -> float:
 	next = minf(next, minf(couriers.next_event_time(), packing.next_event_time()))
 	next = minf(next, rent.next_event_time())
 	next = minf(next, minf(helper.next_event_time(), packer.next_event_time()))
+	next = minf(next, minf(first_day.next_event_time(), director.next_event_time()))
 	return minf(next, raids.next_event_time())
 
 
@@ -174,6 +188,9 @@ func _process_events(now: float) -> void:
 	helper.process(now)
 	packer.process(now)
 	rent.process(now)
+	# Last, so both see everything the others did at this instant.
+	first_day.update(now)
+	director.process(now)
 
 
 func _grow_unless_quiet(now: float, game_seconds: float) -> void:
@@ -222,6 +239,9 @@ func to_dict() -> Dictionary:
 		"rent": rent.to_dict(),
 		"helper": helper.to_dict(),
 		"packer": packer.to_dict(),
+		"stories": stories.to_dict(),
+		"first_day": first_day.to_dict(),
+		"director": director.to_dict(),
 		"event_log": event_log.to_array(),
 	}
 
@@ -238,14 +258,19 @@ static func from_json(text: String, balance: BalanceConfig) -> SimState:
 	if not data.has_all(V7_SAVE_KEYS):
 		return null
 	var version := int(data["save_version"])
-	if version != SAVE_VERSION and version != MIGRATABLE_VERSION:
+	if version != SAVE_VERSION and version != V8_VERSION and version != MIGRATABLE_VERSION:
 		return null
-	if version == SAVE_VERSION and not data.has_all(V8_SAVE_KEYS):
+	if version >= V8_VERSION and not data.has_all(V8_SAVE_KEYS):
+		return null
+	if version == SAVE_VERSION and not data.has_all(V9_SAVE_KEYS):
 		return null
 	var state := SimState.new(balance, 0)
 	state._load_dict(data)
 	if version == MIGRATABLE_VERSION:
 		state.helper.start_at(state.clock.elapsed_game_seconds)
+	if version < SAVE_VERSION:
+		state.first_day.skip()
+		state.director.restart(state.clock.elapsed_game_seconds)
 	if is_nan(state.clock.elapsed_game_seconds):
 		return null
 	return state
@@ -272,3 +297,9 @@ func _load_dict(data: Dictionary) -> void:
 	if data.has("packer"):
 		packer.load_dict(data["packer"] as Dictionary)
 	event_log.load_array(data["event_log"] as Array)
+	if data.has("stories"):
+		stories.load_dict(data["stories"] as Dictionary)
+	if data.has("first_day"):
+		first_day.load_dict(data["first_day"] as Dictionary)
+	if data.has("director"):
+		director.load_dict(data["director"] as Dictionary)

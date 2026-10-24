@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="FirstDayDef" format=3]
+
+[ext_resource type="Script" path="res://content/defs/first_day_def.gd" id="1_first_day"]
+[ext_resource type="Resource" path="res://content/stories/lord_night_vehicles.tres" id="2_lord"]
+[ext_resource type="Resource" path="res://content/stories/neighbour_smell.tres" id="3_neighbour"]
+
+[resource]
+script = ExtResource("1_first_day")
+call_after_real_seconds = 60.0
+call_quantity = 1
+call_min_quality = 0
+call_reward = 300
+call_answer_hours = 6.0
+lord_hour = 19.0
+trouble_hour = 30.0
+lord_story = ExtResource("2_lord")
+trouble_story = ExtResource("3_neighbour")
+plant_field_line = "Погреб пока пустой. Спуститесь через контейнер на плантацию и посадите семена — с этого всё начинается."
+plant_bunker_line = "Мы на месте. Посадите семена: кликните по пустой грядке. Дальше — вода и терпение."
+call_line = "Посажено. Теперь полейте и ждите: первый звонок, как первая любовь, приходит сам. Скоро."
+answer_line = "Звонит первый клиент, мистер Кэллоуэй. Возьмите трубку — телефон, Tab, «Звонки» — и соглашайтесь: платит щедро."
+harvest_line = "Клиент ждёт. Как созреет — соберите урожай на плантации. И поливайте: сухой куст денег не приносит."
+pack_line = "Урожай есть. Россыпью приличные люди не продают — расфасуйте его на столе на плантации."
+send_line = "Коробка готова. На компьютере, «Заказы», отправьте Реджи. Водит он аккуратно и в дороге молчит."
+paid_line = "Реджи в пути. Пока он везёт — посадите и полейте ещё. Деньги будут, когда он вернётся."
+evening_line = "Первые деньги, мистер Кэллоуэй. Сажайте, отвечайте на звонки. К вечеру, полагаю, о нас кое-кто вспомнит."
+morning_line = "Ночь прошла спокойно. Пока. Держите грядки политыми и телефон под рукой — утро покажет, крепкие ли у нас нервы."
+trouble_line = "Вредители. Средство от них — в телефоне, «Магазин». Есть на складе — Реджи обработает сам, нет — закажите и заберите посылку."

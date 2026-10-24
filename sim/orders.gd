@@ -6,6 +6,8 @@ const DECLINE: String = "decline"
 const HAGGLE: String = "haggle"
 
 var next_spawn_at: float = 0.0
+## The first-day script keeps regular callers away until its own order is on the road.
+var hold_calls: bool = false
 
 var _orders: Array[Order] = []
 var _next_id: int = 1
@@ -90,7 +92,8 @@ func answer(order_id: int, choice: String, now: float, actor: String) -> Command
 
 func _accept(order: Order, now: float, actor: String) -> void:
 	order.status = Order.Status.ACCEPTED
-	order.deadline = now + _def.deadline_hours * SimClock.GAME_SECONDS_PER_HOUR
+	var hours := order.deadline_hours if order.deadline_hours > 0.0 else _def.deadline_hours
+	order.deadline = now + hours * SimClock.GAME_SECONDS_PER_HOUR
 	_event_log.record(EventLog.ORDER_ACCEPTED, now, PackedStringArray([actor, _tag(order)]), {"order_id": order.id, "reward": order.reward})
 
 
@@ -125,7 +128,7 @@ func process(now: float) -> void:
 			_orders.erase(order)
 			_event_log.record(EventLog.ORDER_EXPIRED, now, PackedStringArray([_tag(order)]), {"order_id": order.id})
 	while now >= next_spawn_at:
-		if _open_count() < _def.max_open:
+		if has_room() and not hold_calls:
 			_spawn(next_spawn_at)
 		next_spawn_at += _def.interval_hours * SimClock.GAME_SECONDS_PER_HOUR
 
@@ -134,22 +137,40 @@ func _open_count() -> int:
 	return _orders.size() - with_status(Order.Status.IN_TRANSIT).size()
 
 
+func has_room() -> bool:
+	return _open_count() < _def.max_open
+
+
 func _spawn(at: float) -> void:
+	var quantity := _rng.randi_range(_def.quantity_min, _def.quantity_max)
+	var quality_steps := maxi(floori(float(_def.quality_max - _def.quality_min) / float(maxi(_def.quality_step, 1))), 0)
+	var min_quality := _def.quality_min + _rng.randi_range(0, quality_steps) * _def.quality_step
+	var reward := roundi(float(quantity * Economy.price_with(_reference_strain, min_quality)) * _def.reward_multiplier)
+	inject(quantity, min_quality, reward, _def.answer_hours, 0.0, false, at)
+
+
+## A call placed by the script or the director rather than the usual schedule.
+func inject(quantity: int, min_quality: int, reward: int, answer_hours: float, deadline_hours: float, urgent: bool, at: float) -> Order:
 	var order := Order.new()
 	order.id = _next_id
 	_next_id += 1
-	order.quantity = _rng.randi_range(_def.quantity_min, _def.quantity_max)
-	var quality_steps := maxi(floori(float(_def.quality_max - _def.quality_min) / float(maxi(_def.quality_step, 1))), 0)
-	order.min_quality = _def.quality_min + _rng.randi_range(0, quality_steps) * _def.quality_step
-	order.reward = roundi(float(order.quantity * Economy.price_with(_reference_strain, order.min_quality)) * _def.reward_multiplier)
-	order.answer_by = at + _def.answer_hours * SimClock.GAME_SECONDS_PER_HOUR
+	order.quantity = quantity
+	order.min_quality = min_quality
+	order.reward = reward
+	order.answer_by = at + answer_hours * SimClock.GAME_SECONDS_PER_HOUR
+	order.deadline_hours = deadline_hours
+	order.urgent = urgent
 	_orders.append(order)
-	_event_log.record(EventLog.ORDER_RECEIVED, at, PackedStringArray([_tag(order)]), {
+	var data := {
 		"order_id": order.id,
 		"quantity": order.quantity,
 		"min_quality": order.min_quality,
 		"reward": order.reward,
-	})
+	}
+	if urgent:
+		data["urgent"] = true
+	_event_log.record(EventLog.ORDER_RECEIVED, at, PackedStringArray([_tag(order)]), data)
+	return order
 
 
 static func _tag(order: Order) -> String:

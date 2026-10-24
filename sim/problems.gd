@@ -56,6 +56,27 @@ func _roll(at: float) -> void:
 		})
 
 
+func healthy_growing() -> Array[Plot]:
+	var found: Array[Plot] = []
+	for target: Plot in _grow.plots():
+		if target.is_growing() and target.problem.is_empty():
+			found.append(target)
+	return found
+
+
+## Trouble by script or director rather than by the hourly roll.
+func force(plot_id: int, kind: String, at: float) -> bool:
+	var target := _grow.plot(plot_id)
+	if target == null or not target.is_growing() or not target.problem.is_empty():
+		return false
+	target.problem = kind
+	_event_log.record(EventLog.PLOT_PROBLEM, at, PackedStringArray(["plot:%d" % target.id]), {
+		"plot_id": target.id,
+		"problem": target.problem,
+	})
+	return true
+
+
 func treat(plot_id: int, now: float, actor: String) -> CommandResult:
 	var target := _grow.plot(plot_id)
 	if target == null:

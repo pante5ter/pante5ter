@@ -19,6 +19,9 @@ func _config(money: int = 5000, base_risk: float = 0.0, haggle: float = 0.5) -> 
 	config.problems.chance_per_hour = 0.0
 	config.raids = _balance.raids.duplicate() as RaidsDef
 	config.raids.chance_per_night = 0.0
+	# The first-day script holds regular calls and the director adds its own; these tests check the bare systems.
+	config.first_day = null
+	config.director = null
 	return config
 
 

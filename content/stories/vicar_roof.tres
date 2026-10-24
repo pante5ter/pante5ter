@@ -1,0 +1,61 @@
+[gd_resource type="Resource" script_class="StoryDef" format=3]
+
+[ext_resource type="Script" path="res://content/defs/story_def.gd" id="1_story"]
+[ext_resource type="Script" path="res://content/defs/story_choice_def.gd" id="2_choice"]
+[ext_resource type="Script" path="res://content/defs/dialogue_line_def.gd" id="3_line"]
+
+[sub_resource type="Resource" id="Line_1"]
+script = ExtResource("3_line")
+speaker = "Викарий"
+text = "Мистер Кэллоуэй! Преподобный Кэткарт. Крыша Святого Михаила течёт, а приход говорит, что дела у вас идут бодро. По ночам особенно."
+
+[sub_resource type="Resource" id="Line_2"]
+script = ExtResource("3_line")
+speaker = "Финн"
+text = "Церковь в деревне — лучшая крыша. Во всех смыслах."
+
+[sub_resource type="Resource" id="Line_3"]
+script = ExtResource("3_line")
+speaker = "Викарий"
+text = "Господь видит щедрых! А прихожане видят табличку с вашим именем у входа. Это даже надёжнее."
+
+[sub_resource type="Resource" id="Choice_1"]
+script = ExtResource("2_choice")
+label = "Пожертвовать £120 на крышу"
+money = -120
+suspicion = -6.0
+relation_change = 2
+relation = "village"
+reply = Array[ExtResource("3_line")]([SubResource("Line_3")])
+
+[sub_resource type="Resource" id="Line_4"]
+script = ExtResource("3_line")
+speaker = "Викарий"
+text = "После урожая? Что ж, Господь терпелив. Я тоже — до Пасхи."
+
+[sub_resource type="Resource" id="Line_5"]
+script = ExtResource("3_line")
+speaker = "Викарий"
+text = "В воскресной проповеди, пожалуй, вспомню тех, кто богатеет по ночам. Без имён, разумеется."
+
+[sub_resource type="Resource" id="Line_6"]
+script = ExtResource("3_line")
+speaker = "Финн"
+text = "Без имён. Но с адресом."
+
+[sub_resource type="Resource" id="Choice_2"]
+script = ExtResource("2_choice")
+label = "Пообещать «после урожая»"
+chance = 0.5
+fail_suspicion = 5.0
+fail_relation_change = -1
+relation = "village"
+reply = Array[ExtResource("3_line")]([SubResource("Line_4")])
+fail_reply = Array[ExtResource("3_line")]([SubResource("Line_5"), SubResource("Line_6")])
+
+[resource]
+script = ExtResource("1_story")
+id = "vicar_roof"
+kind = "village"
+lines = Array[ExtResource("3_line")]([SubResource("Line_1"), SubResource("Line_2")])
+choices = Array[ExtResource("2_choice")]([SubResource("Choice_1"), SubResource("Choice_2")])

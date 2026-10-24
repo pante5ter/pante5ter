@@ -27,6 +27,7 @@ func _ready() -> void:
 	jack.global_position = spawn
 	camera_rig.focus(spawn)
 	Game.is_running = true
+	hud.underground = not _is_opening_level()
 	if _is_opening_level() and Game.take_fresh_start():
 		hud.play_dialogue((load(PROLOGUE_PATH) as DialogueDef).lines)
 

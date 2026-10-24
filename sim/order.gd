@@ -14,6 +14,10 @@ var haggled: bool = false
 var courier_id: String = ""
 var product_ids: Array[int] = []
 var arrives_at: float = 0.0
+## A director call: short fuse, fat bonus.
+var urgent: bool = false
+## Overrides the usual deadline once accepted; zero keeps it.
+var deadline_hours: float = 0.0
 
 
 static func status_name(value: Status) -> String:
@@ -33,6 +37,8 @@ func to_dict() -> Dictionary:
 		"courier_id": courier_id,
 		"product_ids": product_ids.duplicate(),
 		"arrives_at": ExactFloat.encode(arrives_at),
+		"urgent": urgent,
+		"deadline_hours": ExactFloat.encode(deadline_hours),
 	}
 
 
@@ -50,4 +56,6 @@ static func from_dict(data: Dictionary) -> Order:
 	for product_id: Variant in data["product_ids"] as Array:
 		order.product_ids.append(int(product_id))
 	order.arrives_at = ExactFloat.decode(data["arrives_at"])
+	order.urgent = data.get("urgent", false) == true
+	order.deadline_hours = ExactFloat.decode(data["deadline_hours"]) if data.has("deadline_hours") else 0.0
 	return order

@@ -17,6 +17,9 @@ func _config(money: int = 500, problems: float = 0.0, raids: float = 0.0) -> Bal
 	config.raids = _balance.raids.duplicate() as RaidsDef
 	config.raids.chance_per_night = raids
 	config.suspicion = _balance.suspicion.duplicate() as SuspicionDef
+	# The script and the director roll their own dice and add their own trouble; these tests check the bare threats.
+	config.first_day = null
+	config.director = null
 	return config
 
 

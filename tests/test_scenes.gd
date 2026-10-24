@@ -7,6 +7,8 @@ const SETTLE_FRAMES: int = 3
 
 func before_each() -> void:
 	Game.new_game(42)
+	# Regular calls from the first minute: the first-day script is tested on its own.
+	Game.sim.first_day.skip()
 	Game.is_running = false
 
 

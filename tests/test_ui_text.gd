@@ -10,8 +10,12 @@ func before_all() -> void:
 	_balance = load(BALANCE_PATH) as BalanceConfig
 
 
+## Finn's everyday guidance; the first-day script's own lines are checked in test_first_day.
 func _new_state() -> SimState:
-	return SimState.new(_balance, 1)
+	var plain := _balance.duplicate() as BalanceConfig
+	plain.first_day = null
+	plain.director = null
+	return SimState.new(plain, 1)
 
 
 func _real_seconds_for_game_hours(hours: float) -> float:
@@ -85,6 +89,7 @@ func test_objective_points_at_harvest_and_then_the_buyer() -> void:
 func test_objective_skips_hiring_when_wage_is_unaffordable() -> void:
 	var balance := _balance.duplicate() as BalanceConfig
 	balance.starting_money = balance.worker.daily_wage - 1
+	balance.first_day = null
 	var state := SimState.new(balance, 1)
 	state.apply(PlantCommand.new(0))
 	state.apply(WaterCommand.new(0))

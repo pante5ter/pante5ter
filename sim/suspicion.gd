@@ -30,6 +30,14 @@ func add(amount: float) -> void:
 	level = clampf(level + amount, 0.0, MAX_LEVEL)
 
 
+## A tip-off: the inspector comes whatever the level says.
+func schedule_inspection(at: float, hours: float) -> bool:
+	if inspection_pending():
+		return false
+	inspection_at = at + hours * SimClock.GAME_SECONDS_PER_HOUR
+	return true
+
+
 func lie_low(on: bool, now: float, actor: String) -> CommandResult:
 	if quiet == on:
 		return CommandResult.failure(CommandResult.ALREADY_DONE)

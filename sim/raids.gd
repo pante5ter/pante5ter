@@ -9,6 +9,8 @@ const CHASE: String = "chase"
 var pending: bool = false
 var deadline: float = 0.0
 var next_roll_at: float = 0.0
+## Finn heard they are coming tonight: the next night roll skips the dice.
+var expected: bool = false
 
 var _def: RaidsDef
 var _rng: SimRng
@@ -51,8 +53,19 @@ func chase_chance() -> float:
 	return clampf(_def.chase_chance + (_def.chase_bonus_with_worker if help else 0.0), 0.0, 1.0)
 
 
+func enabled() -> bool:
+	return _def.chance_per_night > 0.0
+
+
+func expect() -> bool:
+	if pending or expected or not enabled():
+		return false
+	expected = true
+	return true
+
+
 func next_event_time() -> float:
-	var next := next_roll_at if _def.chance_per_night > 0.0 else INF
+	var next := next_roll_at if _def.chance_per_night > 0.0 or expected else INF
 	if pending:
 		next = minf(next, deadline)
 	return next
@@ -67,11 +80,13 @@ func process(now: float) -> void:
 
 
 func _roll(at: float) -> void:
+	var tipped := expected
+	expected = false
 	if pending or not _has_loot():
 		return
 	if int(_empire_value.call()) >= _def.max_empire_value:
 		return
-	if _rng.randf() >= _def.chance_per_night:
+	if not tipped and _rng.randf() >= _def.chance_per_night:
 		return
 	pending = true
 	deadline = at + _def.deadline_hours * SimClock.GAME_SECONDS_PER_HOUR
@@ -139,6 +154,7 @@ func to_dict() -> Dictionary:
 		"pending": pending,
 		"deadline": ExactFloat.encode(deadline),
 		"next_roll_at": ExactFloat.encode(next_roll_at),
+		"expected": expected,
 	}
 
 
@@ -146,3 +162,4 @@ func load_dict(data: Dictionary) -> void:
 	pending = data["pending"] == true
 	deadline = ExactFloat.decode(data["deadline"])
 	next_roll_at = ExactFloat.decode(data["next_roll_at"])
+	expected = data.get("expected", false) == true

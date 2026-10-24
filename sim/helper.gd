@@ -89,6 +89,13 @@ func leave_for_delivery(now: float, back_at: float) -> void:
 	_leave(AWAY_DELIVERY, now, back_at)
 
 
+func extend_away(back_at: float) -> void:
+	if away_reason.is_empty():
+		return
+	away_until = maxf(away_until, back_at)
+	next_check_at = away_until
+
+
 func learn(skill_id: String, now: float, actor: String) -> CommandResult:
 	if not exists():
 		return CommandResult.failure(CommandResult.WORKER_NOT_HIRED)

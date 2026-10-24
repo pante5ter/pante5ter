@@ -61,6 +61,7 @@ const ERRORS: Dictionary[String, String] = {
 	CommandResult.UNKNOWN_SKILL: "Такому не учат.",
 	CommandResult.HELPER_AWAY: "Помощника сейчас нет на ферме — он в дороге или на курсах.",
 	CommandResult.NOTHING_TO_RESTOCK: "Запас и так полный.",
+	CommandResult.NO_STORY: "Этот разговор уже закончен.",
 }
 
 
@@ -173,17 +174,22 @@ static func worker_status(workers: Workers) -> String:
 	return "%s: %s, грядка %d" % [name, TASK_VERBS.get(workers.task, "работает"), plot_number(workers.task_plot_id)]
 
 
-static func objective(sim: SimState) -> String:
+static func objective(sim: SimState, underground: bool = false) -> String:
 	if sim.rent.evicted:
 		return "Лорд Эшкомб расторг аренду, ферма потеряна. Загрузите сохранение (F9) или начните заново."
 	if sim.raids.pending:
-		return "У контейнера гости, и не с пирогами — гопники. Поднимитесь наверх и разберитесь."
+		if underground:
+			return "У контейнера гости, и не с пирогами — гопники. Поднимитесь наверх и разберитесь."
+		return "У контейнера гости, и не с пирогами — гопники. Подойдите и разберитесь."
 	if sim.suspicion.inspection_pending() and not sim.suspicion.quiet:
 		return "Едет проверка. Изобразим скуку: на компьютере выключите свет, придержите курьеров."
 	if _rent_is_short(sim):
 		return "Через %s аренда лорду — %s, а в кассе %s. Продайте товар через компьютер, иначе лорд обидится." % [real_duration(sim.rent.due_in(sim.clock.elapsed_game_seconds), sim), money(sim.rent.amount()), money(sim.economy.money)]
 	if not sim.supplies.parcel().is_empty():
 		return "У контейнера посылка. Сама она вниз не спустится — заберите её."
+	var lesson := StoryText.lesson(sim, underground)
+	if not lesson.is_empty():
+		return lesson
 	var any_planted := false
 	var any_ready := false
 	var any_dry := false
@@ -202,7 +208,12 @@ static func objective(sim: SimState) -> String:
 		return _selling_objective(sim)
 	if any_dry:
 		return "Грядки сами себя не польют, мистер Кэллоуэй. Полейте сухие на плантации."
+	var idle := StoryText.idle_line(sim)
+	if not idle.is_empty():
+		return idle
 	if not any_planted:
+		if underground:
+			return "Погреб пока пустой. Посадите семена на грядках."
 		return "Погреб пока пустой. Спуститесь через контейнер на плантацию и посадите семена."
 	if not sim.workers.hired and sim.economy.money >= sim.workers.definition().daily_wage:
 		return "Двух рук на ферму мало. Наймите работника в телефоне (Tab, «Люди») — он сам займётся грядками."
@@ -261,6 +272,8 @@ static func announcement(event: SimEvent, sim: SimState) -> String:
 		EventLog.PLOT_DRIED_OUT:
 			return "Грядка %d пересохла — рост остановился." % plot_number(int(event.data["plot_id"]))
 		EventLog.ORDER_RECEIVED:
+			if event.data.get("urgent", false) == true:
+				return StoryText.urgent_call(event)
 			return "Звонит клиент: нужно %d шт., качество %d+, %s. Ответьте по телефону (Tab)." % [int(event.data["quantity"]), int(event.data["min_quality"]), money(int(event.data["reward"]))]
 		EventLog.ORDER_MISSED:
 			return "Клиент не дождался ответа и повесил трубку. Второй раз он вряд ли позвонит."
@@ -309,7 +322,7 @@ static func announcement(event: SimEvent, sim: SimState) -> String:
 			return "Аренду заплатить нечем. Лорд недоволен, по округе пошли разговоры. Пропущено %d из %d." % [int(event.data["missed"]), int(event.data["evict_after"])]
 		EventLog.RENT_EVICTED:
 			return error(CommandResult.EVICTED)
-	return ""
+	return StoryText.announcement(event, sim)
 
 
 static func _rent_is_short(sim: SimState) -> bool:

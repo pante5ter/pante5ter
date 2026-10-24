@@ -23,6 +23,9 @@ func _config(money: int = 5000, skills: Array[String] = []) -> BalanceConfig:
 	var helper := _balance.helper.duplicate() as WorkerDef
 	helper.starting_skills = skills
 	config.helper = helper
+	# The first-day script holds regular calls and the director adds its own; these tests check the bare systems.
+	config.first_day = null
+	config.director = null
 	return config
 
 
