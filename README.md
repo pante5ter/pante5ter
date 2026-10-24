@@ -19,6 +19,11 @@ I build **web apps, Telegram bots and AI assistants** that actually ship: clean,
 | [Dim Skla](https://domstekla.com.ua) | Odesa stained-glass workshop since 1994: trilingual site with a blog |
 | [VESKA Solutions](https://veska-solutions.netlify.app) | B2B showroom site for interior designers in Budapest (demo) |
 
+**Public code**
+
+- [polis](https://github.com/pante5ter/polis) - a location-based game: the real city map is the board and the type of a real place decides what you can do (React, MapLibre, H3, Supabase)
+- [maison-lumera](https://github.com/pante5ter/maison-lumera) - concept site for an aesthetic clinic with an AI concierge that books appointments (Next.js 16, Claude, Supabase)
+
 Everything else, with screenshots and the story behind each build: **https://vengstudio.online/projects**
 
 **Elsewhere**
