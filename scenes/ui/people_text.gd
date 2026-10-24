@@ -23,10 +23,13 @@ static func helper_status(sim: SimState) -> String:
 	var left := UiText.real_duration(helper.away_until - sim.clock.elapsed_game_seconds, sim)
 	match helper.away_reason:
 		Helper.AWAY_DELIVERY:
-			return "%s в дороге с заказом, вернётся через %s" % [name, left]
+			for order: Order in sim.orders.with_status(Order.Status.IN_TRANSIT):
+				if order.courier_id == Helper.ACTOR:
+					return "%s везёт заказ #%d — вернётся через %s" % [name, order.id, left]
+			return "%s возвращается с доставки — будет через %s" % [name, left]
 		Helper.AWAY_TRAINING:
 			var skill := sim.config.find_skill(helper.training_skill_id)
-			return "%s на курсах («%s»), вернётся через %s" % [name, skill.display_name if skill != null else "?", left]
+			return "%s на курсах «%s» — вернётся через %s" % [name, skill.display_name if skill != null else "?", left]
 	if helper.task == Workers.Task.NONE:
 		return "%s: присматривает за фермой" % name
 	if helper.task_plot_id < 0:

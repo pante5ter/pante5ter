@@ -136,6 +136,7 @@ func dispatch(order_id: int, courier_id: String, now: float, actor: String) -> C
 
 ## Held up on the road: he and the parcel arrive later.
 func delay(order: Order, game_seconds: float) -> void:
+	order.delayed = true
 	order.arrives_at += game_seconds
 	var courier_id := order.courier_id
 	busy_until[courier_id] = busy_until.get(courier_id, order.arrives_at) + game_seconds

@@ -96,10 +96,18 @@ func applicable(kind: String) -> bool:
 		BREAKDOWN:
 			return not _problems.healthy_growing().is_empty()
 		COURIER_TROUBLE:
-			return not _orders.with_status(Order.Status.IN_TRANSIT).is_empty()
+			return not _deliveries_on_time().is_empty()
 		STORY:
 			return not _stories.untold(StoryDef.VILLAGE).is_empty()
 	return false
+
+
+func _deliveries_on_time() -> Array[Order]:
+	var found: Array[Order] = []
+	for order: Order in _orders.with_status(Order.Status.IN_TRANSIT):
+		if not order.delayed:
+			found.append(order)
+	return found
 
 
 func _pick_kind() -> String:
@@ -158,7 +166,7 @@ func _trigger(kind: String, now: float) -> void:
 			_problems.force(target.id, Problems.LAMP, now)
 			data["plot_id"] = target.id
 		COURIER_TROUBLE:
-			var on_road := _orders.with_status(Order.Status.IN_TRANSIT)[0]
+			var on_road := _deliveries_on_time()[0]
 			_couriers.delay(on_road, _def.courier_delay_hours * SimClock.GAME_SECONDS_PER_HOUR)
 			data["order_id"] = on_road.id
 			data["courier_id"] = on_road.courier_id

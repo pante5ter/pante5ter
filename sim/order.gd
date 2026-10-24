@@ -18,6 +18,8 @@ var arrives_at: float = 0.0
 var urgent: bool = false
 ## Overrides the usual deadline once accepted; zero keeps it.
 var deadline_hours: float = 0.0
+## Already held up on the road once; one hold-up per delivery.
+var delayed: bool = false
 
 
 static func status_name(value: Status) -> String:
@@ -39,6 +41,7 @@ func to_dict() -> Dictionary:
 		"arrives_at": ExactFloat.encode(arrives_at),
 		"urgent": urgent,
 		"deadline_hours": ExactFloat.encode(deadline_hours),
+		"delayed": delayed,
 	}
 
 
@@ -57,5 +60,6 @@ static func from_dict(data: Dictionary) -> Order:
 		order.product_ids.append(int(product_id))
 	order.arrives_at = ExactFloat.decode(data["arrives_at"])
 	order.urgent = data.get("urgent", false) == true
+	order.delayed = data.get("delayed", false) == true
 	order.deadline_hours = ExactFloat.decode(data["deadline_hours"]) if data.has("deadline_hours") else 0.0
 	return order
