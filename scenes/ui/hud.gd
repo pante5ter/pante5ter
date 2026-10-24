@@ -166,6 +166,12 @@ func _announce_new_events(sim: SimState) -> void:
 		show_message("\n".join(news.slice(maxi(news.size() - MAX_NEWS_LINES, 0))))
 
 
+## The night's news goes into the morning briefing, not into rings and banners behind it.
+func skip_news() -> void:
+	_seen_events = Game.sim.event_log.size()
+	_message_left = 0.0
+
+
 func show_message(text: String) -> void:
 	message_label.text = text
 	_message_left = MESSAGE_SECONDS

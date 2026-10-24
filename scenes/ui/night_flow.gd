@@ -9,6 +9,7 @@ const DRIVE: int = 0
 const LOOK: int = 1
 const SLEEP_ON: int = 2
 const ALARM_CHOICES: PackedStringArray = ["Ехать на ферму", "Посмотреть, что там", "Спать дальше — Реджи справится"]
+const ALARM_REPLIES: PackedStringArray = ["Машина у двери. Поехали.", "Сейчас покажу. Ты пока не одевайся.", "Спи. Разберусь — расскажу утром."]
 
 ## Set by the HUD.
 var hud: Hud
@@ -19,15 +20,16 @@ var _day_from: float = 0.0
 var _night_from: float = 0.0
 var _was_running: bool = false
 var _alarm_pending: bool = false
+var _alarm_choice: int = -1
 
 
 func _ready() -> void:
 	name = "NightFlow"
-	set_anchors_preset(Control.PRESET_FULL_RECT)
+	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_veil = ColorRect.new()
 	_veil.color = Color(0.03, 0.03, 0.05)
-	_veil.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_veil.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_veil.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_veil.modulate.a = 0.0
 	add_child(_veil)
@@ -89,9 +91,17 @@ static func alarm_line(event: SimEvent, sim: SimState) -> String:
 	return "%s. Джек, просыпайся. У контейнера «Молочные зубы» — в балаклавах, снимают клип. Едем туда или я сам?" % at
 
 
+## Reggie answers first; the box closes on his line and only then Jack acts.
 func _on_alarm_choice(index: int) -> void:
 	_alarm_pending = false
-	match index:
+	_alarm_choice = index
+	hud.dialogue_finished.connect(_act_on_alarm, CONNECT_ONE_SHOT)
+	var reply: Array[DialogueLineDef] = [DialogueLineDef.make(UiText.REGGIE, ALARM_REPLIES[index])]
+	hud.play_dialogue(reply)
+
+
+func _act_on_alarm() -> void:
+	match _alarm_choice:
 		DRIVE:
 			var result := Travel.go(DayCycle.FARM)
 			if not result.ok:
@@ -115,6 +125,7 @@ func _open(day_from: float, night_from: float) -> void:
 	hud.phone.close()
 	_page = 0
 	_veil.modulate.a = 1.0
+	hud.skip_news()
 	_show_summary()
 
 

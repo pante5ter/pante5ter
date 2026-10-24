@@ -530,7 +530,7 @@ yard(sc, 'Drive', 'gravel')
 travel_car(sc, (11.0, 0, 1.0))
 sc.node('CeilingLight', 'OmniLight3D', '.', position=v3(1.0, 3.2, 0.0), light_color='Color(0.949, 0.769, 0.42, 1)', light_energy=1.1, omni_range=11.0)
 sc.node('PorchLight', 'OmniLight3D', '.', position=v3(9.5, 2.6, 1.0), light_color='Color(0.949, 0.769, 0.42, 1)', light_energy=1.0, omni_range=6.0)
-for node_name, pos in [('from_car', (7.0, 0, 0.6)), ('bed', (-3.6, 0, -3.6))]:
+for node_name, pos in [('from_car', (1.5, 0, 2.6)), ('bed', (-3.6, 0, -3.6))]:
     sc.node(node_name, 'Marker3D', 'SpawnPoints', position=v3(*pos))
 sc.node('Hud', None, '.', instance=sc.scene('res://scenes/ui/hud.tscn'))
 sc.write('scenes/home/home.tscn')
@@ -585,7 +585,7 @@ for node_name, z in [('BenchLight', -2.4), ('DeskLight', 2.6)]:
 sc.node('OvenLight', 'OmniLight3D', '.', position=v3(5.6, 1.2, -4.0), light_color='Color(0.949, 0.6, 0.3, 1)', light_energy=1.0, omni_range=5.0)
 sc.node('CeilingLight', 'OmniLight3D', '.', position=v3(0.5, 3.2, 0.0), light_color='Color(0.949, 0.769, 0.42, 1)', light_energy=0.9, omni_range=11.0)
 sc.node('YardLight', 'OmniLight3D', '.', position=v3(9.5, 2.6, 1.0), light_color='Color(0.949, 0.769, 0.42, 1)', light_energy=0.8, omni_range=6.0)
-for node_name, pos in [('from_car', (7.0, 0, 0.6)), ('packer_idle', (-5.0, 0, -1.0))]:
+for node_name, pos in [('from_car', (0.0, 0, 0.6)), ('packer_idle', (-5.0, 0, -1.0))]:
     sc.node(node_name, 'Marker3D', 'SpawnPoints', position=v3(*pos))
 sc.node('Hud', None, '.', instance=sc.scene('res://scenes/ui/hud.tscn'))
 sc.write('scenes/stash/stash.tscn')

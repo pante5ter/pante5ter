@@ -716,7 +716,7 @@ light_energy = 1.0
 omni_range = 6.0
 
 [node name="from_car" type="Marker3D" parent="SpawnPoints"]
-position = Vector3(7.0, 0, 0.6)
+position = Vector3(1.5, 0, 2.6)
 
 [node name="bed" type="Marker3D" parent="SpawnPoints"]
 position = Vector3(-3.6, 0, -3.6)

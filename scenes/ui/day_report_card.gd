@@ -33,6 +33,8 @@ func _ready() -> void:
 	add_child(rows)
 	title_label = UiStyle.label("", 30, GOLD)
 	title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	# A wrapping label with no width asks for a tower of one-letter lines; the card would grow to the screen.
+	title_label.custom_minimum_size = Vector2(WIDTH - 44.0, 0.0)
 	rows.add_child(title_label)
 	_body = VBoxContainer.new()
 	_body.add_theme_constant_override("separation", 4)
@@ -48,23 +50,26 @@ func show_page(title: String, sections: Array[Dictionary], button_text: String) 
 	title_label.text = title
 	next_button.text = button_text
 	for child: Node in _body.get_children():
+		_body.remove_child(child)
 		child.queue_free()
 	for section: Dictionary in sections:
 		var heading := String(section.get("heading", ""))
 		if not heading.is_empty():
-			_body.add_child(UiStyle.label(heading, 18, GOLD))
+			var head := UiStyle.label(heading, 18, GOLD)
+			head.custom_minimum_size = Vector2(WIDTH - 44.0, 0.0)
+			_body.add_child(head)
 		for line: String in section.get("lines", PackedStringArray()) as PackedStringArray:
 			var row := UiStyle.label(line, 16, INK if not line.begins_with("•") else MUTED)
 			row.custom_minimum_size = Vector2(WIDTH - 44.0, 0.0)
 			_body.add_child(row)
 	visible = true
-	reset_size()
+	reset_size.call_deferred()
 
 
 func body_text() -> String:
 	var lines := PackedStringArray()
 	for child: Node in _body.get_children():
 		var row := child as Label
-		if row != null and not row.is_queued_for_deletion():
+		if row != null:
 			lines.append(row.text)
 	return "\n".join(lines)

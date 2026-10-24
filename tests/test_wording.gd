@@ -9,11 +9,13 @@ func test_the_stock_line_names_unpacked_harvest_plainly() -> void:
 	config.director = null
 	var state := SimState.new(config, 1)
 	state.inventory.create(config.strain.id, 50).packed = true
-	state.inventory.create(config.strain.id, 50)
+	state.inventory.create(config.strain.id, 50).at_stash = true
+	state.inventory.create(config.strain.id, 50).at_stash = true
 	state.inventory.create(config.strain.id, 50)
 	var line := UiText.stock(state)
 	assert_string_contains(line, "1 коробка на полке")
 	assert_string_contains(line, "ещё не расфасовано: 2")
+	assert_string_contains(line, "На ферме 1 ящик", "crates still at the farm are counted apart")
 	assert_false(line.contains("нефасован"))
 
 

@@ -103,11 +103,11 @@ static func summary(sim: SimState, from: float, to: float) -> PackedStringArray:
 	var counts := _counts(sim, from, to)
 	var work := PackedStringArray()
 	if counts.harvested > 0:
-		work.append("собрано %d шт." % counts.harvested)
+		work.append("собрано %d" % counts.harvested)
 	if counts.hauled > 0:
 		work.append("в тайник привезено %s" % crates(counts.hauled))
 	if counts.packed > 0:
-		work.append("расфасовано %d шт." % counts.packed)
+		work.append("расфасовано %d" % counts.packed)
 	if counts.delivered > 0:
 		work.append("доставлено заказов: %d" % counts.delivered)
 	lines.append(("Урожай: " + ", ".join(work) + ".") if not work.is_empty() else "Урожая сегодня не было.")

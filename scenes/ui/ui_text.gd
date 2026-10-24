@@ -168,10 +168,17 @@ static func stock(sim: SimState) -> String:
 	for product: Product in sim.inventory.products():
 		if product.packed:
 			packed += 1
-	var loose := sim.inventory.count() - packed
+	var loose := sim.packing.unpacked_count()
 	var text := "Товар: %d %s на полке" % [packed, plural(packed, "коробка", "коробки", "коробок")]
 	if loose > 0:
 		text += ", ещё не расфасовано: %d" % loose
+	var crates := sim.inventory.farm_crates().size()
+	if crates > 0:
+		text += "
+На ферме %s урожая" % DayText.crates(crates)
+	if sim.stash.on_the_road():
+		text += "
+В пути в тайник: %s" % DayText.crates(sim.stash.transit.size())
 	if sim.helper.exists() and not sim.helper.present():
 		text += "\n" + PeopleText.helper_status(sim)
 	return text

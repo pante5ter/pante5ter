@@ -105,6 +105,15 @@ func test_a_night_away_from_home_raises_suspicion_once_noticed() -> void:
 	assert_eq(state.event_log.of_type(EventLog.JACK_OUT_LATE).size(), 1, "the village talks once a night")
 
 
+func test_a_new_game_opens_at_midnight_without_a_night_to_pay_for() -> void:
+	var state := SimState.new(_config(), 1)
+	_advance(state, state.config.day.late_until_hour + 1.0, 1.0)
+	assert_eq(state.suspicion.level, 0.0, "the prologue night is not Jack staying out")
+	assert_eq(state.event_log.of_type(EventLog.JACK_OUT_LATE).size(), 0)
+	assert_false(state.day.is_night(state.clock.elapsed_game_seconds - 2.0 * HOUR))
+	assert_true(state.day.is_night(state.day.nights_from))
+
+
 func test_a_night_at_home_costs_nothing() -> void:
 	var state := SimState.new(_config(), 1)
 	_go(state, DayCycle.HOME)
