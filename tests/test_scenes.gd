@@ -121,25 +121,6 @@ func test_buying_a_bed_adds_it_to_the_plantation() -> void:
 	assert_eq(_plots_grid(level).views().size(), before + 1)
 
 
-func test_candidate_asks_before_hiring_and_then_walks_to_the_container() -> void:
-	var level := await _open(FIELD_SCENE)
-	var candidate := level.get_node("NavRegion/Candidate") as WorkerCandidate
-	candidate.interact(level)
-	assert_false(Game.sim.workers.hired, "opening the menu must not hire")
-	_choose(level, "Нанять")
-	assert_true(Game.sim.workers.hired)
-	await wait_process_frames(2)
-	assert_false(candidate.visual.visible)
-	assert_eq(candidate.collision_layer, 0)
-	var walkers := level.get_node("NavRegion").get_children().filter(func(node: Node) -> bool: return node is Walker)
-	assert_eq(walkers.size(), 1, "the new hand walks off visibly")
-	var walker := walkers[0] as Walker
-	var target := (level.get_node("NavRegion/Container/Approach") as Node3D).global_position
-	var start := _flat_distance(walker.global_position, target)
-	await wait_seconds(1.0)
-	assert_lt(_flat_distance(walker.global_position, target), start)
-
-
 func test_fresh_hire_arrives_from_the_lift_and_walks_to_his_bed() -> void:
 	Game.sim.apply(HireWorkerCommand.new())
 	Game.sim.apply(AdvanceTimeCommand.new(0.0))
@@ -190,7 +171,6 @@ func test_beds_stay_centred_in_the_room() -> void:
 	assert_almost_eq(centre.z, 0.0, 0.01)
 
 
-
 func test_inspector_walks_up_while_an_inspection_is_pending() -> void:
 	var level := await _open(FIELD_SCENE)
 	var inspector := level.get_node("Inspector") as InspectorView
@@ -220,18 +200,6 @@ func test_raiders_show_up_and_can_be_paid_off() -> void:
 	_choose(level, "Откупиться")
 	assert_false(Game.sim.raids.pending)
 	assert_eq(Game.sim.economy.money, money - Game.sim.config.raids.bribe)
-
-
-func test_each_candidate_hires_their_own_worker() -> void:
-	var level := await _open(FIELD_SCENE)
-	var dave := level.get_node("NavRegion/CandidateDave") as WorkerCandidate
-	dave.interact(level)
-	assert_string_contains((level.hud.action_menu.get_child(0).get_child(0) as Label).text, Game.sim.config.find_worker("dave").description)
-	_choose(level, "Нанять")
-	assert_eq(Game.sim.workers.definition().id, "dave")
-	await wait_process_frames(2)
-	for node_name: String in ["Candidate", "CandidateDave", "CandidateBarry"]:
-		assert_false((level.get_node("NavRegion/" + node_name) as WorkerCandidate).visual.visible)
 
 
 func test_a_sick_bed_offers_the_cure() -> void:

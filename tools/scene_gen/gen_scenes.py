@@ -288,18 +288,6 @@ for rover_name, spot_name in [('RoverManor', 'Manor'), ('RoverContainer', 'Conta
     sc.node('Approach', 'Marker3D', rover, position=v3(-1.9, 0, 0.4))
 
 person_shape = sc.sub_res('CapsuleShape3D', 'shape_person', radius=0.35, height=1.8)
-candidate_script = sc.script('res://scenes/field/worker_candidate.gd')
-farmhand = sc.scene('res://scenes/actors/farmhand.tscn')
-for node_name, worker_id, title, x in [('Candidate', 'tom', 'Том', -59.0), ('CandidateDave', 'dave', 'Дейв', -57.0), ('CandidateBarry', 'barry', 'Барри', -55.0)]:
-    c = f'{NR}/{node_name}'
-    sc.node(node_name, 'StaticBody3D', NR, node_paths=['visual', 'leave_target', 'approach'], position=v3(x, 0, -21.0), collision_layer=2, collision_mask=0,
-            script=candidate_script, worker_id=f'"{worker_id}"', visual='NodePath("Visual")', leave_target='NodePath("../Container/Approach")',
-            walker_scene=farmhand, approach='NodePath("Approach")')
-    sc.node('Shape', 'CollisionShape3D', c, position=v3(0, 0.9, 0), shape=person_shape)
-    sc.node('Visual', 'Node3D', c)
-    person(sc, f'{c}/Visual', 'res://assets/models/characters/worker.glb')
-    label(sc, f'{c}/Visual', title, 2.3)
-    sc.node('Approach', 'Marker3D', c, position=v3(0, 0, -1.5))
 lord = f'{NR}/Lord'
 sc.node('Lord', 'StaticBody3D', NR, node_paths=['approach'], position=v3(MANOR_X + 2, 0, -27.0), collision_layer=2, collision_mask=0,
         script=sc.script('res://scenes/field/lord_ashcombe.gd'), approach='NodePath("Approach")')

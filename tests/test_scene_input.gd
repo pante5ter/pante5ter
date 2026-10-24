@@ -92,7 +92,7 @@ func test_every_field_interactable_can_be_reached_from_start() -> void:
 	var level := await _open(FIELD_SCENE)
 	var start := level.jack.global_position
 	var targets := _interactables(level).filter(func(target: Interactable) -> bool: return not target is RaiderGang)
-	assert_eq(targets.size(), 8, "container, parcel, two Land Rovers, three candidates, Lord Ashcombe")
+	assert_eq(targets.size(), 5, "container, parcel, two Land Rovers, Lord Ashcombe")
 	for target: Interactable in targets:
 		_assert_reachable(level, start, target.approach_position(), target.name)
 	_assert_reachable(level, start, (level.get_node("SpawnPoints/from_elevator") as Node3D).global_position, "lift exit")
@@ -138,16 +138,6 @@ func test_number_keys_change_game_speed() -> void:
 	assert_true(level.hud.speed_buttons[2].button_pressed)
 	_press_key(level.hud, KEY_1)
 	assert_eq(Game.time_scale, Game.SPEEDS[0])
-
-
-func test_clicking_the_candidate_opens_a_hiring_menu() -> void:
-	var level := await _open(FIELD_SCENE)
-	var candidate := level.get_node("NavRegion/Candidate") as WorkerCandidate
-	_click_world(level, candidate.global_position + Vector3(0.0, 0.9, 0.0))
-	await wait_until(func() -> bool: return level.hud.action_menu.visible, WALK_TIMEOUT)
-	assert_false(Game.sim.workers.hired)
-	assert_true(level.hud.action_menu.choose_label("Нанять"))
-	assert_true(Game.sim.workers.hired)
 
 
 func test_clicking_the_land_rover_walks_over_and_offers_destinations() -> void:
@@ -350,7 +340,6 @@ func test_a_full_plantation_stays_walkable() -> void:
 		_assert_reachable(level, start, view.approach_position() + WorkerView.WORK_OFFSET, "work spot of %s" % view.title())
 
 
-
 func test_news_from_the_same_moment_are_all_shown() -> void:
 	var level := await _open(FIELD_SCENE)
 	await wait_process_frames(2)
@@ -359,7 +348,6 @@ func test_news_from_the_same_moment_are_all_shown() -> void:
 	await wait_process_frames(2)
 	assert_string_contains(level.hud.message_label.text, "ушёл")
 	assert_string_contains(level.hud.message_label.text, "вредители")
-
 
 
 func test_tab_closes_the_phone_even_after_clicking_its_tabs() -> void:
