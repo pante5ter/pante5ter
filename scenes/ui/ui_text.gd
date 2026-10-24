@@ -140,15 +140,28 @@ static func climate_report(sim: SimState) -> String:
 	return "\n".join(lines)
 
 
+## Russian noun form for a count: 1 коробка, 2 коробки, 5 коробок.
+static func plural(count: int, one: String, few: String, many: String) -> String:
+	var tens := absi(count) % 100
+	var units := tens % 10
+	if tens >= 11 and tens <= 14:
+		return many
+	if units == 1:
+		return one
+	if units >= 2 and units <= 4:
+		return few
+	return many
+
+
 static func stock(sim: SimState) -> String:
 	var packed := 0
 	for product: Product in sim.inventory.products():
 		if product.packed:
 			packed += 1
 	var loose := sim.inventory.count() - packed
-	var text := "Товар: %d коробок на полке" % packed
+	var text := "Товар: %d %s на полке" % [packed, plural(packed, "коробка", "коробки", "коробок")]
 	if loose > 0:
-		text += ", %d нефасованных" % loose
+		text += ", ещё не расфасовано: %d" % loose
 	if sim.helper.exists() and not sim.helper.present():
 		text += "\n" + PeopleText.helper_status(sim)
 	return text

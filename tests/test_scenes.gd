@@ -340,7 +340,7 @@ func test_bench_packs_the_harvest_onto_the_shelf() -> void:
 	await wait_process_frames(2)
 	assert_eq(shelf.shown_boxes(), 2)
 	assert_eq(bench.shown_heaps(), 0)
-	assert_string_contains(level.hud.stock_label.text, "2 коробок")
+	assert_string_contains(level.hud.stock_label.text, "2 коробки")
 
 
 func test_bench_heap_grows_with_the_unpacked_harvest() -> void:
