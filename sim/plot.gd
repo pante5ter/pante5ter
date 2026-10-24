@@ -13,6 +13,8 @@ var last_strain_id: String = ""
 var fertilized: bool = false
 var pruned: bool = false
 var problem: String = ""
+## Time pests have been eating it since planting.
+var pest_seconds: float = 0.0
 
 
 func _init(plot_id: int = 0) -> void:
@@ -32,6 +34,7 @@ func reset() -> void:
 	fertilized = false
 	pruned = false
 	problem = ""
+	pest_seconds = 0.0
 
 
 static func stage_name(value: Stage) -> String:
@@ -50,6 +53,7 @@ func to_dict() -> Dictionary:
 		"fertilized": fertilized,
 		"pruned": pruned,
 		"problem": problem,
+		"pest_seconds": ExactFloat.encode(pest_seconds),
 	}
 
 
@@ -64,4 +68,5 @@ static func from_dict(data: Dictionary) -> Plot:
 	plot.fertilized = data["fertilized"] == true
 	plot.pruned = data["pruned"] == true
 	plot.problem = String(data["problem"])
+	plot.pest_seconds = ExactFloat.decode(data["pest_seconds"]) if data.has("pest_seconds") else 0.0
 	return plot

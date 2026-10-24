@@ -38,6 +38,7 @@ const HELPER_AWAY: String = "helper_away"
 const NOTHING_TO_RESTOCK: String = "nothing_to_restock"
 const NO_STORY: String = "no_story"
 const COURIER_BANNED: String = "courier_banned"
+const CROP_EATEN: String = "crop_eaten"
 
 var ok: bool = false
 var error: String = ""

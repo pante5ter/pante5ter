@@ -54,6 +54,7 @@ const ERRORS: Dictionary[String, String] = {
 	CommandResult.UNKNOWN_WORKER: "Такого работника нет.",
 	CommandResult.TOO_MANY_COURIERS: "Больше курьеров не нужно — уволь кого-нибудь.",
 	CommandResult.COURIER_BUSY: "Курьер ещё в дороге.",
+	CommandResult.CROP_EATEN: "Собирать нечего: вредители съели весь урожай. Грядка свободна.",
 	CommandResult.COURIER_BANNED: "С этим человеком мы больше не работаем. Второй раз — это уже не доверие, а глупость.",
 	CommandResult.LYING_LOW: "Ферма затихла — курьеры сидят дома.",
 	CommandResult.NOTHING_TO_PACK: "Фасовать нечего — сначала собери урожай.",
@@ -313,7 +314,11 @@ static func announcement(event: SimEvent, sim: SimState) -> String:
 			var reached := sim.config.milestones[int(event.data["index"])]
 			return "Новый уровень — «%s». Неплохо, мистер Кэллоуэй. %s" % [reached.title, reached.description]
 		EventLog.PLOT_PROBLEM:
+			if String(event.data["problem"]) == Problems.PESTS:
+				return "Грядка %d: вредители. Пока их не вытравить, они едят будущий урожай." % plot_number(int(event.data["plot_id"]))
 			return "Грядка %d: %s. Лучше заняться сейчас, чем объяснять потом." % [plot_number(int(event.data["plot_id"])), problem(String(event.data["problem"]))]
+		EventLog.PLOT_CROP_EATEN:
+			return "Грядка %d: вредители съели весь урожай. Собирать нечего — грядка свободна под новую посадку." % plot_number(int(event.data["plot_id"]))
 		EventLog.WORKER_STOLE:
 			return "С грядки %d пропал урожай. Сам он уйти не мог." % plot_number(int(event.data["plot_id"]))
 		EventLog.INSPECTION_WARNED:

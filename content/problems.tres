@@ -8,3 +8,4 @@ start_hours = 24.0
 chance_per_hour = 0.04
 pesticide_price = 20
 lamp_price = 35
+pest_hours_per_lost_unit = 3.0
