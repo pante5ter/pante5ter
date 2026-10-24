@@ -20,6 +20,10 @@ Blender не в PATH. Запускать из корня репозитория:
 "D:/Program Files/Blender Foundation/Blender 5.2/blender.exe" --background --python-exit-code 1 --python tools/blender/make_characters.py
 ```
 
+```bash
+"D:/Program Files/Blender Foundation/Blender 5.2/blender.exe" --background --python-exit-code 1 --python tools/blender/make_estate.py
+```
+
 Каждый скрипт печатает строки `MODEL <путь> tris <N> <бюджет> ok|OUT OF BUDGET size(x,y,z)`
 и в конце `ALL OK`. Если модель вышла за бюджет STYLE.md §3, скрипт завершается с кодом 1.
 Около минуты на скрипт, большая часть — рендер превью в EEVEE.
@@ -32,6 +36,7 @@ Blender не в PATH. Запускать из корня репозитория:
 | `make_field.py` | поле | `assets/models/field/*.glb`, `previews/field.png` |
 | `make_plantation.py` | подземная плантация | `assets/models/plantation/*.glb`, `previews/plantation.png` |
 | `make_characters.py` | четыре персонажа | `assets/models/characters/*.glb`, `previews/characters.png` |
+| `make_estate.py` | поместье: усадьба, Лендровер, пшеница, куст, Т-перекрёсток дорожки, куча урожая | `assets/models/field/*.glb`, `assets/models/plantation/harvest_pile.glb`, `previews/estate.png` |
 
 `previews/` содержит `.gdignore`, Godot её не импортирует.
 
@@ -52,6 +57,16 @@ Blender не в PATH. Запускать из корня репозитория:
 | puddle.glb | 104 | реквизит | 1.6 × 1.0 | `Water` — поверхность воды, ей мокрый материал (roughness 0.35) |
 | cottage.glb | 1320 | постройка | 7.6 × 6.7 × 6.1 | `WindowsGlow` — светящиеся стёкла (lamp_warm); без него видно тёмное стекло |
 | stash_crate.glb | 264 | реквизит | 0.77 × 0.44 × 0.49 (с ручками) | `Lid` — пивот на заднем верхнем ребре, открывать вращением вокруг локальной X |
+
+### field/ — make_estate.py
+| Файл | Треуг. | Бюджет | Размер (x × y × z) | Отдельные узлы |
+| --- | --- | --- | --- | --- |
+| manor.glb | 972 | постройка | 26.6 × 12.9 × 11.2, фасад с портиком на +Z | `WindowsGlow` — светящиеся окна (lamp_warm) |
+| land_rover.glb | 408 | реквизит | 2.1 × 2.0 × 4.5, капот на +Z | — |
+| wheat_clump.glb | 86 | растение | 0.9 × 1.0 × 0.9, для MultiMesh | — |
+| bush.glb | 100 | реквизит | 1.6 × 1.3 × 1.5 | — |
+| path_tile_t_2x2.glb | 120 | реквизит | 2 × 2; колеи вдоль X, ответвление к −Z стыкуется с path_tile_2x2 | — |
+| plantation/harvest_pile.glb | 80 | растение | 0.74 × 0.32 × 0.70, куча нефасованного урожая | — |
 
 ### plantation/
 | Файл | Треуг. | Бюджет | Размер | Отдельные узлы |

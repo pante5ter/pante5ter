@@ -4,29 +4,38 @@
 [ext_resource type="Script" path="res://scenes/field/day_night.gd" id="2_day_night"]
 [ext_resource type="Script" path="res://scenes/common/model_row.gd" id="3_model_row"]
 [ext_resource type="PackedScene" path="res://assets/models/field/path_tile_2x2.glb" id="4_path_tile_2x2"]
-[ext_resource type="PackedScene" path="res://assets/models/field/puddle.glb" id="5_puddle"]
-[ext_resource type="PackedScene" path="res://scenes/field/wheat_tuft.tscn" id="6_wheat_tuft"]
-[ext_resource type="PackedScene" path="res://assets/models/field/hedge_2m.glb" id="7_hedge_2m"]
-[ext_resource type="PackedScene" path="res://assets/models/field/cottage.glb" id="8_cottage"]
-[ext_resource type="PackedScene" path="res://assets/models/field/tree_round.glb" id="9_tree_round"]
-[ext_resource type="PackedScene" path="res://assets/models/field/tree_conifer.glb" id="10_tree_conifer"]
-[ext_resource type="Script" path="res://scenes/field/container_entrance.gd" id="11_container_entrance"]
-[ext_resource type="PackedScene" path="res://assets/models/field/container.glb" id="12_container"]
-[ext_resource type="PackedScene" path="res://assets/models/field/container_shelf.glb" id="13_container_shelf"]
-[ext_resource type="PackedScene" path="res://assets/models/field/stash_crate.glb" id="14_stash_crate"]
-[ext_resource type="Script" path="res://scenes/field/worker_candidate.gd" id="15_worker_candidate"]
-[ext_resource type="PackedScene" path="res://scenes/actors/farmhand.tscn" id="16_farmhand"]
-[ext_resource type="Script" path="res://scenes/common/character_model.gd" id="17_character_model"]
-[ext_resource type="PackedScene" path="res://assets/models/characters/worker.glb" id="18_worker"]
-[ext_resource type="Script" path="res://scenes/field/lord_ashcombe.gd" id="19_lord_ashcombe"]
-[ext_resource type="PackedScene" path="res://assets/models/characters/inspector.glb" id="20_inspector"]
-[ext_resource type="Script" path="res://scenes/field/raider_gang.gd" id="21_raider_gang"]
-[ext_resource type="PackedScene" path="res://assets/models/characters/courier.glb" id="22_courier"]
-[ext_resource type="Script" path="res://scenes/field/inspector_view.gd" id="23_inspector_view"]
-[ext_resource type="Script" path="res://scenes/field/courier_view.gd" id="24_courier_view"]
-[ext_resource type="PackedScene" path="res://scenes/actors/jack.tscn" id="25_jack"]
-[ext_resource type="Script" path="res://scenes/common/iso_camera_rig.gd" id="26_iso_camera_rig"]
-[ext_resource type="PackedScene" path="res://scenes/ui/hud.tscn" id="27_hud"]
+[ext_resource type="PackedScene" path="res://assets/models/field/path_tile_t_2x2.glb" id="5_path_tile_t_2x2"]
+[ext_resource type="PackedScene" path="res://assets/models/field/puddle.glb" id="6_puddle"]
+[ext_resource type="Script" path="res://scenes/common/scatter_field.gd" id="7_scatter_field"]
+[ext_resource type="PackedScene" path="res://assets/models/field/wheat_clump.glb" id="8_wheat_clump"]
+[ext_resource type="PackedScene" path="res://assets/models/field/hedge_2m.glb" id="9_hedge_2m"]
+[ext_resource type="PackedScene" path="res://assets/models/field/bush.glb" id="10_bush"]
+[ext_resource type="PackedScene" path="res://assets/models/field/manor.glb" id="11_manor"]
+[ext_resource type="PackedScene" path="res://assets/models/field/cottage.glb" id="12_cottage"]
+[ext_resource type="PackedScene" path="res://assets/models/field/tree_round.glb" id="13_tree_round"]
+[ext_resource type="PackedScene" path="res://assets/models/field/tree_conifer.glb" id="14_tree_conifer"]
+[ext_resource type="Script" path="res://scenes/field/container_entrance.gd" id="15_container_entrance"]
+[ext_resource type="PackedScene" path="res://assets/models/field/container.glb" id="16_container"]
+[ext_resource type="PackedScene" path="res://assets/models/field/container_shelf.glb" id="17_container_shelf"]
+[ext_resource type="Script" path="res://scenes/field/parcel_box.gd" id="18_parcel_box"]
+[ext_resource type="PackedScene" path="res://assets/models/field/stash_crate.glb" id="19_stash_crate"]
+[ext_resource type="Script" path="res://scenes/field/parking_spot.gd" id="20_parking_spot"]
+[ext_resource type="Script" path="res://scenes/field/land_rover.gd" id="21_land_rover"]
+[ext_resource type="PackedScene" path="res://assets/models/field/land_rover.glb" id="22_land_rover"]
+[ext_resource type="Script" path="res://scenes/field/worker_candidate.gd" id="23_worker_candidate"]
+[ext_resource type="PackedScene" path="res://scenes/actors/farmhand.tscn" id="24_farmhand"]
+[ext_resource type="Script" path="res://scenes/common/character_model.gd" id="25_character_model"]
+[ext_resource type="PackedScene" path="res://assets/models/characters/worker.glb" id="26_worker"]
+[ext_resource type="Script" path="res://scenes/field/lord_ashcombe.gd" id="27_lord_ashcombe"]
+[ext_resource type="PackedScene" path="res://assets/models/characters/inspector.glb" id="28_inspector"]
+[ext_resource type="Script" path="res://scenes/field/raider_gang.gd" id="29_raider_gang"]
+[ext_resource type="PackedScene" path="res://assets/models/characters/courier.glb" id="30_courier"]
+[ext_resource type="Script" path="res://scenes/common/road_route.gd" id="31_road_route"]
+[ext_resource type="Script" path="res://scenes/field/inspector_view.gd" id="32_inspector_view"]
+[ext_resource type="Script" path="res://scenes/field/courier_view.gd" id="33_courier_view"]
+[ext_resource type="PackedScene" path="res://scenes/actors/jack.tscn" id="34_jack"]
+[ext_resource type="Script" path="res://scenes/common/iso_camera_rig.gd" id="35_iso_camera_rig"]
+[ext_resource type="PackedScene" path="res://scenes/ui/hud.tscn" id="36_hud"]
 
 [sub_resource type="Environment" id="env_field"]
 background_mode = 1
@@ -65,65 +74,107 @@ initial_velocity_max = 22.0
 gravity = Vector3(0, -9.8, 0)
 
 [sub_resource type="BoxShape3D" id="shape_Ground"]
-size = Vector3(70, 1, 70)
+size = Vector3(172, 1, 132)
 
 [sub_resource type="BoxMesh" id="mesh_Ground"]
-size = Vector3(70, 1, 70)
+size = Vector3(172, 1, 132)
 
 [sub_resource type="StandardMaterial3D" id="mat_grass_mid"]
 albedo_color = Color(0.337, 0.447, 0.29, 1)
 roughness = 0.9
 
+[sub_resource type="BoxMesh" id="mesh_forecourt"]
+size = Vector3(31, 0.02, 11)
+
+[sub_resource type="StandardMaterial3D" id="mat_gravel"]
+albedo_color = Color(0.549, 0.529, 0.486, 1)
+roughness = 0.9
+
+[sub_resource type="BoxMesh" id="mesh_yard"]
+size = Vector3(13, 0.02, 7)
+
+[sub_resource type="StandardMaterial3D" id="mat_path_dirt"]
+albedo_color = Color(0.49, 0.4, 0.314, 1)
+roughness = 0.9
+
 [sub_resource type="BoxMesh" id="mesh_crop_soil"]
-size = Vector3(31, 0.03, 20.5)
+size = Vector3(43, 0.03, 58)
 
 [sub_resource type="StandardMaterial3D" id="mat_mud"]
 albedo_color = Color(0.369, 0.294, 0.227, 1)
 roughness = 0.9
 
-[sub_resource type="BoxShape3D" id="shape_Hedge"]
-size = Vector3(60, 1.6, 1.2)
+[sub_resource type="BoxShape3D" id="shape_HedgeFieldNorth"]
+size = Vector3(44, 1.6, 1.2)
+
+[sub_resource type="BoxShape3D" id="shape_HedgeFieldSouth"]
+size = Vector3(44, 1.6, 1.2)
+
+[sub_resource type="BoxShape3D" id="shape_HedgeEstateNorth"]
+size = Vector3(80, 1.6, 1.2)
 
 [sub_resource type="BoxShape3D" id="shape_Manor"]
-size = Vector3(18, 7, 6)
-
-[sub_resource type="BoxMesh" id="mesh_Manor"]
-size = Vector3(18, 7, 6)
-
-[sub_resource type="StandardMaterial3D" id="mat_cotswold"]
-albedo_color = Color(0.788, 0.698, 0.494, 1)
-roughness = 0.9
-
-[sub_resource type="PrismMesh" id="mesh_roof"]
-size = Vector3(6.6, 3, 18.4)
-
-[sub_resource type="StandardMaterial3D" id="mat_roof_slate"]
-albedo_color = Color(0.231, 0.247, 0.278, 1)
-roughness = 0.9
+size = Vector3(26.6, 8, 11)
 
 [sub_resource type="BoxShape3D" id="shape_Cottage"]
 size = Vector3(7.6, 6.7, 6.1)
 
-[sub_resource type="BoxShape3D" id="shape_TreeA"]
+[sub_resource type="BoxShape3D" id="shape_Tree0"]
 size = Vector3(0.8, 3.0, 0.8)
 
-[sub_resource type="BoxShape3D" id="shape_TreeB"]
+[sub_resource type="BoxShape3D" id="shape_Tree1"]
 size = Vector3(0.8, 3.0, 0.8)
 
-[sub_resource type="BoxShape3D" id="shape_TreeC"]
+[sub_resource type="BoxShape3D" id="shape_Tree2"]
 size = Vector3(0.8, 3.0, 0.8)
 
-[sub_resource type="BoxShape3D" id="shape_TreeD"]
+[sub_resource type="BoxShape3D" id="shape_Tree3"]
 size = Vector3(0.8, 3.0, 0.8)
 
-[sub_resource type="BoxShape3D" id="shape_TreeE"]
+[sub_resource type="BoxShape3D" id="shape_Tree4"]
 size = Vector3(0.8, 3.0, 0.8)
 
-[sub_resource type="BoxShape3D" id="shape_TreeF"]
+[sub_resource type="BoxShape3D" id="shape_Tree5"]
+size = Vector3(0.8, 3.0, 0.8)
+
+[sub_resource type="BoxShape3D" id="shape_Tree6"]
+size = Vector3(0.8, 3.0, 0.8)
+
+[sub_resource type="BoxShape3D" id="shape_Tree7"]
+size = Vector3(0.8, 3.0, 0.8)
+
+[sub_resource type="BoxShape3D" id="shape_Tree8"]
+size = Vector3(0.8, 3.0, 0.8)
+
+[sub_resource type="BoxShape3D" id="shape_Tree9"]
+size = Vector3(0.8, 3.0, 0.8)
+
+[sub_resource type="BoxShape3D" id="shape_Tree10"]
+size = Vector3(0.8, 3.0, 0.8)
+
+[sub_resource type="BoxShape3D" id="shape_Tree11"]
+size = Vector3(0.8, 3.0, 0.8)
+
+[sub_resource type="BoxShape3D" id="shape_Tree12"]
+size = Vector3(0.8, 3.0, 0.8)
+
+[sub_resource type="BoxShape3D" id="shape_Tree13"]
+size = Vector3(0.8, 3.0, 0.8)
+
+[sub_resource type="BoxShape3D" id="shape_Tree14"]
 size = Vector3(0.8, 3.0, 0.8)
 
 [sub_resource type="BoxShape3D" id="shape_Container"]
 size = Vector3(2.44, 2.6, 6.0)
+
+[sub_resource type="BoxShape3D" id="shape_parcel"]
+size = Vector3(1.4, 0.8, 1.0)
+
+[sub_resource type="BoxShape3D" id="shape_RoverManor"]
+size = Vector3(2.0, 2.0, 4.4)
+
+[sub_resource type="BoxShape3D" id="shape_RoverContainer"]
+size = Vector3(2.0, 2.0, 4.4)
 
 [sub_resource type="CapsuleShape3D" id="shape_person"]
 radius = 0.35
@@ -168,161 +219,197 @@ position = Vector3(0, 0, 0)
 mesh = SubResource("mesh_Ground")
 surface_material_override/0 = SubResource("mat_grass_mid")
 
-[node name="Path" type="Node3D" parent="NavRegion"]
-position = Vector3(0, 0.005, 4)
+[node name="RoadWest" type="Node3D" parent="NavRegion"]
+position = Vector3(-68.0, 0.005, 44)
 script = ExtResource("3_model_row")
 model = ExtResource("4_path_tile_2x2")
-count = 35
+count = 16
 spacing = Vector3(2, 0, 0)
 vary_yaw = false
 yaw_degrees = 90.0
 
-[node name="PathToContainer" type="Node3D" parent="NavRegion"]
-position = Vector3(9, 0.006, -1.5)
+[node name="Road" type="Node3D" parent="NavRegion"]
+position = Vector3(5.0, 0.005, 44)
 script = ExtResource("3_model_row")
 model = ExtResource("4_path_tile_2x2")
-count = 4
+count = 55
+spacing = Vector3(2, 0, 0)
+vary_yaw = false
+yaw_degrees = 90.0
+
+[node name="RoadEast" type="Node3D" parent="NavRegion"]
+position = Vector3(73.0, 0.005, 44)
+script = ExtResource("3_model_row")
+model = ExtResource("4_path_tile_2x2")
+count = 11
+spacing = Vector3(2, 0, 0)
+vary_yaw = false
+yaw_degrees = 90.0
+
+[node name="JunctionManor" parent="NavRegion" instance=ExtResource("5_path_tile_t_2x2")]
+position = Vector3(-51, 0.005, 44)
+
+[node name="JunctionContainer" parent="NavRegion" instance=ExtResource("5_path_tile_t_2x2")]
+position = Vector3(61, 0.005, 44)
+
+[node name="DriveToManor" type="Node3D" parent="NavRegion"]
+position = Vector3(-51, 0.006, 11.0)
+script = ExtResource("3_model_row")
+model = ExtResource("4_path_tile_2x2")
+count = 32
 spacing = Vector3(0, 0, 2)
 vary_yaw = false
 
-[node name="Puddle0" parent="NavRegion" instance=ExtResource("5_puddle")]
-position = Vector3(-12, 0.012, 3.6)
+[node name="PathToContainer" type="Node3D" parent="NavRegion"]
+position = Vector3(61, 0.006, 25.0)
+script = ExtResource("3_model_row")
+model = ExtResource("4_path_tile_2x2")
+count = 18
+spacing = Vector3(0, 0, 2)
+vary_yaw = false
 
-[node name="Puddle1" parent="NavRegion" instance=ExtResource("5_puddle")]
-position = Vector3(3, 0.012, 4.5)
+[node name="Forecourt" type="MeshInstance3D" parent="NavRegion"]
+position = Vector3(-48.5, 0.008, -24.5)
+mesh = SubResource("mesh_forecourt")
+surface_material_override/0 = SubResource("mat_gravel")
+
+[node name="ContainerYard" type="MeshInstance3D" parent="NavRegion"]
+position = Vector3(64.5, 0.008, 8.5)
+mesh = SubResource("mesh_yard")
+surface_material_override/0 = SubResource("mat_path_dirt")
+
+[node name="Puddle0" parent="NavRegion" instance=ExtResource("6_puddle")]
+position = Vector3(-30, 0.012, 43.4)
+
+[node name="Puddle1" parent="NavRegion" instance=ExtResource("6_puddle")]
+position = Vector3(18, 0.012, 44.6)
 rotation = Vector3(0, 0.523599, 0)
 
-[node name="Puddle2" parent="NavRegion" instance=ExtResource("5_puddle")]
-position = Vector3(9.3, 0.012, -3.2)
+[node name="Puddle2" parent="NavRegion" instance=ExtResource("6_puddle")]
+position = Vector3(61.3, 0.012, 28)
 rotation = Vector3(0, 1.047198, 0)
 
+[node name="Puddle3" parent="NavRegion" instance=ExtResource("6_puddle")]
+position = Vector3(-51.2, 0.012, 10)
+rotation = Vector3(0, 1.570796, 0)
+
 [node name="Crops" type="Node3D" parent="NavRegion"]
-position = Vector3(-9, 0, -15)
+position = Vector3(35.5, 0, 2)
 
 [node name="Soil" type="MeshInstance3D" parent="NavRegion/Crops"]
 position = Vector3(0, 0.015, 0)
 mesh = SubResource("mesh_crop_soil")
 surface_material_override/0 = SubResource("mat_mud")
 
-[node name="Row0" type="Node3D" parent="NavRegion/Crops"]
-position = Vector3(0, 0, -9)
-script = ExtResource("3_model_row")
-model = ExtResource("6_wheat_tuft")
-count = 22
-spacing = Vector3(1.35, 0, 0)
-vary_yaw = false
+[node name="Wheat" type="MultiMeshInstance3D" parent="NavRegion/Crops"]
+position = Vector3(0, 0.03, 0)
+script = ExtResource("7_scatter_field")
+model = ExtResource("8_wheat_clump")
+size = Vector2(42, 57)
+spacing = 1.15
+jitter = 0.3
 
-[node name="Row1" type="Node3D" parent="NavRegion/Crops"]
-position = Vector3(0, 0, -7)
-script = ExtResource("3_model_row")
-model = ExtResource("6_wheat_tuft")
-count = 22
-spacing = Vector3(1.35, 0, 0)
-vary_yaw = false
-
-[node name="Row2" type="Node3D" parent="NavRegion/Crops"]
-position = Vector3(0, 0, -5)
-script = ExtResource("3_model_row")
-model = ExtResource("6_wheat_tuft")
-count = 22
-spacing = Vector3(1.35, 0, 0)
-vary_yaw = false
-
-[node name="Row3" type="Node3D" parent="NavRegion/Crops"]
-position = Vector3(0, 0, -3)
-script = ExtResource("3_model_row")
-model = ExtResource("6_wheat_tuft")
-count = 22
-spacing = Vector3(1.35, 0, 0)
-vary_yaw = false
-
-[node name="Row4" type="Node3D" parent="NavRegion/Crops"]
-position = Vector3(0, 0, -1)
-script = ExtResource("3_model_row")
-model = ExtResource("6_wheat_tuft")
-count = 22
-spacing = Vector3(1.35, 0, 0)
-vary_yaw = false
-
-[node name="Row5" type="Node3D" parent="NavRegion/Crops"]
-position = Vector3(0, 0, 1)
-script = ExtResource("3_model_row")
-model = ExtResource("6_wheat_tuft")
-count = 22
-spacing = Vector3(1.35, 0, 0)
-vary_yaw = false
-
-[node name="Row6" type="Node3D" parent="NavRegion/Crops"]
-position = Vector3(0, 0, 3)
-script = ExtResource("3_model_row")
-model = ExtResource("6_wheat_tuft")
-count = 22
-spacing = Vector3(1.35, 0, 0)
-vary_yaw = false
-
-[node name="Row7" type="Node3D" parent="NavRegion/Crops"]
-position = Vector3(0, 0, 5)
-script = ExtResource("3_model_row")
-model = ExtResource("6_wheat_tuft")
-count = 22
-spacing = Vector3(1.35, 0, 0)
-vary_yaw = false
-
-[node name="Row8" type="Node3D" parent="NavRegion/Crops"]
-position = Vector3(0, 0, 7)
-script = ExtResource("3_model_row")
-model = ExtResource("6_wheat_tuft")
-count = 22
-spacing = Vector3(1.35, 0, 0)
-vary_yaw = false
-
-[node name="Row9" type="Node3D" parent="NavRegion/Crops"]
-position = Vector3(0, 0, 9)
-script = ExtResource("3_model_row")
-model = ExtResource("6_wheat_tuft")
-count = 22
-spacing = Vector3(1.35, 0, 0)
-vary_yaw = false
-
-[node name="Hedge" type="StaticBody3D" parent="NavRegion"]
-position = Vector3(0, 0.8, -26.5)
+[node name="HedgeFieldNorth" type="StaticBody3D" parent="NavRegion"]
+position = Vector3(36, 0.8, -28.5)
 collision_layer = 1
 collision_mask = 0
 
-[node name="Shape" type="CollisionShape3D" parent="NavRegion/Hedge"]
+[node name="Shape" type="CollisionShape3D" parent="NavRegion/HedgeFieldNorth"]
 position = Vector3(0, 0, 0)
-shape = SubResource("shape_Hedge")
+shape = SubResource("shape_HedgeFieldNorth")
 
-[node name="Segments" type="Node3D" parent="NavRegion/Hedge"]
+[node name="Segments" type="Node3D" parent="NavRegion/HedgeFieldNorth"]
 position = Vector3(0, -0.8, 0)
 script = ExtResource("3_model_row")
-model = ExtResource("7_hedge_2m")
-count = 30
+model = ExtResource("9_hedge_2m")
+count = 22
 spacing = Vector3(2, 0, 0)
 vary_yaw = false
 
+[node name="HedgeFieldSouth" type="StaticBody3D" parent="NavRegion"]
+position = Vector3(36, 0.8, 32.5)
+collision_layer = 1
+collision_mask = 0
+
+[node name="Shape" type="CollisionShape3D" parent="NavRegion/HedgeFieldSouth"]
+position = Vector3(0, 0, 0)
+shape = SubResource("shape_HedgeFieldSouth")
+
+[node name="Segments" type="Node3D" parent="NavRegion/HedgeFieldSouth"]
+position = Vector3(0, -0.8, 0)
+script = ExtResource("3_model_row")
+model = ExtResource("9_hedge_2m")
+count = 22
+spacing = Vector3(2, 0, 0)
+vary_yaw = false
+
+[node name="HedgeEstateNorth" type="StaticBody3D" parent="NavRegion"]
+position = Vector3(-40, 0.8, -50)
+collision_layer = 1
+collision_mask = 0
+
+[node name="Shape" type="CollisionShape3D" parent="NavRegion/HedgeEstateNorth"]
+position = Vector3(0, 0, 0)
+shape = SubResource("shape_HedgeEstateNorth")
+
+[node name="Segments" type="Node3D" parent="NavRegion/HedgeEstateNorth"]
+position = Vector3(0, -0.8, 0)
+script = ExtResource("3_model_row")
+model = ExtResource("9_hedge_2m")
+count = 40
+spacing = Vector3(2, 0, 0)
+vary_yaw = false
+
+[node name="BushesForecourtWest" type="Node3D" parent="NavRegion"]
+position = Vector3(-58.5, 0, -18.6)
+script = ExtResource("3_model_row")
+model = ExtResource("10_bush")
+count = 4
+spacing = Vector3(2.4, 0, 0)
+
+[node name="BushesForecourtEast" type="Node3D" parent="NavRegion"]
+position = Vector3(-44, 0, -18.6)
+script = ExtResource("3_model_row")
+model = ExtResource("10_bush")
+count = 3
+spacing = Vector3(2.4, 0, 0)
+
+[node name="BushesFieldWest" type="Node3D" parent="NavRegion"]
+position = Vector3(12.5, 0, 2)
+script = ExtResource("3_model_row")
+model = ExtResource("10_bush")
+count = 12
+spacing = Vector3(0, 0, 4.6)
+
+[node name="BushesYard" type="Node3D" parent="NavRegion"]
+position = Vector3(69, 0, 4)
+script = ExtResource("3_model_row")
+model = ExtResource("10_bush")
+count = 4
+spacing = Vector3(2.2, 0, 0)
+
 [node name="Manor" type="StaticBody3D" parent="NavRegion"]
-position = Vector3(-6, 3.5, -31)
+position = Vector3(-51, 0, -36)
 collision_layer = 1
 collision_mask = 0
 
 [node name="Shape" type="CollisionShape3D" parent="NavRegion/Manor"]
-position = Vector3(0, 0, 0)
+position = Vector3(0, 4.0, 0)
 shape = SubResource("shape_Manor")
 
-[node name="Mesh" type="MeshInstance3D" parent="NavRegion/Manor"]
-position = Vector3(0, 0, 0)
-mesh = SubResource("mesh_Manor")
-surface_material_override/0 = SubResource("mat_cotswold")
+[node name="Model" parent="NavRegion/Manor" instance=ExtResource("11_manor")]
 
-[node name="Roof" type="MeshInstance3D" parent="NavRegion/Manor"]
-position = Vector3(0, 5, 0)
-rotation = Vector3(0, 1.570796, 0)
-mesh = SubResource("mesh_roof")
-surface_material_override/0 = SubResource("mat_roof_slate")
+[node name="Label" type="Label3D" parent="NavRegion/Manor"]
+position = Vector3(0, 14.0, 0)
+pixel_size = 0.008
+billboard = 1
+no_depth_test = true
+text = "Эшкомб-холл"
+font_size = 48
+outline_size = 10
 
 [node name="Cottage" type="StaticBody3D" parent="NavRegion"]
-position = Vector3(17.5, 0, -12.5)
+position = Vector3(20, 0, 54)
 collision_layer = 1
 collision_mask = 0
 
@@ -330,92 +417,224 @@ collision_mask = 0
 position = Vector3(0, 3.35, 0)
 shape = SubResource("shape_Cottage")
 
-[node name="Model" parent="NavRegion/Cottage" instance=ExtResource("8_cottage")]
+[node name="Model" parent="NavRegion/Cottage" instance=ExtResource("12_cottage")]
+position = Vector3(0, 0, 0)
+rotation = Vector3(0, 3.141593, 0)
 
-[node name="TreeA" type="StaticBody3D" parent="NavRegion"]
-position = Vector3(-28, 0, 12)
+[node name="Tree0" type="StaticBody3D" parent="NavRegion"]
+position = Vector3(-72, 0, -40)
 collision_layer = 1
 collision_mask = 0
 
-[node name="Shape" type="CollisionShape3D" parent="NavRegion/TreeA"]
+[node name="Shape" type="CollisionShape3D" parent="NavRegion/Tree0"]
 position = Vector3(0, 1.5, 0)
-shape = SubResource("shape_TreeA")
+shape = SubResource("shape_Tree0")
 
-[node name="Model" parent="NavRegion/TreeA" instance=ExtResource("9_tree_round")]
+[node name="Model" parent="NavRegion/Tree0" instance=ExtResource("13_tree_round")]
 position = Vector3(0, 0, 0)
+scale = Vector3(1.5, 1.5, 1.5)
+
+[node name="Tree1" type="StaticBody3D" parent="NavRegion"]
+position = Vector3(-30, 0, -44)
+collision_layer = 1
+collision_mask = 0
+
+[node name="Shape" type="CollisionShape3D" parent="NavRegion/Tree1"]
+position = Vector3(0, 1.5, 0)
+shape = SubResource("shape_Tree1")
+
+[node name="Model" parent="NavRegion/Tree1" instance=ExtResource("14_tree_conifer")]
+position = Vector3(0, 0, 0)
+rotation = Vector3(0, 0.645772, 0)
 scale = Vector3(1.4, 1.4, 1.4)
 
-[node name="TreeB" type="StaticBody3D" parent="NavRegion"]
-position = Vector3(20, 0, 14)
+[node name="Tree2" type="StaticBody3D" parent="NavRegion"]
+position = Vector3(-70, 0, -12)
 collision_layer = 1
 collision_mask = 0
 
-[node name="Shape" type="CollisionShape3D" parent="NavRegion/TreeB"]
+[node name="Shape" type="CollisionShape3D" parent="NavRegion/Tree2"]
 position = Vector3(0, 1.5, 0)
-shape = SubResource("shape_TreeB")
+shape = SubResource("shape_Tree2")
 
-[node name="Model" parent="NavRegion/TreeB" instance=ExtResource("10_tree_conifer")]
+[node name="Model" parent="NavRegion/Tree2" instance=ExtResource("14_tree_conifer")]
 position = Vector3(0, 0, 0)
+rotation = Vector3(0, 1.291544, 0)
 scale = Vector3(1.3, 1.3, 1.3)
 
-[node name="TreeC" type="StaticBody3D" parent="NavRegion"]
-position = Vector3(25, 0, -3)
+[node name="Tree3" type="StaticBody3D" parent="NavRegion"]
+position = Vector3(-66, 0, 18)
 collision_layer = 1
 collision_mask = 0
 
-[node name="Shape" type="CollisionShape3D" parent="NavRegion/TreeC"]
+[node name="Shape" type="CollisionShape3D" parent="NavRegion/Tree3"]
 position = Vector3(0, 1.5, 0)
-shape = SubResource("shape_TreeC")
+shape = SubResource("shape_Tree3")
 
-[node name="Model" parent="NavRegion/TreeC" instance=ExtResource("9_tree_round")]
+[node name="Model" parent="NavRegion/Tree3" instance=ExtResource("13_tree_round")]
 position = Vector3(0, 0, 0)
-scale = Vector3(1.3, 1.3, 1.3)
-
-[node name="TreeD" type="StaticBody3D" parent="NavRegion"]
-position = Vector3(-30, 0, -12)
-collision_layer = 1
-collision_mask = 0
-
-[node name="Shape" type="CollisionShape3D" parent="NavRegion/TreeD"]
-position = Vector3(0, 1.5, 0)
-shape = SubResource("shape_TreeD")
-
-[node name="Model" parent="NavRegion/TreeD" instance=ExtResource("10_tree_conifer")]
-position = Vector3(0, 0, 0)
+rotation = Vector3(0, 1.937315, 0)
 scale = Vector3(1.4, 1.4, 1.4)
 
-[node name="TreeE" type="StaticBody3D" parent="NavRegion"]
-position = Vector3(28, 0, 9)
+[node name="Tree4" type="StaticBody3D" parent="NavRegion"]
+position = Vector3(-34, 0, -8)
 collision_layer = 1
 collision_mask = 0
 
-[node name="Shape" type="CollisionShape3D" parent="NavRegion/TreeE"]
+[node name="Shape" type="CollisionShape3D" parent="NavRegion/Tree4"]
 position = Vector3(0, 1.5, 0)
-shape = SubResource("shape_TreeE")
+shape = SubResource("shape_Tree4")
 
-[node name="Model" parent="NavRegion/TreeE" instance=ExtResource("10_tree_conifer")]
+[node name="Model" parent="NavRegion/Tree4" instance=ExtResource("13_tree_round")]
 position = Vector3(0, 0, 0)
-scale = Vector3(1.1, 1.1, 1.1)
+rotation = Vector3(0, 2.583087, 0)
+scale = Vector3(1.6, 1.6, 1.6)
 
-[node name="TreeF" type="StaticBody3D" parent="NavRegion"]
-position = Vector3(-18, 0, 16)
+[node name="Tree5" type="StaticBody3D" parent="NavRegion"]
+position = Vector3(-22, 0, 20)
 collision_layer = 1
 collision_mask = 0
 
-[node name="Shape" type="CollisionShape3D" parent="NavRegion/TreeF"]
+[node name="Shape" type="CollisionShape3D" parent="NavRegion/Tree5"]
 position = Vector3(0, 1.5, 0)
-shape = SubResource("shape_TreeF")
+shape = SubResource("shape_Tree5")
 
-[node name="Model" parent="NavRegion/TreeF" instance=ExtResource("9_tree_round")]
+[node name="Model" parent="NavRegion/Tree5" instance=ExtResource("14_tree_conifer")]
 position = Vector3(0, 0, 0)
+rotation = Vector3(0, 3.228859, 0)
 scale = Vector3(1.2, 1.2, 1.2)
 
-[node name="Container" type="StaticBody3D" parent="NavRegion" node_paths=PackedStringArray("parcel_box", "model", "door", "approach")]
-position = Vector3(9, 0, -10)
+[node name="Tree6" type="StaticBody3D" parent="NavRegion"]
+position = Vector3(-12, 0, -30)
+collision_layer = 1
+collision_mask = 0
+
+[node name="Shape" type="CollisionShape3D" parent="NavRegion/Tree6"]
+position = Vector3(0, 1.5, 0)
+shape = SubResource("shape_Tree6")
+
+[node name="Model" parent="NavRegion/Tree6" instance=ExtResource("13_tree_round")]
+position = Vector3(0, 0, 0)
+rotation = Vector3(0, 3.874631, 0)
+scale = Vector3(1.3, 1.3, 1.3)
+
+[node name="Tree7" type="StaticBody3D" parent="NavRegion"]
+position = Vector3(0, 0, 4)
+collision_layer = 1
+collision_mask = 0
+
+[node name="Shape" type="CollisionShape3D" parent="NavRegion/Tree7"]
+position = Vector3(0, 1.5, 0)
+shape = SubResource("shape_Tree7")
+
+[node name="Model" parent="NavRegion/Tree7" instance=ExtResource("14_tree_conifer")]
+position = Vector3(0, 0, 0)
+rotation = Vector3(0, 4.520403, 0)
+scale = Vector3(1.5, 1.5, 1.5)
+
+[node name="Tree8" type="StaticBody3D" parent="NavRegion"]
+position = Vector3(6, 0, -40)
+collision_layer = 1
+collision_mask = 0
+
+[node name="Shape" type="CollisionShape3D" parent="NavRegion/Tree8"]
+position = Vector3(0, 1.5, 0)
+shape = SubResource("shape_Tree8")
+
+[node name="Model" parent="NavRegion/Tree8" instance=ExtResource("13_tree_round")]
+position = Vector3(0, 0, 0)
+rotation = Vector3(0, 5.166175, 0)
+scale = Vector3(1.4, 1.4, 1.4)
+
+[node name="Tree9" type="StaticBody3D" parent="NavRegion"]
+position = Vector3(-40, 0, 30)
+collision_layer = 1
+collision_mask = 0
+
+[node name="Shape" type="CollisionShape3D" parent="NavRegion/Tree9"]
+position = Vector3(0, 1.5, 0)
+shape = SubResource("shape_Tree9")
+
+[node name="Model" parent="NavRegion/Tree9" instance=ExtResource("13_tree_round")]
+position = Vector3(0, 0, 0)
+rotation = Vector3(0, 5.811946, 0)
+scale = Vector3(1.2, 1.2, 1.2)
+
+[node name="Tree10" type="StaticBody3D" parent="NavRegion"]
+position = Vector3(70, 0, -30)
+collision_layer = 1
+collision_mask = 0
+
+[node name="Shape" type="CollisionShape3D" parent="NavRegion/Tree10"]
+position = Vector3(0, 1.5, 0)
+shape = SubResource("shape_Tree10")
+
+[node name="Model" parent="NavRegion/Tree10" instance=ExtResource("14_tree_conifer")]
+position = Vector3(0, 0, 0)
+rotation = Vector3(0, 6.457718, 0)
+scale = Vector3(1.4, 1.4, 1.4)
+
+[node name="Tree11" type="StaticBody3D" parent="NavRegion"]
+position = Vector3(74, 0, 20)
+collision_layer = 1
+collision_mask = 0
+
+[node name="Shape" type="CollisionShape3D" parent="NavRegion/Tree11"]
+position = Vector3(0, 1.5, 0)
+shape = SubResource("shape_Tree11")
+
+[node name="Model" parent="NavRegion/Tree11" instance=ExtResource("13_tree_round")]
+position = Vector3(0, 0, 0)
+rotation = Vector3(0, 7.10349, 0)
+scale = Vector3(1.3, 1.3, 1.3)
+
+[node name="Tree12" type="StaticBody3D" parent="NavRegion"]
+position = Vector3(40, 0, 52)
+collision_layer = 1
+collision_mask = 0
+
+[node name="Shape" type="CollisionShape3D" parent="NavRegion/Tree12"]
+position = Vector3(0, 1.5, 0)
+shape = SubResource("shape_Tree12")
+
+[node name="Model" parent="NavRegion/Tree12" instance=ExtResource("14_tree_conifer")]
+position = Vector3(0, 0, 0)
+rotation = Vector3(0, 7.749262, 0)
+scale = Vector3(1.2, 1.2, 1.2)
+
+[node name="Tree13" type="StaticBody3D" parent="NavRegion"]
+position = Vector3(-60, 0, 54)
+collision_layer = 1
+collision_mask = 0
+
+[node name="Shape" type="CollisionShape3D" parent="NavRegion/Tree13"]
+position = Vector3(0, 1.5, 0)
+shape = SubResource("shape_Tree13")
+
+[node name="Model" parent="NavRegion/Tree13" instance=ExtResource("13_tree_round")]
+position = Vector3(0, 0, 0)
+rotation = Vector3(0, 8.395034, 0)
+scale = Vector3(1.3, 1.3, 1.3)
+
+[node name="Tree14" type="StaticBody3D" parent="NavRegion"]
+position = Vector3(74, 0, -8)
+collision_layer = 1
+collision_mask = 0
+
+[node name="Shape" type="CollisionShape3D" parent="NavRegion/Tree14"]
+position = Vector3(0, 1.5, 0)
+shape = SubResource("shape_Tree14")
+
+[node name="Model" parent="NavRegion/Tree14" instance=ExtResource("13_tree_round")]
+position = Vector3(0, 0, 0)
+rotation = Vector3(0, 9.040806, 0)
+scale = Vector3(1.2, 1.2, 1.2)
+
+[node name="Container" type="StaticBody3D" parent="NavRegion" node_paths=PackedStringArray("model", "door", "approach")]
+position = Vector3(61, 0, 2)
 collision_layer = 2
 collision_mask = 0
-script = ExtResource("11_container_entrance")
-parcel_box = NodePath("ParcelBox")
+script = ExtResource("15_container_entrance")
 model = NodePath("Model")
 swing_door_names = PackedStringArray("DoorLeft", "DoorRight")
 hide_when_open_names = PackedStringArray("GapGlow")
@@ -424,36 +643,18 @@ door_open_offset = Vector3(0, 0, -1.4)
 destination = "res://scenes/plantation/plantation.tscn"
 destination_spawn = "from_elevator"
 approach = NodePath("Approach")
-hover_label = "Старый контейнер — спуститься вниз"
+hover_label = "Контейнер — спуститься на плантацию"
 
 [node name="Shape" type="CollisionShape3D" parent="NavRegion/Container"]
 position = Vector3(0, 1.3, 0)
 shape = SubResource("shape_Container")
 
-[node name="Model" parent="NavRegion/Container" instance=ExtResource("12_container")]
+[node name="Model" parent="NavRegion/Container" instance=ExtResource("16_container")]
 position = Vector3(0, 0, 0)
 rotation = Vector3(0, -1.570796, 0)
 
-[node name="Shelf" parent="NavRegion/Container" instance=ExtResource("13_container_shelf")]
+[node name="Shelf" parent="NavRegion/Container" instance=ExtResource("17_container_shelf")]
 position = Vector3(0, 0, 2.6)
-
-[node name="ParcelBox" type="Node3D" parent="NavRegion/Container"]
-visible = false
-position = Vector3(1.9, 0, 4.6)
-
-[node name="Crate" parent="NavRegion/Container/ParcelBox" instance=ExtResource("14_stash_crate")]
-position = Vector3(0, 0, 0)
-scale = Vector3(1.6, 1.6, 1.6)
-
-[node name="Label" type="Label3D" parent="NavRegion/Container/ParcelBox"]
-position = Vector3(0, 1.4, 0)
-pixel_size = 0.008
-billboard = 1
-no_depth_test = true
-text = "Посылка"
-font_size = 36
-outline_size = 10
-modulate = Color(0.96, 0.84, 0.45, 1)
 
 [node name="Label" type="Label3D" parent="NavRegion/Container"]
 position = Vector3(0, 3.4, 0)
@@ -467,15 +668,128 @@ outline_size = 10
 [node name="Approach" type="Marker3D" parent="NavRegion/Container"]
 position = Vector3(0, 0, 4.4)
 
+[node name="Parcel" type="StaticBody3D" parent="NavRegion" node_paths=PackedStringArray("visual", "approach")]
+position = Vector3(63.4, 0, 6.2)
+collision_layer = 0
+collision_mask = 0
+script = ExtResource("18_parcel_box")
+visual = NodePath("Visual")
+approach = NodePath("Approach")
+
+[node name="Shape" type="CollisionShape3D" parent="NavRegion/Parcel"]
+position = Vector3(0, 0.4, 0)
+shape = SubResource("shape_parcel")
+
+[node name="Visual" type="Node3D" parent="NavRegion/Parcel"]
+visible = false
+
+[node name="Crate" parent="NavRegion/Parcel/Visual" instance=ExtResource("19_stash_crate")]
+position = Vector3(0, 0, 0)
+scale = Vector3(1.6, 1.6, 1.6)
+
+[node name="Label" type="Label3D" parent="NavRegion/Parcel/Visual"]
+position = Vector3(0, 1.4, 0)
+pixel_size = 0.008
+billboard = 1
+no_depth_test = true
+text = "Посылка"
+font_size = 36
+outline_size = 10
+modulate = Color(0.96, 0.84, 0.45, 1)
+
+[node name="Approach" type="Marker3D" parent="NavRegion/Parcel"]
+position = Vector3(-0.6, 0, 1.3)
+
+[node name="Parking" type="Node3D" parent="."]
+
+[node name="ManorLaneEnd" type="Marker3D" parent="Parking"]
+position = Vector3(-51, 0, -20)
+
+[node name="ManorJunction" type="Marker3D" parent="Parking"]
+position = Vector3(-51, 0, 44)
+
+[node name="Manor" type="Marker3D" parent="Parking" node_paths=PackedStringArray("lane_end", "junction")]
+script = ExtResource("20_parking_spot")
+title = "к усадьбе"
+lane_end = NodePath("../ManorLaneEnd")
+junction = NodePath("../ManorJunction")
+bay_offset = Vector3(3.2, 0, 0)
+position = Vector3(-38.5, 0, -22)
+
+[node name="ContainerLaneEnd" type="Marker3D" parent="Parking"]
+position = Vector3(61, 0, 10)
+
+[node name="ContainerJunction" type="Marker3D" parent="Parking"]
+position = Vector3(61, 0, 44)
+
+[node name="Container" type="Marker3D" parent="Parking" node_paths=PackedStringArray("lane_end", "junction")]
+script = ExtResource("20_parking_spot")
+title = "к контейнеру"
+lane_end = NodePath("../ContainerLaneEnd")
+junction = NodePath("../ContainerJunction")
+bay_offset = Vector3(3.2, 0, 0)
+position = Vector3(66.5, 0, 9.5)
+
+[node name="RoadLaneEnd" type="Marker3D" parent="Parking"]
+position = Vector3(5, 0, 42.2)
+
+[node name="RoadJunction" type="Marker3D" parent="Parking"]
+position = Vector3(8, 0, 44)
+
+[node name="Road" type="Marker3D" parent="Parking" node_paths=PackedStringArray("lane_end", "junction")]
+script = ExtResource("20_parking_spot")
+title = "на дорогу"
+lane_end = NodePath("../RoadLaneEnd")
+junction = NodePath("../RoadJunction")
+bay_offset = Vector3(0, 0, 5.5)
+position = Vector3(2, 0, 41.3)
+rotation = Vector3(0, -1.570796, 0)
+
+[node name="RoverManor" type="StaticBody3D" parent="NavRegion" node_paths=PackedStringArray("parking", "spot", "approach")]
+position = Vector3(0, 0, 0)
+collision_layer = 4
+collision_mask = 0
+script = ExtResource("21_land_rover")
+parking = NodePath("../../Parking")
+spot = NodePath("../../Parking/Manor")
+approach = NodePath("Approach")
+
+[node name="Shape" type="CollisionShape3D" parent="NavRegion/RoverManor"]
+position = Vector3(0, 1.0, 0)
+shape = SubResource("shape_RoverManor")
+
+[node name="Model" parent="NavRegion/RoverManor" instance=ExtResource("22_land_rover")]
+
+[node name="Approach" type="Marker3D" parent="NavRegion/RoverManor"]
+position = Vector3(-1.9, 0, 0.4)
+
+[node name="RoverContainer" type="StaticBody3D" parent="NavRegion" node_paths=PackedStringArray("parking", "spot", "approach")]
+position = Vector3(0, 0, 0)
+collision_layer = 4
+collision_mask = 0
+script = ExtResource("21_land_rover")
+parking = NodePath("../../Parking")
+spot = NodePath("../../Parking/Container")
+approach = NodePath("Approach")
+
+[node name="Shape" type="CollisionShape3D" parent="NavRegion/RoverContainer"]
+position = Vector3(0, 1.0, 0)
+shape = SubResource("shape_RoverContainer")
+
+[node name="Model" parent="NavRegion/RoverContainer" instance=ExtResource("22_land_rover")]
+
+[node name="Approach" type="Marker3D" parent="NavRegion/RoverContainer"]
+position = Vector3(-1.9, 0, 0.4)
+
 [node name="Candidate" type="StaticBody3D" parent="NavRegion" node_paths=PackedStringArray("visual", "leave_target", "approach")]
-position = Vector3(-7.0, 0, 7.2)
+position = Vector3(-59.0, 0, -21.0)
 collision_layer = 2
 collision_mask = 0
-script = ExtResource("15_worker_candidate")
+script = ExtResource("23_worker_candidate")
 worker_id = "tom"
 visual = NodePath("Visual")
 leave_target = NodePath("../Container/Approach")
-walker_scene = ExtResource("16_farmhand")
+walker_scene = ExtResource("24_farmhand")
 approach = NodePath("Approach")
 
 [node name="Shape" type="CollisionShape3D" parent="NavRegion/Candidate"]
@@ -485,9 +799,9 @@ shape = SubResource("shape_person")
 [node name="Visual" type="Node3D" parent="NavRegion/Candidate"]
 
 [node name="Model" type="Node3D" parent="NavRegion/Candidate/Visual"]
-script = ExtResource("17_character_model")
+script = ExtResource("25_character_model")
 
-[node name="Mesh" parent="NavRegion/Candidate/Visual/Model" instance=ExtResource("18_worker")]
+[node name="Mesh" parent="NavRegion/Candidate/Visual/Model" instance=ExtResource("26_worker")]
 
 [node name="Label" type="Label3D" parent="NavRegion/Candidate/Visual"]
 position = Vector3(0, 2.3, 0)
@@ -502,14 +816,14 @@ outline_size = 10
 position = Vector3(0, 0, -1.5)
 
 [node name="CandidateDave" type="StaticBody3D" parent="NavRegion" node_paths=PackedStringArray("visual", "leave_target", "approach")]
-position = Vector3(-4.0, 0, 7.2)
+position = Vector3(-57.0, 0, -21.0)
 collision_layer = 2
 collision_mask = 0
-script = ExtResource("15_worker_candidate")
+script = ExtResource("23_worker_candidate")
 worker_id = "dave"
 visual = NodePath("Visual")
 leave_target = NodePath("../Container/Approach")
-walker_scene = ExtResource("16_farmhand")
+walker_scene = ExtResource("24_farmhand")
 approach = NodePath("Approach")
 
 [node name="Shape" type="CollisionShape3D" parent="NavRegion/CandidateDave"]
@@ -519,9 +833,9 @@ shape = SubResource("shape_person")
 [node name="Visual" type="Node3D" parent="NavRegion/CandidateDave"]
 
 [node name="Model" type="Node3D" parent="NavRegion/CandidateDave/Visual"]
-script = ExtResource("17_character_model")
+script = ExtResource("25_character_model")
 
-[node name="Mesh" parent="NavRegion/CandidateDave/Visual/Model" instance=ExtResource("18_worker")]
+[node name="Mesh" parent="NavRegion/CandidateDave/Visual/Model" instance=ExtResource("26_worker")]
 
 [node name="Label" type="Label3D" parent="NavRegion/CandidateDave/Visual"]
 position = Vector3(0, 2.3, 0)
@@ -536,14 +850,14 @@ outline_size = 10
 position = Vector3(0, 0, -1.5)
 
 [node name="CandidateBarry" type="StaticBody3D" parent="NavRegion" node_paths=PackedStringArray("visual", "leave_target", "approach")]
-position = Vector3(-1.0, 0, 7.2)
+position = Vector3(-55.0, 0, -21.0)
 collision_layer = 2
 collision_mask = 0
-script = ExtResource("15_worker_candidate")
+script = ExtResource("23_worker_candidate")
 worker_id = "barry"
 visual = NodePath("Visual")
 leave_target = NodePath("../Container/Approach")
-walker_scene = ExtResource("16_farmhand")
+walker_scene = ExtResource("24_farmhand")
 approach = NodePath("Approach")
 
 [node name="Shape" type="CollisionShape3D" parent="NavRegion/CandidateBarry"]
@@ -553,9 +867,9 @@ shape = SubResource("shape_person")
 [node name="Visual" type="Node3D" parent="NavRegion/CandidateBarry"]
 
 [node name="Model" type="Node3D" parent="NavRegion/CandidateBarry/Visual"]
-script = ExtResource("17_character_model")
+script = ExtResource("25_character_model")
 
-[node name="Mesh" parent="NavRegion/CandidateBarry/Visual/Model" instance=ExtResource("18_worker")]
+[node name="Mesh" parent="NavRegion/CandidateBarry/Visual/Model" instance=ExtResource("26_worker")]
 
 [node name="Label" type="Label3D" parent="NavRegion/CandidateBarry/Visual"]
 position = Vector3(0, 2.3, 0)
@@ -570,11 +884,10 @@ outline_size = 10
 position = Vector3(0, 0, -1.5)
 
 [node name="Lord" type="StaticBody3D" parent="NavRegion" node_paths=PackedStringArray("approach")]
-position = Vector3(15.5, 0, -8.0)
-rotation = Vector3(0, 0.6, 0)
+position = Vector3(-49, 0, -27.0)
 collision_layer = 2
 collision_mask = 0
-script = ExtResource("19_lord_ashcombe")
+script = ExtResource("27_lord_ashcombe")
 approach = NodePath("Approach")
 
 [node name="Shape" type="CollisionShape3D" parent="NavRegion/Lord"]
@@ -582,9 +895,9 @@ position = Vector3(0, 0.9, 0)
 shape = SubResource("shape_person")
 
 [node name="Model" type="Node3D" parent="NavRegion/Lord"]
-script = ExtResource("17_character_model")
+script = ExtResource("25_character_model")
 
-[node name="Mesh" parent="NavRegion/Lord/Model" instance=ExtResource("20_inspector")]
+[node name="Mesh" parent="NavRegion/Lord/Model" instance=ExtResource("28_inspector")]
 
 [node name="Label" type="Label3D" parent="NavRegion/Lord"]
 position = Vector3(0, 2.3, 0)
@@ -600,16 +913,16 @@ modulate = Color(0.96, 0.84, 0.45, 1)
 position = Vector3(0, 0, 1.5)
 
 [node name="PorchLight" type="OmniLight3D" parent="NavRegion/Lord"]
-position = Vector3(0, 2.6, -0.8)
+position = Vector3(-2, 3.2, -1.8)
 light_color = Color(0.949, 0.769, 0.42, 1)
-light_energy = 1.2
-omni_range = 5.0
+light_energy = 1.6
+omni_range = 7.0
 
 [node name="Raiders" type="StaticBody3D" parent="NavRegion" node_paths=PackedStringArray("visual", "approach")]
-position = Vector3(12.6, 0, -5.4)
+position = Vector3(64.5, 0, 13)
 collision_layer = 0
 collision_mask = 0
-script = ExtResource("21_raider_gang")
+script = ExtResource("29_raider_gang")
 visual = NodePath("Visual")
 approach = NodePath("Approach")
 
@@ -623,16 +936,16 @@ visible = false
 [node name="Model0" type="Node3D" parent="NavRegion/Raiders/Visual"]
 position = Vector3(-0.5, 0, 0)
 rotation = Vector3(0, 3.490659, 0)
-script = ExtResource("17_character_model")
+script = ExtResource("25_character_model")
 
-[node name="Mesh" parent="NavRegion/Raiders/Visual/Model0" instance=ExtResource("22_courier")]
+[node name="Mesh" parent="NavRegion/Raiders/Visual/Model0" instance=ExtResource("30_courier")]
 
 [node name="Model1" type="Node3D" parent="NavRegion/Raiders/Visual"]
 position = Vector3(0.6, 0, 0)
 rotation = Vector3(0, 2.792527, 0)
-script = ExtResource("17_character_model")
+script = ExtResource("25_character_model")
 
-[node name="Mesh" parent="NavRegion/Raiders/Visual/Model1" instance=ExtResource("22_courier")]
+[node name="Mesh" parent="NavRegion/Raiders/Visual/Model1" instance=ExtResource("30_courier")]
 
 [node name="Label" type="Label3D" parent="NavRegion/Raiders/Visual"]
 position = Vector3(0, 2.3, 0)
@@ -647,31 +960,63 @@ modulate = Color(1, 0.55, 0.45, 1)
 [node name="Approach" type="Marker3D" parent="NavRegion/Raiders"]
 position = Vector3(-1.4, 0, 1.4)
 
-[node name="Inspector" type="Node3D" parent="." node_paths=PackedStringArray("road_point", "target_point", "model")]
+[node name="Routes" type="Node3D" parent="."]
+
+[node name="InspectorWay" type="Node3D" parent="Routes"]
+script = ExtResource("31_road_route")
+
+[node name="P0" type="Marker3D" parent="Routes/InspectorWay"]
+position = Vector3(84, 0, 44)
+
+[node name="P1" type="Marker3D" parent="Routes/InspectorWay"]
+position = Vector3(61, 0, 44)
+
+[node name="P2" type="Marker3D" parent="Routes/InspectorWay"]
+position = Vector3(61, 0, 6.6)
+
+[node name="CourierWay" type="Node3D" parent="Routes"]
+script = ExtResource("31_road_route")
+
+[node name="P0" type="Marker3D" parent="Routes/CourierWay"]
+position = Vector3(59.4, 0, 7.0)
+
+[node name="P1" type="Marker3D" parent="Routes/CourierWay"]
+position = Vector3(61, 0, 10)
+
+[node name="P2" type="Marker3D" parent="Routes/CourierWay"]
+position = Vector3(61, 0, 44)
+
+[node name="P3" type="Marker3D" parent="Routes/CourierWay"]
+position = Vector3(-84, 0, 44)
+
+[node name="CourierIdle" type="Marker3D" parent="Routes"]
+position = Vector3(58.4, 0, 6.6)
+rotation = Vector3(0, 1.570796, 0)
+
+[node name="Inspector" type="Node3D" parent="." node_paths=PackedStringArray("route", "model")]
 visible = false
-script = ExtResource("23_inspector_view")
-road_point = NodePath("../SpawnPoints/road_east")
-target_point = NodePath("../NavRegion/Container/Approach")
+script = ExtResource("32_inspector_view")
+route = NodePath("../Routes/InspectorWay")
 model = NodePath("Model")
 
 [node name="Model" type="Node3D" parent="Inspector"]
-script = ExtResource("17_character_model")
+script = ExtResource("25_character_model")
 
-[node name="Mesh" parent="Inspector/Model" instance=ExtResource("20_inspector")]
+[node name="Mesh" parent="Inspector/Model" instance=ExtResource("28_inspector")]
 
-[node name="CourierA" type="Node3D" parent="." node_paths=PackedStringArray("depot_point", "road_point", "model", "name_label")]
+[node name="CourierA" type="Node3D" parent="." node_paths=PackedStringArray("depot_point", "route", "model", "name_label")]
 visible = false
-script = ExtResource("24_courier_view")
+script = ExtResource("33_courier_view")
 slot = 0
-depot_point = NodePath("../NavRegion/Container/Approach")
-road_point = NodePath("../SpawnPoints/road_west")
+depot_point = NodePath("../Routes/CourierIdle")
+route = NodePath("../Routes/CourierWay")
 model = NodePath("Model")
 name_label = NodePath("Label")
 
 [node name="Model" type="Node3D" parent="CourierA"]
-script = ExtResource("17_character_model")
+script = ExtResource("25_character_model")
 
-[node name="Mesh" parent="CourierA/Model" instance=ExtResource("22_courier")]
+[node name="Mesh" parent="CourierA/Model" instance=ExtResource("30_courier")]
 
 [node name="Label" type="Label3D" parent="CourierA"]
 position = Vector3(0, 2.3, 0)
@@ -681,19 +1026,19 @@ no_depth_test = true
 font_size = 32
 outline_size = 10
 
-[node name="CourierB" type="Node3D" parent="." node_paths=PackedStringArray("depot_point", "road_point", "model", "name_label")]
+[node name="CourierB" type="Node3D" parent="." node_paths=PackedStringArray("depot_point", "route", "model", "name_label")]
 visible = false
-script = ExtResource("24_courier_view")
+script = ExtResource("33_courier_view")
 slot = 1
-depot_point = NodePath("../NavRegion/Container/Approach")
-road_point = NodePath("../SpawnPoints/road_west")
+depot_point = NodePath("../Routes/CourierIdle")
+route = NodePath("../Routes/CourierWay")
 model = NodePath("Model")
 name_label = NodePath("Label")
 
 [node name="Model" type="Node3D" parent="CourierB"]
-script = ExtResource("17_character_model")
+script = ExtResource("25_character_model")
 
-[node name="Mesh" parent="CourierB/Model" instance=ExtResource("22_courier")]
+[node name="Mesh" parent="CourierB/Model" instance=ExtResource("30_courier")]
 
 [node name="Label" type="Label3D" parent="CourierB"]
 position = Vector3(0, 2.3, 0)
@@ -703,14 +1048,14 @@ no_depth_test = true
 font_size = 32
 outline_size = 10
 
-[node name="Jack" parent="." instance=ExtResource("25_jack")]
+[node name="Jack" parent="." instance=ExtResource("34_jack")]
 
 [node name="CameraRig" type="Node3D" parent="." node_paths=PackedStringArray("camera")]
 rotation = Vector3(0, 0.785398, 0)
-script = ExtResource("26_iso_camera_rig")
+script = ExtResource("35_iso_camera_rig")
 camera = NodePath("Camera")
 distance = 36.0
-bounds = Rect2(-30, -28, 60, 48)
+bounds = Rect2(-80, -52, 160, 110)
 
 [node name="Camera" type="Camera3D" parent="CameraRig"]
 
@@ -725,15 +1070,15 @@ draw_pass_1 = SubResource("mesh_rain")
 [node name="SpawnPoints" type="Node3D" parent="."]
 
 [node name="start" type="Marker3D" parent="SpawnPoints"]
-position = Vector3(-20, 0, 4)
+position = Vector3(-47.5, 0, -25)
 
 [node name="from_elevator" type="Marker3D" parent="SpawnPoints"]
-position = Vector3(9, 0, -5.4)
+position = Vector3(61, 0, 7.6)
 
 [node name="road_west" type="Marker3D" parent="SpawnPoints"]
-position = Vector3(-34, 0, 4)
+position = Vector3(-83, 0, 44)
 
 [node name="road_east" type="Marker3D" parent="SpawnPoints"]
-position = Vector3(34, 0, 4)
+position = Vector3(83, 0, 44)
 
-[node name="Hud" parent="." instance=ExtResource("27_hud")]
+[node name="Hud" parent="." instance=ExtResource("36_hud")]

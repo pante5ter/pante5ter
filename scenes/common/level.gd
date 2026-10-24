@@ -13,6 +13,8 @@ const PROLOGUE_PATH: String = "res://content/prologue.tres"
 @export var spawn_points: Node3D
 @export var default_spawn: String = "start"
 
+## While a Land Rover carries Jack he is hidden and clicks on the world do nothing.
+var jack_in_vehicle: bool = false
 var _navigation_ready: bool = false
 var _pressing: bool = false
 var _dragging: bool = false
@@ -82,7 +84,7 @@ func _click(screen_position: Vector2) -> void:
 	if hud.is_blocking_world():
 		hud.close_actions()
 		return
-	if SceneRouter.is_busy() or not _navigation_ready:
+	if SceneRouter.is_busy() or not _navigation_ready or jack_in_vehicle:
 		return
 	if jack_away():
 		var back := Game.sim.couriers.busy_until.get(Couriers.JACK, 0.0) as float
@@ -105,7 +107,7 @@ func jack_away() -> bool:
 func _physics_process(_delta: float) -> void:
 	if not _navigation_ready:
 		_refresh_navigation_ready()
-	jack.visible = not jack_away()
+	jack.visible = not jack_away() and not jack_in_vehicle
 	var hit := _pick(get_viewport().get_mouse_position())
 	var interactable: Interactable = null
 	if not hit.is_empty():
