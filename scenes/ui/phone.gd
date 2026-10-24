@@ -3,17 +3,21 @@ extends PanelContainer
 
 const REFRESH_SECONDS: float = 0.5
 const PHONE_SIZE: Vector2 = Vector2(380.0, 640.0)
-const TAB_SHOP: int = 0
-const TAB_STOCK: int = 1
-const TAB_EMPIRE: int = 2
+const TAB_CALLS: int = 0
+const TAB_SHOP: int = 1
+const TAB_STOCK: int = 2
+const TAB_PEOPLE: int = 3
+const TAB_EMPIRE: int = 4
 
 signal message(text: String)
 
 var _tabs: TabContainer
 var _status: Label
 var _notice: Label
+var _calls: VBoxContainer
 var _shop: VBoxContainer
 var _stock: VBoxContainer
+var _people: VBoxContainer
 var _empire: VBoxContainer
 var _refresh_left: float = 0.0
 
@@ -48,8 +52,10 @@ func _ready() -> void:
 	_tabs.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_tabs.get_tab_bar().focus_mode = Control.FOCUS_NONE
 	rows.add_child(_tabs)
+	_calls = _add_tab("Звонки")
 	_shop = _add_tab("Магазин")
 	_stock = _add_tab("Склад")
+	_people = _add_tab("Люди")
 	_empire = _add_tab("Империя")
 	var home := UiStyle.button("Убрать телефон  [Tab]", close)
 	rows.add_child(home)
@@ -78,6 +84,8 @@ func open(tab: int = -1) -> void:
 	visible = true
 	if tab >= 0:
 		_tabs.current_tab = tab
+	elif not Game.sim.orders.with_status(Order.Status.OFFERED).is_empty():
+		_tabs.current_tab = TAB_CALLS
 	refresh()
 	var screen := get_viewport_rect().size
 	position = Vector2(screen.x - PHONE_SIZE.x - 24.0, maxf((screen.y - PHONE_SIZE.y) / 2.0, 12.0))
@@ -104,19 +112,50 @@ func refresh() -> void:
 	var sim := Game.sim
 	_status.text = "%s     %s" % [UiText.clock(sim.clock), UiText.money(sim.economy.money)]
 	var calls := sim.orders.with_status(Order.Status.OFFERED).size()
-	_notice.text = ("Пропущенных звонков: %d — ответь на компьютере." % calls) if calls > 0 else ""
+	_notice.text = ("Звонит клиент! Звонков: %d — вкладка «Звонки»." % calls) if calls > 0 else ""
 	_notice.visible = calls > 0
-	_fill_shop(sim)
+	_fill_calls(sim)
+	PhoneShop.fill(_shop, sim, self)
 	_fill_stock(sim)
+	PhonePeople.fill(_people, sim, self)
 	_fill_empire(sim)
+
+
+func answer(order_id: int, choice: String) -> void:
+	var result := Game.sim.apply(AnswerOrderCommand.new(order_id, choice))
+	if not result.ok:
+		message.emit(UiText.error(result.error))
+	elif choice == Orders.ACCEPT:
+		message.emit("Договорились. Отправить заказ — на компьютере на плантации, когда товар будет на полке.")
+	refresh()
 
 
 func buy(item: String, quantity: int) -> void:
 	var result := Game.sim.apply(BuyCommand.new(item, quantity))
 	if result.ok:
-		message.emit("Заказано за %s. Доставка в ящик у контейнера через %s." % [UiText.money(result.value), UiText.real_duration(Game.sim.config.delivery_hours * SimClock.GAME_SECONDS_PER_HOUR, Game.sim)])
+		message.emit("Заказано за %s. Доставка в ящик у контейнера через %s." % [UiText.money(result.value), _delivery_time()])
 	else:
 		message.emit(UiText.error(result.error))
+	refresh()
+
+
+func restock() -> void:
+	var result := Game.sim.apply(RestockCommand.new())
+	if result.ok:
+		message.emit("Запас пополнен на %s. Посылка у контейнера через %s." % [UiText.money(result.value), _delivery_time()])
+	else:
+		message.emit(UiText.error(result.error))
+	refresh()
+
+
+func set_auto_reorder(item: String, keep: int) -> void:
+	var result := Game.sim.apply(SetAutoReorderCommand.new(item, keep))
+	if not result.ok:
+		message.emit(UiText.error(result.error))
+	elif keep > 0:
+		message.emit("Финн будет держать %s: %d шт. Докупит сам, пока есть деньги." % [UiText.item_name(item, Game.sim), keep])
+	else:
+		message.emit("Автозаказ «%s» выключен." % UiText.item_name(item, Game.sim))
 	refresh()
 
 
@@ -126,57 +165,78 @@ func buy_plot() -> void:
 	refresh()
 
 
-func _clear(box: VBoxContainer) -> void:
+func hire(worker_id: String) -> void:
+	var result := Game.sim.apply(HireWorkerCommand.new(worker_id))
+	var person := _find_person(worker_id)
+	if result.ok and person != null:
+		message.emit("%s %s. Спустится на плантацию и возьмётся за дело." % [person.display_name, PeopleText.hired_word(person)])
+	else:
+		message.emit(UiText.error(result.error))
+	refresh()
+
+
+func fire(worker_id: String) -> void:
+	var result := Game.sim.apply(FireWorkerCommand.new(worker_id))
+	var person := _find_person(worker_id)
+	if result.ok and person != null:
+		message.emit("%s %s." % [person.display_name, PeopleText.fired_word(person)])
+	else:
+		message.emit(UiText.error(result.error))
+	refresh()
+
+
+func learn(skill_id: String) -> void:
+	var result := Game.sim.apply(LearnSkillCommand.new(skill_id))
+	if result.ok:
+		message.emit("%s уехал учиться. Вернётся через %s." % [Game.sim.helper.definition().display_name, UiText.real_duration(Game.sim.helper.away_until - Game.sim.clock.elapsed_game_seconds, Game.sim)])
+	else:
+		message.emit(UiText.error(result.error))
+	refresh()
+
+
+func _find_person(worker_id: String) -> WorkerDef:
+	var packer := Game.sim.config.find_packer(worker_id)
+	return packer if packer != null else Game.sim.config.find_worker(worker_id)
+
+
+func _delivery_time() -> String:
+	return UiText.real_duration(Game.sim.config.delivery_hours * SimClock.GAME_SECONDS_PER_HOUR, Game.sim)
+
+
+static func clear(box: VBoxContainer) -> void:
 	for child: Node in box.get_children():
 		box.remove_child(child)
 		child.queue_free()
 
 
-func _fill_shop(sim: SimState) -> void:
-	_clear(_shop)
-	var delivery := UiText.real_duration(sim.config.delivery_hours * SimClock.GAME_SECONDS_PER_HOUR, sim)
-	_shop.add_child(UiStyle.label("Доставка в ящик у контейнера через %s." % delivery, 13, UiStyle.MUTED))
-	for strain: StrainDef in sim.config.extra_strains:
-		var item := Supplies.seed_item(strain.id)
-		if not sim.progress.is_strain_unlocked(strain.id):
-			var unlock := sim.progress.unlocking_milestone(strain.id)
-			_shop.add_child(UiStyle.label("Семена «%s» откроются на уровне «%s» (%s)." % [strain.display_name, unlock.title, UiText.money(unlock.value)], 15, UiStyle.MUTED))
-			continue
-		_add_shop_row("Семена «%s»: %s/шт.\nРастёт %s, качество около %d." % [strain.display_name, UiText.money(strain.seed_price), UiText.real_duration(strain.growth_hours() * SimClock.GAME_SECONDS_PER_HOUR, sim), strain.base_quality], item, strain.seed_price, sim)
-	_add_shop_row("Удобрение: %s/шт.\n+%d к качеству одной грядки." % [UiText.money(sim.config.fertilizer_price), sim.config.fertilizer_bonus], Supplies.FERTILIZER, sim.config.fertilizer_price, sim)
-	_add_shop_row("Средство от вредителей: %s/шт." % UiText.money(sim.config.problems.pesticide_price), Supplies.PESTICIDE, sim.config.problems.pesticide_price, sim)
-	_add_shop_row("Запасная лампа: %s/шт." % UiText.money(sim.config.problems.lamp_price), Supplies.LAMP, sim.config.problems.lamp_price, sim)
-	var beds := sim.grow.plots().size()
-	var cap := sim.progress.plot_cap()
-	var row := VBoxContainer.new()
-	row.add_child(UiStyle.label("Новая грядка: %s (сейчас %d, можно до %d)." % [UiText.money(sim.config.plot_price), beds, cap]))
-	row.add_child(UiStyle.button("Купить грядку", buy_plot, beds < cap and sim.economy.money >= sim.config.plot_price))
-	_shop.add_child(row)
-	var pending := sim.supplies.pending_deliveries()
-	if not pending.is_empty():
-		var lines := PackedStringArray(["В пути:"])
-		for delivery_item: Dictionary in pending:
-			lines.append("%s × %d — через %s" % [UiText.item_name(String(delivery_item["item"]), sim), int(delivery_item["quantity"]), UiText.real_duration(float(delivery_item["arrives_at"]) - sim.clock.elapsed_game_seconds, sim)])
-		_shop.add_child(UiStyle.label("\n".join(lines), 13, UiStyle.MUTED))
-
-
-func _add_shop_row(text: String, item: String, price: int, sim: SimState) -> void:
-	var row := VBoxContainer.new()
-	row.add_child(UiStyle.label(text))
-	var buttons := HBoxContainer.new()
-	buttons.add_child(UiStyle.button("Купить 1", buy.bind(item, 1), sim.economy.money >= price))
-	buttons.add_child(UiStyle.button("Купить 5", buy.bind(item, 5), sim.economy.money >= price * 5))
-	row.add_child(buttons)
-	_shop.add_child(row)
+func _fill_calls(sim: SimState) -> void:
+	clear(_calls)
+	var now := sim.clock.elapsed_game_seconds
+	var calls := sim.orders.with_status(Order.Status.OFFERED)
+	if calls.is_empty():
+		_calls.add_child(UiStyle.label("Тихо. Клиенты звонят сами — телефон пискнет.", 15, UiStyle.MUTED))
+	for order: Order in calls:
+		var row := VBoxContainer.new()
+		row.add_child(UiStyle.label("Клиенту нужно %d шт., качество от %d. Платит %s.\nПовесит трубку через %s." % [order.quantity, order.min_quality, UiText.money(order.reward), UiText.real_duration(order.answer_by - now, sim)]))
+		var buttons := HBoxContainer.new()
+		buttons.add_child(UiStyle.button("Принять", answer.bind(order.id, Orders.ACCEPT)))
+		buttons.add_child(UiStyle.button("Торг +%d%% (%d%%)" % [roundi(sim.config.orders.haggle_bonus * 100.0), roundi(sim.config.orders.haggle_success * 100.0)], answer.bind(order.id, Orders.HAGGLE), not order.haggled))
+		buttons.add_child(UiStyle.button("Отказать", answer.bind(order.id, Orders.DECLINE)))
+		row.add_child(buttons)
+		_calls.add_child(row)
+	var accepted := sim.orders.with_status(Order.Status.ACCEPTED).size()
+	if accepted > 0:
+		_calls.add_child(UiStyle.label("Принятых заказов: %d — отправляются с компьютера на плантации." % accepted, 13, UiStyle.MUTED))
 
 
 func _fill_stock(sim: SimState) -> void:
-	_clear(_stock)
+	clear(_stock)
 	var products := sim.inventory.products()
 	var qualities := PackedStringArray()
 	for product: Product in products:
 		qualities.append(str(product.quality))
 	_stock.add_child(UiStyle.label("Урожай: %d шт.%s" % [products.size(), (" (качество: %s)" % ", ".join(qualities)) if not products.is_empty() else ""]))
+	_stock.add_child(UiStyle.label(UiText.stock(sim), 14, UiStyle.MUTED))
 	for strain: StrainDef in sim.config.extra_strains:
 		_stock.add_child(UiStyle.label("Семена «%s»: %d" % [strain.display_name, sim.supplies.seeds(strain.id)]))
 	_stock.add_child(UiStyle.label("«%s»: без ограничений" % sim.config.strain.display_name, 15, UiStyle.MUTED))
@@ -186,7 +246,7 @@ func _fill_stock(sim: SimState) -> void:
 
 
 func _fill_empire(sim: SimState) -> void:
-	_clear(_empire)
+	clear(_empire)
 	_empire.add_child(UiStyle.label("Оценка империи: %s" % UiText.money(sim.empire_value()), 18, UiStyle.ACCENT))
 	_empire.add_child(UiStyle.label("Деньги, грядки, товар на руках и в тайнике.", 13, UiStyle.MUTED))
 	for index: int in sim.config.milestones.size():

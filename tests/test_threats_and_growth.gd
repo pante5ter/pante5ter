@@ -194,7 +194,10 @@ func test_suspicion_fades_over_time() -> void:
 
 
 func test_high_suspicion_warns_then_a_busy_farm_gets_fined() -> void:
-	var state := SimState.new(_config(1000), 1)
+	var config := _config(1000)
+	# Without the helper nobody dims the lights in time.
+	config.helper = null
+	var state := SimState.new(config, 1)
 	state.suspicion.add(state.config.suspicion.inspection_threshold + 10.0)
 	_advance(state, 1.0)
 	assert_true(state.suspicion.inspection_pending())
@@ -233,8 +236,12 @@ func test_extra_beds_draw_attention_over_time() -> void:
 
 # --- raids
 
-func _raid_ready(money: int = 1000) -> SimState:
-	var state := SimState.new(_config(money, 0.0, 1.0), 2)
+func _raid_ready(money: int = 1000, alone: bool = false) -> SimState:
+	var config := _config(money, 0.0, 1.0)
+	if alone:
+		# Nobody on the farm to see the raiders off.
+		config.helper = null
+	var state := SimState.new(config, 2)
 	state.inventory.create(state.config.strain.id, 60)
 	state.inventory.create(state.config.strain.id, 70)
 	_advance_in_steps(state, state.config.raids.start_hours + state.config.raids.night_hour + 0.01, 2.0)
@@ -272,7 +279,7 @@ func test_giving_goods_hands_over_half() -> void:
 
 
 func test_ignoring_raiders_loses_all_the_stock() -> void:
-	var state := _raid_ready()
+	var state := _raid_ready(1000, true)
 	_advance(state, state.config.raids.deadline_hours + 0.01)
 	assert_false(state.raids.pending)
 	assert_eq(state.inventory.count(), 0)

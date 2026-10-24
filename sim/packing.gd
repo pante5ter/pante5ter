@@ -23,7 +23,8 @@ func unpacked_count() -> int:
 	return _inventory.products().filter(func(product: Product) -> bool: return not product.packed).size()
 
 
-func start(now: float, actor: String) -> CommandResult:
+## Speed above 1 packs faster (a practised packer).
+func start(now: float, actor: String, speed: float = 1.0) -> CommandResult:
 	if busy():
 		return CommandResult.failure(CommandResult.ALREADY_DONE)
 	for product: Product in _inventory.products():
@@ -31,7 +32,7 @@ func start(now: float, actor: String) -> CommandResult:
 			product_ids.append(product.id)
 	if product_ids.is_empty():
 		return CommandResult.failure(CommandResult.NOTHING_TO_PACK)
-	ends_at = now + _def.pack_minutes_per_unit * 60.0 * float(product_ids.size())
+	ends_at = now + _def.pack_minutes_per_unit * 60.0 * float(product_ids.size()) / maxf(speed, 0.1)
 	_event_log.record(EventLog.PACKING_STARTED, now, PackedStringArray([actor]), {"units": product_ids.size()})
 	return CommandResult.success(product_ids.size())
 

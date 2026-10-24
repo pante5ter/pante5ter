@@ -8,6 +8,10 @@ const PILE_STEPS: Array[int] = [1, 3, 6]
 @export var progress_label: Label3D
 
 
+func _ready() -> void:
+	add_to_group(WorkerView.BENCH_GROUP)
+
+
 func _process(_delta: float) -> void:
 	var packing := Game.sim.packing
 	show_pile(packing.unpacked_count())

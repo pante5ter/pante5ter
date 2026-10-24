@@ -271,24 +271,87 @@ func _accept_first_call() -> Order:
 	return order
 
 
-func test_computer_answers_calls_and_ships_orders() -> void:
+func test_phone_answers_calls_and_the_computer_ships_orders() -> void:
 	var level := await _open(PLANTATION_SCENE)
 	Game.sim.apply(AdvanceTimeCommand.new(_hours_to_real(Game.sim.config.orders.first_order_hours + 0.01)))
 	var order := Game.sim.orders.all()[0]
 	var desk := level.get_node("NavRegion/Computer") as ComputerDesk
-	await wait_process_frames(2)
-	assert_true(desk.screen_glow.visible, "a ringing computer glows")
-	desk.interact(level)
-	assert_true(level.hud.computer.visible)
-	assert_eq(level.hud.computer.current_tab(), ComputerScreen.TAB_CALLS)
-	level.hud.computer.answer(order.id, Orders.ACCEPT)
+	level.hud.toggle_phone()
+	assert_true(level.hud.phone.visible)
+	assert_eq(level.hud.phone.current_tab(), Phone.TAB_CALLS, "a ringing phone opens on the calls")
+	level.hud.phone.answer(order.id, Orders.ACCEPT)
 	assert_eq(order.status, Order.Status.ACCEPTED)
+	level.hud.phone.close()
+	await wait_process_frames(2)
+	assert_false(desk.screen_glow.visible, "nothing to ship yet")
 	for index: int in order.quantity:
 		Game.sim.inventory.create(Game.sim.config.strain.id, 100).packed = true
-	level.hud.computer.dispatch(order.id, Couriers.JACK)
+	await wait_process_frames(2)
+	assert_true(desk.screen_glow.visible, "boxes ready: the computer glows")
+	desk.interact(level)
+	assert_true(level.hud.computer.visible)
+	assert_eq(level.hud.computer.current_tab(), ComputerScreen.TAB_ORDERS)
+	level.hud.computer.dispatch(order.id, Helper.ACTOR)
 	assert_eq(order.status, Order.Status.IN_TRANSIT)
+	await wait_process_frames(2)
+	assert_true(level.jack.visible, "Jack stays on the farm")
+	assert_false((level.get_node("Helper") as WorkerView).visible, "the helper is on the road")
+
+
+func _phone_buttons(level: Level, prefix: String) -> Array[Button]:
+	var found: Array[Button] = []
+	for node: Node in level.hud.phone.find_children("*", "Button", true, false):
+		var button := node as Button
+		if button.text.begins_with(prefix):
+			found.append(button)
+	return found
+
+
+func test_phone_people_hire_and_shop_restock() -> void:
+	var level := await _open(PLANTATION_SCENE)
+	level.hud.phone.open(Phone.TAB_PEOPLE)
+	assert_eq(level.hud.phone.current_tab(), Phone.TAB_PEOPLE)
+	var hires := _phone_buttons(level, "Нанять")
+	assert_eq(hires.size(), Game.sim.config.candidates().size() + Game.sim.config.packer_candidates.size())
+	level.hud.phone.hire("dave")
+	level.hud.phone.hire("gladys")
+	assert_eq(Game.sim.workers.definition().id, "dave")
+	assert_true(Game.sim.packer.hired)
+	assert_eq(_phone_buttons(level, "Уволить").size(), 2)
+	assert_eq(_phone_buttons(level, "Место занято").size(), Game.sim.config.candidates().size() - 1)
+	assert_gt(_phone_buttons(level, "Учить").size(), 0, "the helper's courses are listed")
 	await wait_physics_frames(2)
-	assert_false(level.jack.visible, "Jack is away delivering")
+	assert_true((level.get_node("Packer") as WorkerView).visible, "the packer comes down to the bench")
+	level.hud.phone.fire("gladys")
+	assert_false(Game.sim.packer.hired)
+	Game.sim.economy.earn(1000)
+	level.hud.phone.refresh()
+	var restock := _phone_buttons(level, "Пополнить запас")
+	assert_eq(restock.size(), 1)
+	restock[0].pressed.emit()
+	assert_false(Game.sim.supplies.pending_deliveries().is_empty())
+	assert_eq(_phone_buttons(level, "Запас полный").size(), 1)
+
+
+func test_dispatch_buttons_need_matching_packed_boxes() -> void:
+	var level := await _open(PLANTATION_SCENE)
+	var order := _accept_first_call()
+	for index: int in order.quantity:
+		Game.sim.inventory.create(Game.sim.config.strain.id, order.min_quality - 1).packed = true
+		Game.sim.inventory.create(Game.sim.config.strain.id, 100)
+	level.hud.open_computer()
+	var buttons := level.hud.computer.dispatch_buttons(order.id)
+	assert_gt(buttons.size(), 0)
+	for button: Button in buttons:
+		assert_true(button.disabled, "%s must be disabled without the right boxes" % button.text)
+	assert_false(buttons.any(func(button: Button) -> bool: return button.text.contains("Отвезти самому")), "Jack does not drive")
+	for index: int in order.quantity:
+		Game.sim.inventory.create(Game.sim.config.strain.id, order.min_quality).packed = true
+	level.hud.computer.refresh()
+	buttons = level.hud.computer.dispatch_buttons(order.id)
+	assert_false(buttons[0].disabled, "the helper can take it now")
+	buttons[0].pressed.emit()
+	assert_eq(order.status, Order.Status.IN_TRANSIT)
 
 
 func test_bench_packs_the_harvest_onto_the_shelf() -> void:

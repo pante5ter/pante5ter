@@ -10,7 +10,7 @@ var _funded: BalanceConfig
 
 func before_all() -> void:
 	_balance = load(BALANCE_PATH) as BalanceConfig
-	_funded = _calm(_balance_with_money(_balance.worker.daily_wage * PREPAID_DAYS))
+	_funded = _without_helper(_calm(_balance_with_money(_balance.worker.daily_wage * PREPAID_DAYS)))
 
 
 func _calm(balance: BalanceConfig) -> BalanceConfig:
@@ -22,6 +22,13 @@ func _calm(balance: BalanceConfig) -> BalanceConfig:
 	calm.suspicion = balance.suspicion.duplicate() as SuspicionDef
 	calm.suspicion.inspection_threshold = SuspicionDef.new().inspection_threshold + 1.0
 	return calm
+
+
+## The farmhand alone: the helper's own care, wage and plots stay out of the sums.
+func _without_helper(balance: BalanceConfig) -> BalanceConfig:
+	var alone := balance.duplicate() as BalanceConfig
+	alone.helper = null
+	return alone
 
 
 func _balance_with_money(money: int) -> BalanceConfig:
@@ -93,7 +100,7 @@ func test_cannot_hire_twice() -> void:
 
 
 func test_cannot_hire_without_money() -> void:
-	var state := SimState.new(_balance_with_money(_balance.worker.daily_wage - 1), 1)
+	var state := SimState.new(_without_helper(_balance_with_money(_balance.worker.daily_wage - 1)), 1)
 	var before := state.to_json()
 	assert_eq(state.apply(HireWorkerCommand.new()).error, CommandResult.NOT_ENOUGH_MONEY)
 	assert_false(state.workers.hired)
@@ -138,7 +145,7 @@ func test_worker_is_paid_every_game_day() -> void:
 
 
 func test_worker_quits_when_wage_cannot_be_paid() -> void:
-	var state := SimState.new(_balance_with_money(_balance.worker.daily_wage), 1)
+	var state := SimState.new(_without_helper(_balance_with_money(_balance.worker.daily_wage)), 1)
 	state.apply(HireWorkerCommand.new())
 	_advance_hours(state, 25.0, 1.0)
 	assert_false(state.workers.hired)
@@ -205,7 +212,7 @@ func test_thirty_days_with_a_worker_stay_profitable_and_bounded() -> void:
 		state.apply(PackCommand.new())
 		for order: Order in state.orders.with_status(Order.Status.ACCEPTED):
 			if state.orders.can_fill(order):
-				state.apply(DispatchCommand.new(order.id, Couriers.JACK))
+				state.apply(DispatchCommand.new(order.id, Helper.ACTOR))
 	var profit_per_day := float(state.economy.money - _balance.starting_money) / 30.0
 	gut.p("worker economy: %.0f per game day, %d events in 30 days" % [profit_per_day, state.event_log.size()])
 	assert_true(state.workers.hired, "worker must not quit while the farm pays him")

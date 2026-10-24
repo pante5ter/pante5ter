@@ -3,7 +3,7 @@ extends RefCounted
 
 const ACTOR: String = "worker"
 
-enum Task { NONE, PLANT, WATER, HARVEST }
+enum Task { NONE, PLANT, WATER, HARVEST, PRUNE, FERTILIZE, TREAT, PACK }
 
 var hired: bool = false
 var task: Task = Task.NONE
@@ -20,6 +20,8 @@ var _config: BalanceConfig = null
 var _rng: SimRng = null
 var _inventory: Inventory = null
 var _suspicion: Suspicion = null
+## Set by SimState: the helper's plot is left to him.
+var helper: Helper = null
 
 
 func _init(def: WorkerDef, grow: Grow, economy: Economy, event_log: EventLog) -> void:
@@ -57,6 +59,7 @@ func hire(now: float, actor: String, worker_id: String = "") -> CommandResult:
 	next_wage_at = now + SimClock.GAME_SECONDS_PER_DAY
 	_event_log.record(EventLog.WORKER_HIRED, now, PackedStringArray([actor, ACTOR]), {
 		"worker_id": _def.id,
+		"role": WorkerDef.FARMHAND,
 		"wage": _def.daily_wage,
 		"money": _economy.money,
 	})
@@ -101,6 +104,7 @@ func _pay_wage(now: float) -> void:
 		if _suspicion != null:
 			_suspicion.add(_def.talkativeness)
 		_event_log.record(EventLog.WORKER_PAID, now, PackedStringArray([ACTOR]), {
+			"worker_id": _def.id,
 			"wage": _def.daily_wage,
 			"money": _economy.money,
 		})
@@ -108,6 +112,7 @@ func _pay_wage(now: float) -> void:
 	hired = false
 	_clear_task()
 	_event_log.record(EventLog.WORKER_QUIT, now, PackedStringArray([ACTOR]), {
+		"worker_id": _def.id,
 		"reason": "unpaid",
 		"money": _economy.money,
 	})
@@ -139,14 +144,14 @@ func _harvest(now: float) -> void:
 
 
 func _start_next_task(now: float) -> void:
-	var target := _pick_plot_for(Task.HARVEST)
-	var chosen := Task.HARVEST
-	if target == null:
-		target = _pick_plot_for(Task.WATER)
-		chosen = Task.WATER
-	if target == null:
-		target = _pick_plot_for(Task.PLANT)
-		chosen = Task.PLANT
+	var busy_plot := helper.task_plot_id if helper != null else -1
+	var chosen := Task.NONE
+	var target: Plot = null
+	for kind: Task in CARE_ORDER:
+		target = pick_plot(_grow, kind, _def.water_below_hours, busy_plot)
+		if target != null:
+			chosen = kind
+			break
 	if target == null:
 		next_check_at = now + _def.idle_check_minutes * 60.0
 		return
@@ -159,24 +164,36 @@ func _start_next_task(now: float) -> void:
 	})
 
 
-func _pick_plot_for(kind: Task) -> Plot:
+const CARE_ORDER: Array[Task] = [Task.HARVEST, Task.WATER, Task.PLANT]
+
+
+## The plot most in need of this care, skipping the one someone else is on.
+static func pick_plot(grow: Grow, kind: Task, water_below_hours: float, skip_plot_id: int = -1, can_do: Callable = Callable()) -> Plot:
 	var best: Plot = null
-	for candidate: Plot in _grow.plots():
-		if not _needs(candidate, kind):
+	for candidate: Plot in grow.plots():
+		if candidate.id == skip_plot_id or not needs(candidate, kind, water_below_hours):
+			continue
+		if can_do.is_valid() and not bool(can_do.call(kind, candidate)):
 			continue
 		if best == null or (kind == Task.WATER and candidate.water_seconds < best.water_seconds):
 			best = candidate
 	return best
 
 
-func _needs(target: Plot, kind: Task) -> bool:
+static func needs(target: Plot, kind: Task, water_below_hours: float) -> bool:
 	match kind:
 		Task.HARVEST:
 			return target.stage == Plot.Stage.READY
 		Task.WATER:
-			return target.is_growing() and target.problem.is_empty() and target.water_seconds < _def.water_below_hours * SimClock.GAME_SECONDS_PER_HOUR
+			return target.is_growing() and target.problem.is_empty() and target.water_seconds < water_below_hours * SimClock.GAME_SECONDS_PER_HOUR
 		Task.PLANT:
 			return target.stage == Plot.Stage.EMPTY
+		Task.PRUNE:
+			return target.stage == Plot.Stage.BUSH and not target.pruned and target.problem.is_empty()
+		Task.FERTILIZE:
+			return target.is_growing() and not target.fertilized and target.problem.is_empty()
+		Task.TREAT:
+			return not target.problem.is_empty()
 	return false
 
 

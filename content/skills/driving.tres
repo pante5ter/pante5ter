@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="SkillDef" format=3]
+
+[ext_resource type="Script" path="res://content/defs/skill_def.gd" id="1_skill"]
+
+[resource]
+script = ExtResource("1_skill")
+id = "driving"
+display_name = "Аккуратное вождение"
+description = "Ездит как пенсионер с котом в салоне: риск в дороге в 2,5 раза ниже."
+kind = "driving"
+price = 500
+train_hours = 6.0
+trip_risk_factor = 0.4

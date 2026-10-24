@@ -19,6 +19,10 @@ const TASK_VERBS: Dictionary[Workers.Task, String] = {
 	Workers.Task.PLANT: "сажает",
 	Workers.Task.WATER: "поливает",
 	Workers.Task.HARVEST: "собирает урожай",
+	Workers.Task.PRUNE: "обрезает куст",
+	Workers.Task.FERTILIZE: "удобряет",
+	Workers.Task.TREAT: "лечит грядку",
+	Workers.Task.PACK: "фасует урожай",
 }
 
 const ERRORS: Dictionary[String, String] = {
@@ -54,6 +58,9 @@ const ERRORS: Dictionary[String, String] = {
 	CommandResult.NOTHING_TO_PACK: "Фасовать нечего — сначала собери урожай.",
 	CommandResult.NO_PARCEL: "Посылок нет.",
 	CommandResult.EVICTED: "Лорд Эшкомб расторг аренду. Поле больше не ваше, мистер Кэллоуэй.",
+	CommandResult.UNKNOWN_SKILL: "Такому не учат.",
+	CommandResult.HELPER_AWAY: "Помощника сейчас нет на ферме — он в дороге или на курсах.",
+	CommandResult.NOTHING_TO_RESTOCK: "Запас и так полный.",
 }
 
 
@@ -120,14 +127,16 @@ static func stock(sim: SimState) -> String:
 	var text := "Товар: %d коробок на полке" % packed
 	if loose > 0:
 		text += ", %d нефасованных" % loose
-	if not sim.couriers.is_free(Couriers.JACK, sim.clock.elapsed_game_seconds):
-		text += "\nДжек в дороге с заказом"
+	if sim.helper.exists() and not sim.helper.present():
+		text += "\n" + PeopleText.helper_status(sim)
 	return text
 
 
 static func courier_name(courier_id: String, sim: SimState) -> String:
 	if courier_id == Couriers.JACK:
-		return "Джек"
+		return JACK
+	if courier_id == Helper.ACTOR and sim.helper.exists():
+		return sim.helper.definition().display_name
 	var courier := sim.config.find_courier(courier_id)
 	return courier.display_name if courier != null else courier_id
 
@@ -186,7 +195,7 @@ static func objective(sim: SimState) -> String:
 		if not plot.problem.is_empty():
 			return "Грядка %d: %s. Само не пройдёт — вылечите её на плантации, пока урожай цел." % [plot_number(plot.id), problem(plot.problem)]
 	if not sim.orders.with_status(Order.Status.OFFERED).is_empty():
-		return "Звонит клиент. Ответьте на компьютере на плантации — дважды они не звонят."
+		return "Звонит клиент. Ответьте по телефону (Tab, «Звонки») — дважды они не звонят."
 	if any_ready:
 		return "Созрело, мистер Кэллоуэй. Соберите урожай на плантации."
 	if sim.inventory.count() > 0:
@@ -196,7 +205,7 @@ static func objective(sim: SimState) -> String:
 	if not any_planted:
 		return "Погреб пока пустой. Спуститесь через контейнер на плантацию и посадите семена."
 	if not sim.workers.hired and sim.economy.money >= sim.workers.definition().daily_wage:
-		return "Двух рук на ферму мало. Наймите работника у дороги — он сам займётся грядками."
+		return "Двух рук на ферму мало. Наймите работника в телефоне (Tab, «Люди») — он сам займётся грядками."
 	return "Терпение. А пока закажите семена и удобрения в телефоне (Tab), обрежьте кусты."
 
 
@@ -206,23 +215,53 @@ static func _selling_objective(sim: SimState) -> String:
 	var accepted := sim.orders.with_status(Order.Status.ACCEPTED)
 	for order: Order in accepted:
 		if sim.orders.can_fill(order):
-			return "Заказ готов. На компьютере отправьте курьера или отвезите сами."
+			return "Заказ готов. На компьютере отправьте %s или курьера." % _driver_name(sim)
 	if accepted.is_empty():
-		return "Товар на полке. Теперь ждём звонков — клиенты звонят на компьютер на плантации."
+		return "Товар на полке. Теперь ждём звонков — клиенты звонят на телефон."
 	return "Клиент хочет лучше, чем у нас есть. Удобряйте и обрезайте кусты на плантации."
 
 
+static func _driver_name(sim: SimState) -> String:
+	return sim.helper.definition().display_name if sim.helper.exists() else "курьера"
+
+
+static func _person(event: SimEvent, sim: SimState) -> WorkerDef:
+	var worker_id := String(event.data.get("worker_id", ""))
+	if sim.helper.exists() and worker_id == sim.helper.definition().id:
+		return sim.helper.definition()
+	var packer := sim.config.find_packer(worker_id)
+	if packer != null:
+		return packer
+	var farmhand := sim.config.find_worker(worker_id)
+	return farmhand if farmhand != null else sim.workers.definition()
+
+
 static func announcement(event: SimEvent, sim: SimState) -> String:
-	var worker := sim.workers.definition()
+	var worker := _person(event, sim)
 	match event.type:
 		EventLog.WORKER_QUIT:
-			return "%s ушёл: платить было нечем, а бесплатно он работать отказался. Принципиальный." % worker.display_name
+			return "%s %s: платить было нечем, а бесплатно работать — не по правилам. Принципиальн%s." % [worker.display_name, PeopleText.left_word(worker), "ый" if worker.male else "ая"]
 		EventLog.WORKER_PAID:
 			return "Зарплата %s: %s." % [worker.display_name, money(int(event.data["wage"]))]
+		EventLog.HELPER_UNPAID:
+			return "%s остался без зарплаты. Промолчал, но запомнил: долг %s." % [worker.display_name, money(int(event.data["debt"]))]
+		EventLog.HELPER_TRAINING_STARTED:
+			var course := sim.config.find_skill(String(event.data["skill_id"]))
+			return "%s уехал на курсы «%s». Ферма пока без него." % [_driver_name(sim), course.display_name if course != null else "?"]
+		EventLog.HELPER_SKILL_LEARNED:
+			var learned := sim.config.find_skill(String(event.data["skill_id"]))
+			return "%s вернулся с курсов: «%s» теперь на нём." % [_driver_name(sim), learned.display_name if learned != null else "?"]
+		EventLog.HELPER_SAVED:
+			if String(event.data["kind"]) == Helper.SAVED_LIGHTS:
+				return "%s сам выключил свет и вентиляцию — проверка вот-вот. Включит, когда уедут." % _driver_name(sim)
+			return "%s вышел к гопникам сам. Разговор был короткий, гопники ушли." % _driver_name(sim)
+		EventLog.PLOT_TREATED:
+			if event.actors.has(Helper.ACTOR):
+				return "%s вылечил грядку %d: %s — больше не проблема." % [_driver_name(sim), plot_number(int(event.data["plot_id"])), problem(String(event.data["problem"]))]
 		EventLog.PLOT_DRIED_OUT:
 			return "Грядка %d пересохла — рост остановился." % plot_number(int(event.data["plot_id"]))
 		EventLog.ORDER_RECEIVED:
-			return "Звонок: нужно %d шт., качество %d+, %s. Ответьте на компьютере." % [int(event.data["quantity"]), int(event.data["min_quality"]), money(int(event.data["reward"]))]
+			return "Звонит клиент: нужно %d шт., качество %d+, %s. Ответьте по телефону (Tab)." % [int(event.data["quantity"]), int(event.data["min_quality"]), money(int(event.data["reward"]))]
 		EventLog.ORDER_MISSED:
 			return "Клиент не дождался ответа и повесил трубку. Второй раз он вряд ли позвонит."
 		EventLog.ORDER_HAGGLED:
@@ -235,7 +274,7 @@ static func announcement(event: SimEvent, sim: SimState) -> String:
 		EventLog.ORDER_EXPIRED:
 			return "Заказ #%d сгорел — не успели." % int(event.data["order_id"])
 		EventLog.DELIVERY_STOPPED:
-			return "Курьера остановили по дороге. Товар потерян, о ферме пошли разговоры. Неприятно."
+			return "%s остановили по дороге. Товар потерян, о ферме пошли разговоры. Неприятно." % courier_name(String(event.data["courier_id"]), sim)
 		EventLog.COURIER_STOLE:
 			return "Курьер %s исчез вместе с товаром. Открытки, полагаю, не будет." % courier_name(String(event.data["courier_id"]), sim)
 		EventLog.PACKING_DONE:
@@ -250,6 +289,8 @@ static func announcement(event: SimEvent, sim: SimState) -> String:
 		EventLog.WORKER_STOLE:
 			return "С грядки %d пропал урожай. Сам он уйти не мог." % plot_number(int(event.data["plot_id"]))
 		EventLog.INSPECTION_WARNED:
+			if sim.helper.exists():
+				return "Сосед проявил бдительность — скоро проверка. На компьютере выключите свет, или %s сделает это сам в последний момент." % _driver_name(sim)
 			return "Сосед проявил бдительность — скоро проверка. На компьютере выключите свет и придержите курьеров."
 		EventLog.INSPECTION_PASSED:
 			return "Проверяющий потоптался у контейнера и уехал ни с чем. Приятный человек."
@@ -308,6 +349,10 @@ static func _raid_outcome(outcome: String) -> String:
 			return "Гопников прогнали. Тихо, правда, не получилось."
 		"chase_failed":
 			return "Прогнать не вышло — гопники обчистили всё. Уходили не спеша."
+		"helper_chased":
+			return "Гопники ушли. Помощник даже не повысил голос."
+		"helper_failed":
+			return "Помощник вышел к гопникам один против толпы. Товар унесли, сам цел."
 	return "Гопники обчистили всё, пока никого не было. Без свидетелей им было удобно."
 
 

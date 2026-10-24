@@ -1,8 +1,11 @@
 class_name SimState
 extends RefCounted
 
-const SAVE_VERSION: int = 7
-const REQUIRED_SAVE_KEYS: Array[String] = ["save_version", "clock", "rng", "economy", "inventory", "plots", "workers", "supplies", "orders", "progress", "problems", "suspicion", "raids", "couriers", "packing", "rent", "event_log"]
+const SAVE_VERSION: int = 8
+## v7 saves load too: they get a fresh helper and no packer.
+const MIGRATABLE_VERSION: int = 7
+const V7_SAVE_KEYS: Array[String] = ["save_version", "clock", "rng", "economy", "inventory", "plots", "workers", "supplies", "orders", "progress", "problems", "suspicion", "raids", "couriers", "packing", "rent", "event_log"]
+const V8_SAVE_KEYS: Array[String] = ["helper", "packer"]
 
 var config: BalanceConfig
 var clock: SimClock
@@ -21,6 +24,8 @@ var raids: Raids
 var couriers: Couriers
 var packing: Packing
 var rent: Rent
+var helper: Helper
+var packer: Packer
 
 
 func _init(balance: BalanceConfig, seed_value: int) -> void:
@@ -45,6 +50,13 @@ func _init(balance: BalanceConfig, seed_value: int) -> void:
 	problems = Problems.new(balance.problems, grow, supplies, rng, event_log)
 	raids = Raids.new(balance.raids, rng, inventory, economy, orders, workers, suspicion, event_log, empire_value)
 	rent = Rent.new(balance.rent, economy, suspicion, event_log)
+	packer = Packer.new(balance, packing, economy, suspicion, event_log)
+	helper = Helper.new(balance, grow, supplies, packing, economy, suspicion, event_log)
+	helper.farmhand = workers
+	helper.packer = packer
+	workers.helper = helper
+	couriers.attach_helper(helper)
+	raids.attach_helper(helper)
 	progress.update(empire_value(), clock.elapsed_game_seconds)
 
 
@@ -83,7 +95,10 @@ func _apply(command: SimCommand) -> CommandResult:
 	if command is SellCommand:
 		return economy.sell((command as SellCommand).product_id, now, command.actor)
 	if command is HireWorkerCommand:
-		return workers.hire(now, command.actor, (command as HireWorkerCommand).worker_id)
+		var hire := command as HireWorkerCommand
+		if config.find_packer(hire.worker_id) != null:
+			return packer.hire(hire.worker_id, now, command.actor)
+		return workers.hire(now, command.actor, hire.worker_id)
 	if command is TreatCommand:
 		return problems.treat((command as TreatCommand).plot_id, now, command.actor)
 	if command is LieLowCommand:
@@ -105,7 +120,17 @@ func _apply(command: SimCommand) -> CommandResult:
 	if command is RaidCommand:
 		return raids.respond((command as RaidCommand).choice, now, command.actor)
 	if command is FireWorkerCommand:
+		var fire := command as FireWorkerCommand
+		if config.find_packer(fire.worker_id) != null:
+			return packer.fire(now, command.actor)
 		return workers.fire(now, command.actor)
+	if command is LearnSkillCommand:
+		return helper.learn((command as LearnSkillCommand).skill_id, now, command.actor)
+	if command is RestockCommand:
+		return supplies.restock(now, command.actor)
+	if command is SetAutoReorderCommand:
+		var rule := command as SetAutoReorderCommand
+		return supplies.set_auto_reorder(rule.item, rule.keep, now, command.actor)
 	if command is BuyCommand:
 		var buy := command as BuyCommand
 		return supplies.buy(buy.item, buy.quantity, now, command.actor)
@@ -133,6 +158,7 @@ func _next_event_time() -> float:
 	next = minf(next, minf(problems.next_event_time(), suspicion.next_event_time()))
 	next = minf(next, minf(couriers.next_event_time(), packing.next_event_time()))
 	next = minf(next, rent.next_event_time())
+	next = minf(next, minf(helper.next_event_time(), packer.next_event_time()))
 	return minf(next, raids.next_event_time())
 
 
@@ -145,6 +171,8 @@ func _process_events(now: float) -> void:
 	raids.process(now)
 	suspicion.process(now)
 	workers.process(now)
+	helper.process(now)
+	packer.process(now)
 	rent.process(now)
 
 
@@ -192,6 +220,8 @@ func to_dict() -> Dictionary:
 		"couriers": couriers.to_dict(),
 		"packing": packing.to_dict(),
 		"rent": rent.to_dict(),
+		"helper": helper.to_dict(),
+		"packer": packer.to_dict(),
 		"event_log": event_log.to_array(),
 	}
 
@@ -205,10 +235,17 @@ static func from_json(text: String, balance: BalanceConfig) -> SimState:
 	if json.parse(text) != OK or not json.data is Dictionary:
 		return null
 	var data := json.data as Dictionary
-	if not data.has_all(REQUIRED_SAVE_KEYS) or int(data["save_version"]) != SAVE_VERSION:
+	if not data.has_all(V7_SAVE_KEYS):
+		return null
+	var version := int(data["save_version"])
+	if version != SAVE_VERSION and version != MIGRATABLE_VERSION:
+		return null
+	if version == SAVE_VERSION and not data.has_all(V8_SAVE_KEYS):
 		return null
 	var state := SimState.new(balance, 0)
 	state._load_dict(data)
+	if version == MIGRATABLE_VERSION:
+		state.helper.start_at(state.clock.elapsed_game_seconds)
 	if is_nan(state.clock.elapsed_game_seconds):
 		return null
 	return state
@@ -230,4 +267,8 @@ func _load_dict(data: Dictionary) -> void:
 	couriers.load_dict(data["couriers"] as Dictionary)
 	packing.load_dict(data["packing"] as Dictionary)
 	rent.load_dict(data["rent"] as Dictionary)
+	if data.has("helper"):
+		helper.load_dict(data["helper"] as Dictionary)
+	if data.has("packer"):
+		packer.load_dict(data["packer"] as Dictionary)
 	event_log.load_array(data["event_log"] as Array)

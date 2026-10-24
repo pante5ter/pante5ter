@@ -19,6 +19,14 @@
 [ext_resource type="Resource" path="res://content/couriers/frank.tres" id="17_frank"]
 [ext_resource type="Resource" path="res://content/couriers/pete.tres" id="18_pete"]
 [ext_resource type="Resource" path="res://content/rent.tres" id="19_rent"]
+[ext_resource type="Resource" path="res://content/workers/reggie_helper.tres" id="20_reggie"]
+[ext_resource type="Resource" path="res://content/workers/gladys_packer.tres" id="21_gladys"]
+[ext_resource type="Script" path="res://content/defs/skill_def.gd" id="22_skill_def"]
+[ext_resource type="Resource" path="res://content/skills/care.tres" id="23_care"]
+[ext_resource type="Resource" path="res://content/skills/prune.tres" id="24_prune"]
+[ext_resource type="Resource" path="res://content/skills/fertilize.tres" id="25_fertilize"]
+[ext_resource type="Resource" path="res://content/skills/pack.tres" id="26_pack"]
+[ext_resource type="Resource" path="res://content/skills/driving.tres" id="27_driving"]
 
 [sub_resource type="Resource" id="Resource_milestone_1"]
 script = ExtResource("14_milestone_def")
@@ -52,6 +60,9 @@ extra_strains = Array[ExtResource("7_strain_def")]([ExtResource("4_classic"), Ex
 worker = ExtResource("3_worker")
 worker_candidates = Array[ExtResource("8_worker_def")]([ExtResource("3_worker"), ExtResource("9_dave"), ExtResource("10_barry")])
 courier_candidates = Array[ExtResource("15_courier_def")]([ExtResource("16_harry"), ExtResource("17_frank"), ExtResource("18_pete")])
+helper = ExtResource("20_reggie")
+skills = Array[ExtResource("22_skill_def")]([ExtResource("23_care"), ExtResource("24_prune"), ExtResource("25_fertilize"), ExtResource("26_pack"), ExtResource("27_driving")])
+packer_candidates = Array[ExtResource("8_worker_def")]([ExtResource("21_gladys")])
 max_couriers = 2
 orders = ExtResource("6_orders")
 problems = ExtResource("11_problems")
@@ -66,3 +77,11 @@ delivery_hours = 1.5
 plot_price = 400
 starting_plot_cap = 8
 max_plots = 12
+restock_basket = Dictionary[String, int]({
+"fertilizer": 4,
+"lamp": 1,
+"pesticide": 1,
+"seed:classic": 3
+})
+auto_reorder_check_hours = 1.0
+helper_lights_out_hours = 0.5
