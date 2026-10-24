@@ -29,6 +29,7 @@
 [ext_resource type="Resource" path="res://content/skills/driving.tres" id="27_driving"]
 [ext_resource type="Resource" path="res://content/first_day.tres" id="28_first_day"]
 [ext_resource type="Resource" path="res://content/director.tres" id="29_director"]
+[ext_resource type="Resource" path="res://content/intrigue.tres" id="30_intrigue"]
 
 [sub_resource type="Resource" id="Resource_milestone_1"]
 script = ExtResource("14_milestone_def")
@@ -74,6 +75,7 @@ rent = ExtResource("19_rent")
 milestones = Array[ExtResource("14_milestone_def")]([SubResource("Resource_milestone_1"), SubResource("Resource_milestone_2"), SubResource("Resource_milestone_3")])
 first_day = ExtResource("28_first_day")
 director = ExtResource("29_director")
+intrigue = ExtResource("30_intrigue")
 fertilizer_price = 15
 fertilizer_bonus = 12
 prune_bonus = 8

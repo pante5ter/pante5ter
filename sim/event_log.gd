@@ -56,6 +56,10 @@ const STORY_STARTED: String = "story_started"
 const STORY_RESOLVED: String = "story_resolved"
 const DIRECTOR_EVENT: String = "director_event"
 const FIRST_DAY_STEP: String = "first_day_step"
+const INTRIGUE_STARTED: String = "intrigue_started"
+const INTRIGUE_STEP: String = "intrigue_step"
+const INTRIGUE_CLUE: String = "intrigue_clue"
+const INTRIGUE_RESOLVED: String = "intrigue_resolved"
 
 var _entries: Array[SimEvent] = []
 

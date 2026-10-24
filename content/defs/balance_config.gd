@@ -23,6 +23,8 @@ extends Resource
 ## null plays without the first-day script / without the event director.
 @export var first_day: FirstDayDef
 @export var director: DirectorDef
+## null plays without the rat hunt after the first raid.
+@export var intrigue: IntrigueDef
 
 @export_group("Care")
 @export var fertilizer_price: int = 0

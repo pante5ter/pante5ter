@@ -1,0 +1,126 @@
+[gd_resource type="Resource" script_class="IntrigueDef" format=3]
+
+[ext_resource type="Script" path="res://content/defs/intrigue_def.gd" id="1_intrigue"]
+[ext_resource type="Script" path="res://content/defs/suspect_def.gd" id="2_suspect"]
+[ext_resource type="Script" path="res://content/defs/dialogue_line_def.gd" id="3_line"]
+[ext_resource type="Resource" path="res://content/stories/raid_clip.tres" id="4_opening"]
+
+[sub_resource type="Resource" id="Line_1"]
+script = ExtResource("3_line")
+speaker = ""
+text = "Пит долго смотрел в пол. Потом выложил всё: кто звонил, сколько заплатили, что сказал про стеллаж."
+
+[sub_resource type="Resource" id="Line_2"]
+script = ExtResource("3_line")
+speaker = "Финн"
+text = "Если Пит у нас работал — больше не работает. «Зубы» остались без наводчика, на неделю станет тише."
+
+[sub_resource type="Resource" id="Line_3"]
+script = ExtResource("3_line")
+speaker = ""
+text = "Пит побелел, потом покраснел, потом ушёл, хлопнув дверью."
+
+[sub_resource type="Resource" id="Line_4"]
+script = ExtResource("3_line")
+speaker = "Финн"
+text = "Пит ни при чём, мистер Кэллоуэй. А тот, кто нас сдал, сегодня спит спокойно — и, похоже, снова звонит своим."
+
+[sub_resource type="Resource" id="Suspect_1"]
+script = ExtResource("2_suspect")
+id = "pete"
+display_name = "Пит"
+courier_id = "pete"
+alibi_clue = "Пит в ночь налёта сидел в участке в Сайренсестере за неоплаченные штрафы. Алиби железное, хоть и позорное."
+guilty_clues = PackedStringArray("У Пита новенький телефон за девятьсот фунтов. При его-то ставке курьера.", "Пит дважды спрашивал Реджи, во сколько тот запирает контейнер. Говорил — из любопытства.")
+accuse_label = "Это Пит, курьер"
+guilty_reply = Array[ExtResource("3_line")]([SubResource("Line_1"), SubResource("Line_2")])
+innocent_reply = Array[ExtResource("3_line")]([SubResource("Line_3"), SubResource("Line_4")])
+
+[sub_resource type="Resource" id="Line_5"]
+script = ExtResource("3_line")
+speaker = "Реджи"
+text = "Лиам. Родная кровь. Я с ним поговорил, мистер Кэллоуэй. В Лондон он теперь не скоро соберётся."
+
+[sub_resource type="Resource" id="Line_6"]
+script = ExtResource("3_line")
+speaker = "Финн"
+text = "Без наводчика «Зубам» здесь делать нечего. Реджи, сочувствую."
+
+[sub_resource type="Resource" id="Line_7"]
+script = ExtResource("3_line")
+speaker = "Реджи"
+text = "Лиам был в Уэльсе, мистер Кэллоуэй. Я это знал. Вы, выходит, тоже могли знать."
+
+[sub_resource type="Resource" id="Line_8"]
+script = ExtResource("3_line")
+speaker = "Финн"
+text = "Реджи это запомнит. А настоящая крыса — нет, ей запоминать нечего."
+
+[sub_resource type="Resource" id="Suspect_2"]
+script = ExtResource("2_suspect")
+id = "liam"
+display_name = "Лиам"
+courier_id = ""
+alibi_clue = "Лиам в ту ночь был у тётки в Уэльсе. Тётка прислала фото: Лиам, овцы, полное отчаяние."
+guilty_clues = PackedStringArray("Лиам задолжал букмекеру из Хакни. Тому самому, что держит зал, где тренируются «Молочные зубы».", "В клипе «Зубов» мелькает кепка с эмблемой паба «Плуг», где Лиам моет посуду.")
+accuse_label = "Это Лиам, кузен Реджи"
+guilty_reply = Array[ExtResource("3_line")]([SubResource("Line_5"), SubResource("Line_6")])
+innocent_reply = Array[ExtResource("3_line")]([SubResource("Line_7"), SubResource("Line_8")])
+
+[sub_resource type="Resource" id="Line_9"]
+script = ExtResource("3_line")
+speaker = "Фермер Хоббс"
+text = "Ладно, ладно! Подошли в пабе, спросили про контейнер, дали денег. Я думал, они просто глянуть…"
+
+[sub_resource type="Resource" id="Line_10"]
+script = ExtResource("3_line")
+speaker = "Финн"
+text = "Хоббс будет молчать — теперь ему есть что терять. «Зубам» больше не к кому идти."
+
+[sub_resource type="Resource" id="Line_11"]
+script = ExtResource("3_line")
+speaker = "Фермер Хоббс"
+text = "Я? Да я ночью свинье помогал, мистер! Вся деревня теперь будет знать, как вы со мной."
+
+[sub_resource type="Resource" id="Line_12"]
+script = ExtResource("3_line")
+speaker = "Финн"
+text = "Деревня узнает. А крыса — посмеётся."
+
+[sub_resource type="Resource" id="Suspect_3"]
+script = ExtResource("2_suspect")
+id = "hobbs"
+display_name = "фермер Хоббс"
+courier_id = ""
+alibi_clue = "Хоббс в ночь налёта принимал роды у свиноматки. Ветеринар подтверждает — к сожалению, в подробностях."
+guilty_clues = PackedStringArray("Хоббс купил новый трактор. За наличные. Свиньи столько не приносят.", "Хоббс как-то сказал в пабе: «Я-то знаю, что у Кэллоуэя в контейнере». Тогда все посмеялись.")
+accuse_label = "Это фермер Хоббс"
+guilty_reply = Array[ExtResource("3_line")]([SubResource("Line_9"), SubResource("Line_10")])
+innocent_reply = Array[ExtResource("3_line")]([SubResource("Line_11"), SubResource("Line_12")])
+
+[sub_resource type="Resource" id="Line_13"]
+script = ExtResource("3_line")
+speaker = ""
+text = "Вечер. Финн раскладывает на столе всё, что удалось узнать."
+
+[sub_resource type="Resource" id="Line_14"]
+script = ExtResource("3_line")
+speaker = "Финн"
+text = "Пора решать, мистер Кэллоуэй. Вот что у нас есть."
+
+[resource]
+script = ExtResource("1_intrigue")
+opening_story = ExtResource("4_opening")
+suspects = Array[ExtResource("2_suspect")]([SubResource("Suspect_1"), SubResource("Suspect_2"), SubResource("Suspect_3")])
+clue_interval_hours = 5.0
+accuse_lines = Array[ExtResource("3_line")]([SubResource("Line_13"), SubResource("Line_14")])
+finn_speaker = "Финн"
+boss_speaker = "Гаффер"
+boss_name_line = "Как обещал. Ваш болтун — %s. Дальше без меня."
+caught_calm_days = 5.0
+paid_calm_days = 2.0
+retaliated_calm_days = 4.0
+caught_relief = 10.0
+caught_crew = 1
+wrong_suspicion = 5.0
+wrong_village = -2

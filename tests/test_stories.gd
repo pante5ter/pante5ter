@@ -40,7 +40,8 @@ func test_every_story_is_a_two_way_choice_with_answers() -> void:
 	assert_gte(stories.size(), 7, "five or six village stories, the lord's and the first-day call")
 	for story: StoryDef in stories:
 		assert_false(story.lines.is_empty(), "%s has lines" % story.id)
-		assert_eq(story.choices.size(), 2, "%s offers two options" % story.id)
+		var options := 3 if story.kind == StoryDef.SCRIPT else 2
+		assert_between(story.choices.size(), 2, options, "%s offers two options (three for a script beat)" % story.id)
 		for choice: StoryChoiceDef in story.choices:
 			assert_false(choice.label.is_empty())
 			assert_false(choice.reply.is_empty(), "%s / %s has a reply" % [story.id, choice.label])

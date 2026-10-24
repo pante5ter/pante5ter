@@ -1,14 +1,17 @@
 class_name SimState
 extends RefCounted
 
-const SAVE_VERSION: int = 9
+const SAVE_VERSION: int = 10
 ## v7 saves load too: they get a fresh helper and no packer.
 const MIGRATABLE_VERSION: int = 7
 ## v8 saves load too: they skip the first-day script and the director starts counting at load.
 const V8_VERSION: int = 8
+## v9 saves load too: the rat hunt waits for the next raid.
+const V9_VERSION: int = 9
 const V7_SAVE_KEYS: Array[String] = ["save_version", "clock", "rng", "economy", "inventory", "plots", "workers", "supplies", "orders", "progress", "problems", "suspicion", "raids", "couriers", "packing", "rent", "event_log"]
 const V8_SAVE_KEYS: Array[String] = ["helper", "packer"]
 const V9_SAVE_KEYS: Array[String] = ["first_day", "director", "stories"]
+const V10_SAVE_KEYS: Array[String] = ["intrigue"]
 
 var config: BalanceConfig
 var clock: SimClock
@@ -32,6 +35,7 @@ var packer: Packer
 var stories: Stories
 var first_day: FirstDay
 var director: Director
+var intrigue: Intrigue
 
 
 func _init(balance: BalanceConfig, seed_value: int) -> void:
@@ -66,7 +70,10 @@ func _init(balance: BalanceConfig, seed_value: int) -> void:
 	stories = Stories.new(balance, economy, suspicion, rent, rng, event_log)
 	first_day = FirstDay.new(balance, grow, inventory, orders, problems, stories, event_log)
 	director = Director.new(balance, rng, orders, problems, suspicion, raids, couriers, stories, first_day, event_log)
+	intrigue = Intrigue.new(balance, rng, stories, raids, couriers, suspicion, event_log)
 	progress.update(empire_value(), clock.elapsed_game_seconds)
+	# Whatever the start logged is not news to the intrigue; a refused first command must change nothing.
+	intrigue.seen_events = event_log.size()
 
 
 func apply(command: SimCommand) -> CommandResult:
@@ -74,6 +81,7 @@ func apply(command: SimCommand) -> CommandResult:
 		return CommandResult.failure(CommandResult.EVICTED)
 	var result := _apply(command)
 	first_day.update(clock.elapsed_game_seconds)
+	intrigue.update(clock.elapsed_game_seconds)
 	progress.update(empire_value(), clock.elapsed_game_seconds)
 	return result
 
@@ -173,6 +181,7 @@ func _next_event_time() -> float:
 	next = minf(next, rent.next_event_time())
 	next = minf(next, minf(helper.next_event_time(), packer.next_event_time()))
 	next = minf(next, minf(first_day.next_event_time(), director.next_event_time()))
+	next = minf(next, intrigue.next_event_time())
 	return minf(next, raids.next_event_time())
 
 
@@ -190,6 +199,7 @@ func _process_events(now: float) -> void:
 	rent.process(now)
 	# Last, so both see everything the others did at this instant.
 	first_day.update(now)
+	intrigue.update(now)
 	director.process(now)
 
 
@@ -242,6 +252,7 @@ func to_dict() -> Dictionary:
 		"stories": stories.to_dict(),
 		"first_day": first_day.to_dict(),
 		"director": director.to_dict(),
+		"intrigue": intrigue.to_dict(),
 		"event_log": event_log.to_array(),
 	}
 
@@ -258,19 +269,23 @@ static func from_json(text: String, balance: BalanceConfig) -> SimState:
 	if not data.has_all(V7_SAVE_KEYS):
 		return null
 	var version := int(data["save_version"])
-	if version != SAVE_VERSION and version != V8_VERSION and version != MIGRATABLE_VERSION:
+	if version < MIGRATABLE_VERSION or version > SAVE_VERSION:
 		return null
 	if version >= V8_VERSION and not data.has_all(V8_SAVE_KEYS):
 		return null
-	if version == SAVE_VERSION and not data.has_all(V9_SAVE_KEYS):
+	if version >= V9_VERSION and not data.has_all(V9_SAVE_KEYS):
+		return null
+	if version == SAVE_VERSION and not data.has_all(V10_SAVE_KEYS):
 		return null
 	var state := SimState.new(balance, 0)
 	state._load_dict(data)
 	if version == MIGRATABLE_VERSION:
 		state.helper.start_at(state.clock.elapsed_game_seconds)
-	if version < SAVE_VERSION:
+	if version < V9_VERSION:
 		state.first_day.skip()
 		state.director.restart(state.clock.elapsed_game_seconds)
+	if version < SAVE_VERSION:
+		state.intrigue.seen_events = state.event_log.size()
 	if is_nan(state.clock.elapsed_game_seconds):
 		return null
 	return state
@@ -303,3 +318,5 @@ func _load_dict(data: Dictionary) -> void:
 		first_day.load_dict(data["first_day"] as Dictionary)
 	if data.has("director"):
 		director.load_dict(data["director"] as Dictionary)
+	if data.has("intrigue"):
+		intrigue.load_dict(data["intrigue"] as Dictionary)

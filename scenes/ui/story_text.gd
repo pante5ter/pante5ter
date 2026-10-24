@@ -67,7 +67,16 @@ static func urgent_call(event: SimEvent) -> String:
 	return "Срочный звонок: %d шт., качество %d+, %s — вдвое против обычного. Ждать клиент не будет (Tab)." % [int(event.data["quantity"]), int(event.data["min_quality"]), UiText.money(int(event.data["reward"]))]
 
 
+static func rat_hunt(sim: SimState) -> String:
+	var intrigue := sim.intrigue
+	if intrigue.phase != Intrigue.Phase.INVESTIGATING:
+		return ""
+	return "Нас сдали «Молочным зубам». Улик собрано %d из %d — я приношу их сам. Когда сложим все, решим, кто крыса." % [intrigue.clues_given, intrigue.schedule.size()]
+
+
 static func announcement(event: SimEvent, sim: SimState) -> String:
+	if event.type == EventLog.INTRIGUE_CLUE:
+		return "Улика %d из %d: %s" % [int(event.data["number"]), int(event.data["of"]), sim.intrigue.clue_text(String(event.data["clue"]))]
 	if event.type != EventLog.DIRECTOR_EVENT:
 		return ""
 	match String(event.data["kind"]):

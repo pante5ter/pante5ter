@@ -12,7 +12,10 @@ const STORY: String = "story"
 const KINDS: Array[String] = [URGENT_ORDER, LORD_VISIT, RUMOUR, BREAKDOWN, COURIER_TROUBLE, STORY]
 const ABOUT_INSPECTION: String = "inspection"
 const ABOUT_RAID: String = "raid"
-const ALWAYS_NOTABLE: Array[String] = [EventLog.STORY_STARTED, EventLog.STORY_RESOLVED, EventLog.DIRECTOR_EVENT, EventLog.FIRST_DAY_STEP]
+const ALWAYS_NOTABLE: Array[String] = [
+	EventLog.STORY_STARTED, EventLog.STORY_RESOLVED, EventLog.DIRECTOR_EVENT, EventLog.FIRST_DAY_STEP,
+	EventLog.INTRIGUE_STARTED, EventLog.INTRIGUE_STEP, EventLog.INTRIGUE_CLUE, EventLog.INTRIGUE_RESOLVED,
+]
 
 var last_notable_at: float = 0.0
 var seen_events: int = 0

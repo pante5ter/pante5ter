@@ -208,6 +208,9 @@ static func objective(sim: SimState, underground: bool = false) -> String:
 		return _selling_objective(sim)
 	if any_dry:
 		return "Грядки сами себя не польют, мистер Кэллоуэй. Полейте сухие на плантации."
+	var hunt := StoryText.rat_hunt(sim)
+	if not hunt.is_empty():
+		return hunt
 	var idle := StoryText.idle_line(sim)
 	if not idle.is_empty():
 		return idle
@@ -310,7 +313,7 @@ static func announcement(event: SimEvent, sim: SimState) -> String:
 		EventLog.INSPECTION_FAILED:
 			return "Проверка обошлась в %s. Взятка — тоже статья расходов." % money(int(event.data["fine"]))
 		EventLog.RAID_STARTED:
-			return "У контейнера гопники. Поднимитесь и разберитесь, пока они не обчистили ферму."
+			return "У контейнера «Молочные зубы» — в балаклавах и с телефоном: снимают клип прямо на налёте. Разберитесь, пока не обчистили ферму."
 		EventLog.RAID_RESOLVED:
 			return _raid_outcome(String(event.data["outcome"]))
 		EventLog.PLOT_STAGE_CHANGED:

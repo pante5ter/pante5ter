@@ -1,0 +1,77 @@
+[gd_resource type="Resource" script_class="StoryDef" format=3]
+
+[ext_resource type="Script" path="res://content/defs/story_def.gd" id="1_story"]
+[ext_resource type="Script" path="res://content/defs/story_choice_def.gd" id="2_choice"]
+[ext_resource type="Script" path="res://content/defs/dialogue_line_def.gd" id="3_line"]
+
+[sub_resource type="Resource" id="Line_1"]
+script = ExtResource("3_line")
+speaker = ""
+text = "Утро после налёта. Финн кладёт на стол чужой телефон с треснувшим экраном."
+
+[sub_resource type="Resource" id="Line_2"]
+script = ExtResource("3_line")
+speaker = "Финн"
+text = "Один из «Молочных зубов» обронил у контейнера. Тут их новый клип: бит, балаклавы, наш контейнер крупным планом."
+
+[sub_resource type="Resource" id="Line_3"]
+script = ExtResource("3_line")
+speaker = "Финн"
+text = "На сорок второй секунде один из них сразу тянет стеллаж — не ищет, не стучит по стенам. Он знал, что стеллаж отъезжает. Кто-то им рассказал, мистер Кэллоуэй."
+
+[sub_resource type="Resource" id="Line_4"]
+script = ExtResource("3_line")
+speaker = "Финн"
+text = "Тогда смотрим и слушаем: кто что купил, кто где был. Улики буду приносить я, выводы — за вами."
+
+[sub_resource type="Resource" id="Choice_1"]
+script = ExtResource("2_choice")
+label = "Искать крысу — тихо, своими силами"
+reply = Array[ExtResource("3_line")]([SubResource("Line_4")])
+
+[sub_resource type="Resource" id="Line_5"]
+script = ExtResource("3_line")
+speaker = "Гаффер"
+text = "Мои пацаны дурные, но я — нет. Имя получите сегодня. И пару ночей они к вам не сунутся, слово даю."
+
+[sub_resource type="Resource" id="Line_6"]
+script = ExtResource("3_line")
+speaker = "Финн"
+text = "Дорого. Зато быстро и без самодеятельности."
+
+[sub_resource type="Resource" id="Choice_2"]
+script = ExtResource("2_choice")
+label = "Заплатить Гафферу £300 за имя"
+money = -300
+reply = Array[ExtResource("3_line")]([SubResource("Line_5"), SubResource("Line_6")])
+
+[sub_resource type="Resource" id="Line_7"]
+script = ExtResource("3_line")
+speaker = "Реджи"
+text = "Поговорили. Клип они удалили, извинились — почти вежливо. Больше не придут."
+
+[sub_resource type="Resource" id="Line_8"]
+script = ExtResource("3_line")
+speaker = "Реджи"
+text = "Нас ждали. Ушли целыми, но «Зубы» обещали вернуться. Скоро."
+
+[sub_resource type="Resource" id="Line_9"]
+script = ExtResource("3_line")
+speaker = "Финн"
+text = "Месть — блюдо, которое лучше подавать молча. У нас вышло громко."
+
+[sub_resource type="Resource" id="Choice_3"]
+script = ExtResource("2_choice")
+label = "Ответить: Реджи с ребятами нанесёт им визит"
+chance = 0.5
+suspicion = 12.0
+fail_suspicion = 12.0
+reply = Array[ExtResource("3_line")]([SubResource("Line_7")])
+fail_reply = Array[ExtResource("3_line")]([SubResource("Line_8"), SubResource("Line_9")])
+
+[resource]
+script = ExtResource("1_story")
+id = "raid_clip"
+kind = "script"
+lines = Array[ExtResource("3_line")]([SubResource("Line_1"), SubResource("Line_2"), SubResource("Line_3")])
+choices = Array[ExtResource("2_choice")]([SubResource("Choice_1"), SubResource("Choice_2"), SubResource("Choice_3")])

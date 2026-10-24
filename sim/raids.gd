@@ -11,6 +11,8 @@ var deadline: float = 0.0
 var next_roll_at: float = 0.0
 ## Finn heard they are coming tonight: the next night roll skips the dice.
 var expected: bool = false
+## Nights before this game time stay quiet: the gang was paid, scared off or lost its informer.
+var calm_until: float = 0.0
 
 var _def: RaidsDef
 var _rng: SimRng
@@ -53,6 +55,10 @@ func chase_chance() -> float:
 	return clampf(_def.chase_chance + (_def.chase_bonus_with_worker if help else 0.0), 0.0, 1.0)
 
 
+func calm(until: float) -> void:
+	calm_until = maxf(calm_until, until)
+
+
 func enabled() -> bool:
 	return _def.chance_per_night > 0.0
 
@@ -82,7 +88,7 @@ func process(now: float) -> void:
 func _roll(at: float) -> void:
 	var tipped := expected
 	expected = false
-	if pending or not _has_loot():
+	if pending or at < calm_until or not _has_loot():
 		return
 	if int(_empire_value.call()) >= _def.max_empire_value:
 		return
@@ -155,6 +161,7 @@ func to_dict() -> Dictionary:
 		"deadline": ExactFloat.encode(deadline),
 		"next_roll_at": ExactFloat.encode(next_roll_at),
 		"expected": expected,
+		"calm_until": ExactFloat.encode(calm_until),
 	}
 
 
@@ -163,3 +170,4 @@ func load_dict(data: Dictionary) -> void:
 	deadline = ExactFloat.decode(data["deadline"])
 	next_roll_at = ExactFloat.decode(data["next_roll_at"])
 	expected = data.get("expected", false) == true
+	calm_until = ExactFloat.decode(data["calm_until"]) if data.has("calm_until") else 0.0

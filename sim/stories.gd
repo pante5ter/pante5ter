@@ -9,6 +9,8 @@ const CREW: String = "crew"
 var pending_id: String = ""
 var used: Array[String] = []
 var relations: Dictionary[String, int] = {}
+## Stories built at runtime (the intrigue's accusation), rebuilt from saved state on load.
+var _built: Dictionary[String, StoryDef] = {}
 
 var _config: BalanceConfig
 var _economy: Economy
@@ -36,7 +38,18 @@ func all() -> Array[StoryDef]:
 		for story: StoryDef in [first_day.lord_story, first_day.trouble_story]:
 			if story != null and not found.has(story):
 				found.append(story)
+	if _config.intrigue != null and _config.intrigue.opening_story != null:
+		found.append(_config.intrigue.opening_story)
+	found.append_array(_built.values())
 	return found
+
+
+func register(story: StoryDef) -> void:
+	_built[story.id] = story
+
+
+func shift(key: String, change: int) -> void:
+	relations[key] = relation(key) + change
 
 
 func find(story_id: String) -> StoryDef:
@@ -92,7 +105,7 @@ func choose(story_id: String, index: int, now: float, actor: String) -> CommandR
 	_move_money(money)
 	_suspicion.add(choice.suspicion if worked else choice.fail_suspicion)
 	if not choice.relation.is_empty():
-		relations[choice.relation] = relation(choice.relation) + (choice.relation_change if worked else choice.fail_relation_change)
+		shift(choice.relation, choice.relation_change if worked else choice.fail_relation_change)
 	if worked and choice.rent_credit > 0:
 		_rent.add_credit(choice.rent_credit)
 	pending_id = ""
