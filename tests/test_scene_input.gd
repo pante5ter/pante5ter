@@ -92,7 +92,7 @@ func test_every_field_interactable_can_be_reached_from_start() -> void:
 	var level := await _open(FIELD_SCENE)
 	var start := level.jack.global_position
 	var targets := _interactables(level).filter(func(target: Interactable) -> bool: return not target is RaiderGang)
-	assert_eq(targets.size(), 5, "container, three candidates, Lord Ashcombe")
+	assert_eq(targets.size(), 8, "container, parcel, two Land Rovers, three candidates, Lord Ashcombe")
 	for target: Interactable in targets:
 		_assert_reachable(level, start, target.approach_position(), target.name)
 	_assert_reachable(level, start, (level.get_node("SpawnPoints/from_elevator") as Node3D).global_position, "lift exit")
@@ -148,6 +148,28 @@ func test_clicking_the_candidate_opens_a_hiring_menu() -> void:
 	assert_false(Game.sim.workers.hired)
 	assert_true(level.hud.action_menu.choose_label("Нанять"))
 	assert_true(Game.sim.workers.hired)
+
+
+func test_clicking_the_land_rover_walks_over_and_offers_destinations() -> void:
+	var level := await _open(FIELD_SCENE)
+	var rover := level.get_node("NavRegion/RoverManor") as LandRover
+	_click_world(level, rover.global_position + Vector3(0.0, 1.0, 0.0))
+	await wait_until(func() -> bool: return level.hud.action_menu.visible, WALK_TIMEOUT)
+	assert_lt(_flat_distance(level.jack.global_position, rover.approach_position()), REACH_TOLERANCE)
+	assert_true(level.hud.action_menu.choose_label("Ехать: к контейнеру"))
+	assert_true(rover.is_driving())
+	await wait_until(func() -> bool: return not rover.is_driving(), LandRover.DRIVE_SECONDS + 3.0)
+	var container := level.get_node("NavRegion/Container") as Node3D
+	assert_lt(_flat_distance(level.jack.global_position, container.global_position), 15.0)
+
+
+func test_every_parking_bay_is_reachable_on_foot() -> void:
+	var level := await _open(FIELD_SCENE)
+	var start := level.jack.global_position
+	for spot: Node in level.get_node("Parking").get_children():
+		if spot is ParkingSpot:
+			for bay: int in 2:
+				_assert_reachable(level, start, (spot as ParkingSpot).bay_position(bay) + (spot as ParkingSpot).global_basis * Vector3(-1.9, 0.0, 0.4), "%s bay %d" % [spot.name, bay])
 
 
 func test_clicking_a_bed_walks_over_and_offers_planting() -> void:

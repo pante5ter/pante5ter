@@ -298,51 +298,159 @@ func test_bench_packs_the_harvest_onto_the_shelf() -> void:
 	Game.sim.inventory.create(Game.sim.config.strain.id, 60)
 	Game.sim.inventory.create(Game.sim.config.strain.id, 70)
 	await wait_process_frames(2)
-	assert_true(bench.sacks.visible)
-	assert_eq(shelf.shown_boxes(), 0)
+	assert_gt(bench.shown_heaps(), 0, "the loose harvest lies on the bench")
+	assert_eq(shelf.shown_boxes(), 0, "nothing is boxed before packing")
 	bench.interact(level)
 	_choose(level, "Расфасовать")
 	assert_true(Game.sim.packing.busy())
 	Game.sim.apply(AdvanceTimeCommand.new(_hours_to_real(Game.sim.config.orders.pack_minutes_per_unit * 2.0 / 60.0 + 0.01)))
 	await wait_process_frames(2)
 	assert_eq(shelf.shown_boxes(), 2)
-	assert_false(bench.sacks.visible)
+	assert_eq(bench.shown_heaps(), 0)
 	assert_string_contains(level.hud.stock_label.text, "2 коробок")
 
 
-func test_parcels_wait_at_the_container_and_can_be_picked_up() -> void:
+func test_bench_heap_grows_with_the_unpacked_harvest() -> void:
+	var level := await _open(PLANTATION_SCENE)
+	var bench := level.get_node("NavRegion/Bench") as PackingBench
+	bench.show_pile(1)
+	var small := bench.shown_heaps()
+	assert_gt(small, 0)
+	bench.show_pile(10)
+	assert_gt(bench.shown_heaps(), small)
+	bench.show_pile(0)
+	assert_eq(bench.shown_heaps(), 0)
+
+
+func test_parcel_waits_by_the_container_and_is_picked_up_by_clicking_it() -> void:
 	var level := await _open(FIELD_SCENE)
-	var entrance := level.get_node("NavRegion/Container") as ContainerEntrance
+	var parcel := level.get_node("NavRegion/Parcel") as ParcelBox
+	var container := level.get_node("NavRegion/Container") as Node3D
+	await wait_process_frames(2)
+	assert_false(parcel.visual.visible)
+	assert_eq(parcel.collision_layer, 0, "no parcel, nothing to click")
 	Game.sim.apply(BuyCommand.new(Supplies.FERTILIZER, 2))
 	Game.sim.apply(AdvanceTimeCommand.new(_hours_to_real(Game.sim.config.delivery_hours + 0.01)))
 	await wait_process_frames(2)
-	assert_true(entrance.parcel_box.visible)
-	entrance.interact(level)
-	_choose(level, "Забрать посылку")
+	assert_true(parcel.visual.visible)
+	assert_ne(parcel.collision_layer, 0)
+	assert_lt(_flat_distance(parcel.global_position, container.global_position), 8.0, "the parcel is left at the container")
+	parcel.interact(level)
 	assert_eq(Game.sim.supplies.fertilizer, 2)
 	await wait_process_frames(2)
-	assert_false(entrance.parcel_box.visible)
+	assert_false(parcel.visual.visible)
 
 
-func test_hired_couriers_walk_the_road_with_orders() -> void:
+func test_container_goes_down_without_a_parcel_menu() -> void:
 	var level := await _open(FIELD_SCENE)
+	var container := level.get_node("NavRegion/Container") as ContainerEntrance
+	Game.sim.apply(BuyCommand.new(Supplies.FERTILIZER, 1))
+	Game.sim.apply(AdvanceTimeCommand.new(_hours_to_real(Game.sim.config.delivery_hours + 0.01)))
+	assert_string_contains(container.hover_text(), "посылка")
+	container.interact(level)
+	assert_false(level.hud.action_menu.visible, "the container no longer hands out parcels")
+	await wait_until(func() -> bool: return SceneRouter.is_busy(), 3.0)
+	assert_true(SceneRouter.is_busy(), "clicking the container starts the ride down")
+	await wait_until(func() -> bool: return not SceneRouter.is_busy(), 5.0)
+	SceneRouter.take_spawn()
+
+
+func test_hired_couriers_wait_by_the_container_and_walk_the_road_with_orders() -> void:
+	var level := await _open(FIELD_SCENE)
+	var courier := level.get_node("CourierA") as CourierView
+	await wait_process_frames(2)
+	assert_false(courier.visible, "nobody hired yet")
 	Game.sim.economy.earn(1000)
 	Game.sim.apply(HireCourierCommand.new("harry"))
 	var order := _accept_first_call()
 	for index: int in order.quantity:
 		Game.sim.inventory.create(Game.sim.config.strain.id, 100).packed = true
-	var courier := level.get_node("CourierA") as CourierView
 	await wait_process_frames(2)
-	assert_false(courier.visible)
+	var container := level.get_node("NavRegion/Container") as Node3D
+	assert_true(courier.visible, "an idle courier stands about")
+	assert_string_contains(courier.name_label.text, "ждёт")
+	assert_lt(_flat_distance(courier.global_position, container.global_position), 8.0)
+	assert_false((level.get_node("CourierB") as CourierView).visible)
 	Game.sim.apply(DispatchCommand.new(order.id, "harry"))
-	Game.sim.apply(AdvanceTimeCommand.new(_hours_to_real(0.2)))
+	Game.sim.apply(AdvanceTimeCommand.new(_hours_to_real(Game.sim.couriers.trip_seconds("harry") * 0.5 / SimClock.GAME_SECONDS_PER_HOUR)))
 	await wait_process_frames(2)
 	assert_true(courier.visible)
-	assert_string_contains(courier.name_label.text, "Гарри")
-	assert_false((level.get_node("CourierB") as CourierView).visible)
+	assert_string_contains(courier.name_label.text, "Гарри везёт заказ")
+	var road_z := (level.get_node("SpawnPoints/road_west") as Node3D).global_position.z
+	assert_almost_eq(courier.global_position.z, road_z, 0.5, "half way out he is walking the main road")
 
 
-func test_lord_ashcombe_waits_by_the_cottage_and_talks() -> void:
+func test_estate_is_large_with_the_lord_at_the_manor() -> void:
+	var level := await _open(FIELD_SCENE)
+	var manor := level.get_node("NavRegion/Manor") as Node3D
+	var lord := level.get_node("NavRegion/Lord") as Node3D
+	var container := level.get_node("NavRegion/Container") as Node3D
+	var crops := level.get_node("NavRegion/Crops") as Node3D
+	assert_lt(_flat_distance(lord.global_position, manor.global_position), 15.0, "the lord stands at his house")
+	assert_gt(_flat_distance(container.global_position, manor.global_position), 80.0, "the container is far from the house")
+	assert_gt(_flat_distance(crops.global_position, manor.global_position), 60.0, "the field is far from the house")
+	assert_lt(_flat_distance(level.jack.global_position, lord.global_position), 4.0, "a new game starts beside the lord")
+
+
+func test_wheat_field_is_drawn_as_one_multimesh() -> void:
+	var level := await _open(FIELD_SCENE)
+	var wheat := level.get_node("NavRegion/Crops/Wheat") as ScatterField
+	assert_gt(wheat.instance_count(), 1000)
+	assert_eq(level.get_node("NavRegion/Crops").find_children("*", "MeshInstance3D", false, false).size(), 1, "only the soil, no per-tuft meshes")
+
+
+func test_lanes_meet_the_road_at_junction_tiles() -> void:
+	var level := await _open(FIELD_SCENE)
+	for pair: Array in [["DriveToManor", "JunctionManor"], ["PathToContainer", "JunctionContainer"]]:
+		var lane := level.get_node("NavRegion/" + String(pair[0])) as Node3D
+		var junction := level.get_node("NavRegion/" + String(pair[1])) as Node3D
+		var nearest := INF
+		for tile: Node in lane.get_children():
+			var at := (tile as Node3D).global_position
+			nearest = minf(nearest, Vector2(at.x, at.z).distance_to(Vector2(junction.global_position.x, junction.global_position.z)))
+			assert_almost_eq(at.x, junction.global_position.x, 0.01, "%s runs straight into its junction" % pair[0])
+		assert_almost_eq(nearest, 2.0, 0.05, "%s's last tile touches the junction tile" % pair[0])
+
+
+func test_land_rover_drives_jack_to_the_container_and_back() -> void:
+	var level := await _open(FIELD_SCENE)
+	var rover := level.get_node("NavRegion/RoverManor") as LandRover
+	var container_spot := level.get_node("Parking/Container") as ParkingSpot
+	var labels := rover.actions(level).map(func(action: UiAction) -> String: return action.label)
+	assert_eq(labels.size(), 2, "the other two places")
+	assert_true(labels.has("Ехать: к контейнеру"))
+	rover.drive_to(level, container_spot)
+	await wait_physics_frames(2)
+	assert_true(rover.is_driving())
+	assert_false(level.jack.visible, "Jack is in the car")
+	var started := Time.get_ticks_msec()
+	await wait_until(func() -> bool: return not rover.is_driving(), LandRover.DRIVE_SECONDS + 3.0)
+	assert_false(rover.is_driving())
+	assert_lt(float(Time.get_ticks_msec() - started) / 1000.0, LandRover.DRIVE_SECONDS + 1.0, "a quick drive")
+	await wait_physics_frames(2)
+	assert_true(level.jack.visible)
+	assert_eq(rover.spot, container_spot)
+	var other := level.get_node("NavRegion/RoverContainer") as LandRover
+	assert_gt(_flat_distance(rover.global_position, other.global_position), 2.5, "it parks beside the other car")
+	var container := level.get_node("NavRegion/Container") as Node3D
+	assert_lt(_flat_distance(level.jack.global_position, container.global_position), 15.0)
+	rover.drive_to(level, level.get_node("Parking/Manor") as ParkingSpot)
+	await wait_until(func() -> bool: return not rover.is_driving(), LandRover.DRIVE_SECONDS + 3.0)
+	assert_lt(_flat_distance(level.jack.global_position, (level.get_node("NavRegion/Lord") as Node3D).global_position), 15.0)
+
+
+func test_world_clicks_do_nothing_while_driving() -> void:
+	var level := await _open(FIELD_SCENE)
+	var rover := level.get_node("NavRegion/RoverManor") as LandRover
+	rover.drive_to(level, level.get_node("Parking/Road") as ParkingSpot)
+	level._click(Vector2(800.0, 450.0))
+	assert_false(level.jack.is_moving())
+	await wait_until(func() -> bool: return not rover.is_driving(), LandRover.DRIVE_SECONDS + 3.0)
+	var road_z := (level.get_node("SpawnPoints/road_west") as Node3D).global_position.z
+	assert_lt(absf(level.jack.global_position.z - road_z), 6.0, "dropped off by the road")
+
+
+func test_lord_ashcombe_waits_at_the_manor_and_talks() -> void:
 	var level := await _open(FIELD_SCENE)
 	var lord := level.get_node("NavRegion/Lord") as LordAshcombe
 	assert_ne(lord.collision_layer, 0, "the lord can be clicked")
