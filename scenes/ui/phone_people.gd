@@ -3,17 +3,15 @@ extends RefCounted
 
 
 static func fill(box: VBoxContainer, sim: SimState, phone: Phone) -> void:
-	Phone.clear(box)
-	box.add_child(UiStyle.label("Контакты Финна. Люди проверенные — более или менее.", 13, UiStyle.MUTED))
 	_add_helper(box, sim, phone)
-	box.add_child(UiStyle.label("На грядки", 16, UiStyle.ACCENT))
+	box.add_child(PhoneKit.label("На грядки", PhoneKit.TITLE_SIZE, PhoneKit.MUTED))
 	for person: WorkerDef in sim.config.candidates():
 		_add_candidate(box, sim, phone, person, sim.workers.hired, sim.workers.definition())
 	if not sim.config.packer_candidates.is_empty():
-		box.add_child(UiStyle.label("На фасовку", 16, UiStyle.ACCENT))
+		box.add_child(PhoneKit.label("На фасовку", PhoneKit.TITLE_SIZE, PhoneKit.MUTED))
 		for person: WorkerDef in sim.config.packer_candidates:
 			_add_candidate(box, sim, phone, person, sim.packer.hired, sim.packer.definition())
-	box.add_child(UiStyle.label("Курьеры — на компьютере на плантации, вкладка «Курьеры».", 13, UiStyle.MUTED))
+	box.add_child(PhoneKit.label("Курьеры — на компьютере на плантации, вкладка «Курьеры».", PhoneKit.SMALL_SIZE, PhoneKit.MUTED))
 
 
 static func _add_helper(box: VBoxContainer, sim: SimState, phone: Phone) -> void:
@@ -21,39 +19,38 @@ static func _add_helper(box: VBoxContainer, sim: SimState, phone: Phone) -> void
 	if not helper.exists():
 		return
 	var person := helper.definition()
-	box.add_child(UiStyle.label("%s — правая рука" % person.display_name, 16, UiStyle.ACCENT))
-	var wage := "Зарплата %s в день." % UiText.money(person.daily_wage)
+	var card := PhoneKit.card(box, PhoneKit.GOLD)
+	PhoneKit.heading(card, "%s — правая рука" % person.display_name, "%s/день" % UiText.money(person.daily_wage), PhoneKit.GOLD)
+	card.add_child(PhoneKit.label(PeopleText.helper_status(sim)))
 	if helper.wage_debt > 0:
-		wage += " Должны ему %s." % UiText.money(helper.wage_debt)
-	box.add_child(UiStyle.label("%s\n%s\n%s" % [person.description, PeopleText.helper_status(sim), wage], 14))
+		card.add_child(PhoneKit.label("Должны ему %s." % UiText.money(helper.wage_debt), PhoneKit.BODY_SIZE, PhoneKit.GOLD))
 	var known := PackedStringArray()
 	for skill_id: String in helper.skills:
 		var skill := sim.config.find_skill(skill_id)
 		if skill != null:
 			known.append(skill.display_name)
-	box.add_child(UiStyle.label("Умеет: %s." % (", ".join(known) if not known.is_empty() else "возить заказы, лечить грядки, гасить свет перед проверкой"), 13, UiStyle.MUTED))
+	card.add_child(PhoneKit.label("Умеет: %s." % (", ".join(known) if not known.is_empty() else "возить заказы, лечить грядки, гасить свет перед проверкой"), PhoneKit.SMALL_SIZE, PhoneKit.MUTED))
 	for skill: SkillDef in sim.config.skills:
 		if helper.skills.has(skill.id) or helper.training_skill_id == skill.id:
 			continue
-		var row := VBoxContainer.new()
-		row.add_child(UiStyle.label("«%s»: %s" % [skill.display_name, skill.description], 13))
+		var course := PhoneKit.card(box)
+		PhoneKit.heading(course, "Курс «%s»" % skill.display_name, UiText.money(skill.price))
+		course.add_child(PhoneKit.label(skill.description, PhoneKit.SMALL_SIZE, PhoneKit.MUTED))
 		var text := "Учить: %s, %s" % [UiText.money(skill.price), UiText.real_duration(skill.train_hours * SimClock.GAME_SECONDS_PER_HOUR, sim)]
-		row.add_child(UiStyle.button(text, phone.learn.bind(skill.id), helper.present() and sim.economy.money >= skill.price))
-		box.add_child(row)
+		course.add_child(PhoneKit.secondary(text, phone.learn.bind(skill.id), helper.present() and sim.economy.money >= skill.price))
 
 
 static func _add_candidate(box: VBoxContainer, sim: SimState, phone: Phone, person: WorkerDef, slot_taken: bool, current: WorkerDef) -> void:
-	var row := VBoxContainer.new()
 	var works_here := slot_taken and current != null and current.id == person.id
-	var header := "%s — %s в день%s" % [person.display_name, UiText.money(person.daily_wage), " · работает у вас" if works_here else ""]
-	row.add_child(UiStyle.label(header, 15, Color.WHITE if works_here else UiStyle.MUTED))
-	row.add_child(UiStyle.label("%s\n%s" % [person.description, PeopleText.person_traits(person)], 13))
+	var card := PhoneKit.card(box, Phone.APP_COLORS[Phone.APP_PEOPLE] if works_here else PhoneKit.CARD)
+	PhoneKit.heading(card, person.display_name + (" · у вас" if works_here else ""), "%s/день" % UiText.money(person.daily_wage), PhoneKit.TEXT if works_here or not slot_taken else PhoneKit.MUTED)
+	card.add_child(PhoneKit.label(PeopleText.person_traits(person), PhoneKit.SMALL_SIZE, PhoneKit.MUTED))
 	if works_here:
 		var status := PeopleText.packer_status(sim) if person.role == WorkerDef.PACKER else UiText.worker_status(sim.workers)
-		row.add_child(UiStyle.label(status, 13, UiStyle.MUTED))
-		row.add_child(UiStyle.button("Уволить", phone.fire.bind(person.id)))
+		card.add_child(PhoneKit.label(status))
+		card.add_child(PhoneKit.danger("Уволить", phone.fire.bind(person.id)))
 	elif slot_taken:
-		row.add_child(UiStyle.button("Место занято", phone.hire.bind(person.id), false))
+		card.add_child(PhoneKit.secondary("Место занято", phone.hire.bind(person.id), false))
 	else:
-		row.add_child(UiStyle.button("Нанять (первый день вперёд)", phone.hire.bind(person.id), sim.economy.money >= person.daily_wage))
-	box.add_child(row)
+		card.add_child(PhoneKit.label(person.description, PhoneKit.SMALL_SIZE))
+		card.add_child(PhoneKit.primary("Нанять (первый день вперёд)", phone.hire.bind(person.id), sim.economy.money >= person.daily_wage))

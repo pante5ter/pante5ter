@@ -79,9 +79,9 @@ func _process(delta: float) -> void:
 func refresh() -> void:
 	_refresh_left = REFRESH_SECONDS
 	var sim := Game.sim
-	_fill_orders(sim)
-	_fill_couriers(sim)
-	_fill_farm(sim)
+	UiRefresh.swap_if_changed(_orders, _fill_orders(sim))
+	UiRefresh.swap_if_changed(_couriers, _fill_couriers(sim))
+	UiRefresh.swap_if_changed(_farm, _fill_farm(sim))
 
 
 func dispatch(order_id: int, courier_id: String) -> void:
@@ -125,31 +125,30 @@ func dispatch_buttons(order_id: int) -> Array[Button]:
 	return found
 
 
-func _clear(box: VBoxContainer) -> void:
-	for child: Node in box.get_children():
-		box.remove_child(child)
-		child.queue_free()
+static func _button(text: String, on_pressed: Callable, enabled: bool = true) -> Button:
+	return UiRefresh.press_on_down(UiStyle.button(text, on_pressed, enabled))
 
 
-func _fill_orders(sim: SimState) -> void:
-	_clear(_orders)
+func _fill_orders(sim: SimState) -> VBoxContainer:
+	var box := VBoxContainer.new()
 	var now := sim.clock.elapsed_game_seconds
 	var packed := 0
 	for product: Product in sim.inventory.products():
 		if product.packed:
 			packed += 1
-	_orders.add_child(UiStyle.label("На полке: %d коробок. Нефасованного урожая: %d." % [packed, sim.packing.unpacked_count()], 14, UiStyle.MUTED))
+	box.add_child(UiStyle.label("На полке: %d коробок. Нефасованного урожая: %d." % [packed, sim.packing.unpacked_count()], 14, UiStyle.MUTED))
 	if sim.helper.exists() and not sim.helper.present():
-		_orders.add_child(UiStyle.label(PeopleText.helper_status(sim) + ".", 14, UiStyle.MUTED))
+		box.add_child(UiStyle.label(PeopleText.helper_status(sim) + ".", 14, UiStyle.MUTED))
 	var any := false
 	for order: Order in sim.orders.with_status(Order.Status.ACCEPTED):
 		any = true
-		_orders.add_child(_order_row(order, sim, now))
+		box.add_child(_order_row(order, sim, now))
 	for order: Order in sim.orders.with_status(Order.Status.IN_TRANSIT):
 		any = true
-		_orders.add_child(UiStyle.label("Заказ #%d в дороге (%s), доставка через %s." % [order.id, UiText.courier_name(order.courier_id, sim), UiText.real_duration(order.arrives_at - now, sim)], 15, UiStyle.MUTED))
+		box.add_child(UiStyle.label("Заказ #%d в дороге (%s), доставка через %s." % [order.id, UiText.courier_name(order.courier_id, sim), UiText.real_duration(order.arrives_at - now, sim)], 15, UiStyle.MUTED))
 	if not any:
-		_orders.add_child(UiStyle.label("Принятых заказов нет. Клиенты звонят на телефон (Tab, «Звонки»).", 15, UiStyle.MUTED))
+		box.add_child(UiStyle.label("Принятых заказов нет. Клиенты звонят на телефон (Tab, «Звонки»).", 15, UiStyle.MUTED))
+	return box
 
 
 func _order_row(order: Order, sim: SimState, now: float) -> VBoxContainer:
@@ -162,20 +161,20 @@ func _order_row(order: Order, sim: SimState, now: float) -> VBoxContainer:
 	var buttons := HBoxContainer.new()
 	var free := sim.couriers.available_for(order, now)
 	for courier_id: String in sim.couriers.drivers():
-		buttons.add_child(UiStyle.button("Отправить: %s" % UiText.courier_name(courier_id, sim), dispatch.bind(order.id, courier_id), free.has(courier_id)))
+		buttons.add_child(_button("Отправить: %s" % UiText.courier_name(courier_id, sim), dispatch.bind(order.id, courier_id), free.has(courier_id)))
 	if buttons.get_child_count() == 0:
 		row.add_child(UiStyle.label("Везти некому — наймите курьера.", 13, UiStyle.MUTED))
 	row.add_child(buttons)
 	return row
 
 
-func _fill_couriers(sim: SimState) -> void:
-	_clear(_couriers)
+func _fill_couriers(sim: SimState) -> VBoxContainer:
+	var box := VBoxContainer.new()
 	var now := sim.clock.elapsed_game_seconds
 	var intro := "Риск в дороге растёт вместе с подозрением."
 	if sim.helper.exists():
 		intro += " %s возит бесплатно, риск %d%%, но пока он в дороге, ферма без него." % [sim.helper.definition().display_name, roundi(sim.couriers.trip_risk(Helper.ACTOR) * 100.0)]
-	_couriers.add_child(UiStyle.label(intro, 14, UiStyle.MUTED))
+	box.add_child(UiStyle.label(intro, 14, UiStyle.MUTED))
 	for courier: CourierDef in sim.config.courier_candidates:
 		var row := VBoxContainer.new()
 		var hired := sim.couriers.hired.has(courier.id)
@@ -184,17 +183,19 @@ func _fill_couriers(sim: SimState) -> void:
 			status = " — в дороге" if not sim.couriers.is_free(courier.id, now) else " — свободен"
 		row.add_child(UiStyle.label("%s%s\n%s\nБерёт %d%% с заказа, риск %d%%, скорость ×%.1f." % [courier.display_name, status, courier.description, roundi(courier.cut * 100.0), roundi(sim.couriers.trip_risk(courier.id) * 100.0), courier.speed]))
 		if hired:
-			row.add_child(UiStyle.button("Уволить", fire.bind(courier.id), sim.couriers.is_free(courier.id, now)))
+			row.add_child(_button("Уволить", fire.bind(courier.id), sim.couriers.is_free(courier.id, now)))
 		else:
-			row.add_child(UiStyle.button("Нанять за %s" % UiText.money(courier.hire_fee), hire.bind(courier.id), sim.economy.money >= courier.hire_fee))
-		_couriers.add_child(row)
+			row.add_child(_button("Нанять за %s" % UiText.money(courier.hire_fee), hire.bind(courier.id), sim.economy.money >= courier.hire_fee))
+		box.add_child(row)
+	return box
 
 
-func _fill_farm(sim: SimState) -> void:
-	_clear(_farm)
-	_farm.add_child(UiStyle.label(UiText.suspicion(sim), 16, UiStyle.ACCENT))
-	_farm.add_child(UiStyle.label("Если едет проверка — затихни: лампы и вентиляция выключаются, растения не растут, работники отдыхают, курьеры сидят дома. Тихую ферму проверка не замечает.", 14, UiStyle.MUTED))
+func _fill_farm(sim: SimState) -> VBoxContainer:
+	var box := VBoxContainer.new()
+	box.add_child(UiStyle.label(UiText.suspicion(sim), 16, UiStyle.ACCENT))
+	box.add_child(UiStyle.label("Если едет проверка — затихни: лампы и вентиляция выключаются, растения не растут, работники отдыхают, курьеры сидят дома. Тихую ферму проверка не замечает.", 14, UiStyle.MUTED))
 	if sim.suspicion.quiet:
-		_farm.add_child(UiStyle.button("Вернуться к работе", lie_low.bind(false)))
+		box.add_child(_button("Вернуться к работе", lie_low.bind(false)))
 	else:
-		_farm.add_child(UiStyle.button("Затихнуть", lie_low.bind(true)))
+		box.add_child(_button("Затихнуть", lie_low.bind(true)))
+	return box

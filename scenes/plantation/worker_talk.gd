@@ -26,7 +26,7 @@ func interact(level: Level) -> void:
 
 func _open_people(level: Level) -> void:
 	level.hud.close_actions()
-	level.hud.phone.open(Phone.TAB_PEOPLE)
+	level.hud.phone.open(Phone.APP_PEOPLE)
 
 
 func _fire(level: Level, person: WorkerDef) -> void:

@@ -166,6 +166,8 @@ ROAD_Z = 44
 ROAD_END = 83                    # road tile centres run along odd x from -83 to 83
 MANOR_X, CONTAINER_X = -51, 61   # the two lanes leave the road at these tile centres
 MANOR_LANE_END_Z, CONTAINER_LANE_END_Z = -20, 8
+# Hired couriers never come to the farm: Reggie hands the boxes over at a lay-by by the village end of the road.
+DROP_POINT = (-72, 0, ROAD_Z + 3.6)
 
 sc = Scene()
 level = sc.script('res://scenes/common/level.gd')
@@ -267,6 +269,8 @@ sc.node('Visual', 'Node3D', parcel, visible='false')
 sc.node('Crate', None, f'{parcel}/Visual', instance=sc.scene('res://assets/models/field/stash_crate.glb'), **xform(1.6))
 label(sc, f'{parcel}/Visual', 'Посылка', 1.4, color='Color(0.96, 0.84, 0.45, 1)')
 sc.node('Approach', 'Marker3D', parcel, position=v3(-0.6, 0, 1.3))
+alert_target = sc.script('res://scenes/common/alert_target.gd')
+sc.node('AlertTarget', 'Marker3D', parcel, script=alert_target, topic='"parcel"')
 
 # Land Rovers: one at the manor, one at the container. Parking spots know their way to the main road.
 sc.node('Parking', 'Node3D', '.')
@@ -306,19 +310,31 @@ for index, (dx, yaw) in enumerate([(-0.5, 200), (0.6, 160)]):
     sc.node('Mesh', None, f'{gang}/Visual/Model{index}', instance=sc.scene('res://assets/models/characters/courier.glb'))
 label(sc, f'{gang}/Visual', 'Гопники', 2.3, color='Color(1, 0.55, 0.45, 1)')
 sc.node('Approach', 'Marker3D', gang, position=v3(-1.4, 0, 1.4))
+sc.node('AlertTarget', 'Marker3D', gang, script=alert_target, topic='"raid"')
 
 # Walking routes along the roads: the inspector comes in from the east, couriers head out west.
 route_script = sc.script('res://scenes/common/road_route.gd')
 sc.node('Routes', 'Node3D', '.')
 for route_name, points in [('InspectorWay', [(ROAD_END + 1, 0, ROAD_Z), (CONTAINER_X, 0, ROAD_Z), (CONTAINER_X, 0, 6.6)]),
-                           ('CourierWay', [(CONTAINER_X - 1.6, 0, 7.0), (CONTAINER_X, 0, 10), (CONTAINER_X, 0, ROAD_Z), (-ROAD_END - 1, 0, ROAD_Z)])]:
+                           ('CourierWay', [DROP_POINT, (DROP_POINT[0], 0, ROAD_Z), (-ROAD_END - 1, 0, ROAD_Z)])]:
     sc.node(route_name, 'Node3D', 'Routes', script=route_script)
     for index, point in enumerate(points):
         sc.node(f'P{index}', 'Marker3D', f'Routes/{route_name}', position=v3(*point))
-sc.node('CourierIdle', 'Marker3D', 'Routes', **xform(1.0, 90, (CONTAINER_X - 2.6, 0, 6.6)))
+sc.node('CourierIdle', 'Marker3D', 'Routes', **xform(1.0, 180, DROP_POINT))
+# The drop point: a lay-by bench and post, outside the navmesh so the bake stays as it was.
+stop = 'DropPoint'
+sc.node(stop, 'Node3D', '.', position=v3(DROP_POINT[0] + 2.4, 0, DROP_POINT[2] + 0.4))
+sc.node('Post', 'MeshInstance3D', stop, position=v3(0, 1.1, 0), mesh=sc.sub_res('BoxMesh', 'mesh_stop_post', size=v3(0.16, 2.2, 0.16)),
+        **{'surface_material_override/0': sc.material('timber')})
+sc.node('Board', 'MeshInstance3D', stop, position=v3(0, 2.0, 0.1), mesh=sc.sub_res('BoxMesh', 'mesh_stop_board', size=v3(1.6, 0.7, 0.08)),
+        **{'surface_material_override/0': sc.material('oak')})
+sc.node('Bench', 'MeshInstance3D', stop, position=v3(-2.4, 0.25, 0.9), mesh=sc.sub_res('BoxMesh', 'mesh_stop_bench', size=v3(2.6, 0.5, 0.6)),
+        **{'surface_material_override/0': sc.material('oak')})
+label(sc, stop, 'Точка передачи', 3.0, size=34, color='Color(0.96, 0.84, 0.45, 1)')
 sc.node('Inspector', 'Node3D', '.', node_paths=['route', 'model'], visible='false', script=sc.script('res://scenes/field/inspector_view.gd'),
         route='NodePath("../Routes/InspectorWay")', model='NodePath("Model")')
 person(sc, 'Inspector', 'res://assets/models/characters/inspector.glb')
+sc.node('AlertTarget', 'Marker3D', 'Inspector', script=alert_target, topic='"inspection"')
 for node_name, slot in [('CourierA', 0), ('CourierB', 1)]:
     sc.node(node_name, 'Node3D', '.', node_paths=['depot_point', 'route', 'model', 'name_label'], visible='false', script=sc.script('res://scenes/field/courier_view.gd'),
             slot=slot, depot_point='NodePath("../Routes/CourierIdle")', route='NodePath("../Routes/CourierWay")', model='NodePath("Model")', name_label='NodePath("Label")')
