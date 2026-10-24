@@ -19,6 +19,8 @@ func _calm(money: int) -> BalanceConfig:
 	calm.raids.chance_per_night = 0.0
 	calm.suspicion = _balance.suspicion.duplicate() as SuspicionDef
 	calm.suspicion.inspection_threshold = SuspicionDef.new().inspection_threshold + 1.0
+	# Rent arithmetic is checked to the pound; the helper's wage would blur it.
+	calm.helper = null
 	return calm
 
 

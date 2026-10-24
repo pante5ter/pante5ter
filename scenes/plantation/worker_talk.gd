@@ -2,17 +2,33 @@ class_name WorkerTalk
 extends Interactable
 
 
+func _view() -> WorkerView:
+	return get_parent() as WorkerView
+
+
 func hover_text() -> String:
-	return "%s — поговорить" % Game.sim.workers.definition().display_name
+	return "%s — поговорить" % _view().person().display_name
 
 
 func interact(level: Level) -> void:
-	var worker := Game.sim.workers.definition()
-	var title := "%s\nЗарплата %s в день" % [UiText.worker_status(Game.sim.workers), UiText.money(worker.daily_wage)]
-	var actions: Array[UiAction] = [UiAction.make("Уволить", _fire.bind(level))]
-	level.hud.show_actions(title, actions)
+	var view := _view()
+	var person := view.person()
+	if view.role == WorkerDef.HELPER:
+		var title := "%s\nНаучить новому и посмотреть, что он умеет, — в телефоне, «Люди»." % PeopleText.helper_status(Game.sim)
+		var actions: Array[UiAction] = [UiAction.make("Открыть «Люди»", _open_people.bind(level))]
+		level.hud.show_actions(title, actions)
+		return
+	var status := PeopleText.packer_status(Game.sim) if view.role == WorkerDef.PACKER else UiText.worker_status(Game.sim.workers)
+	var title := "%s\nЗарплата %s в день" % [status, UiText.money(person.daily_wage)]
+	var fire_actions: Array[UiAction] = [UiAction.make("Уволить", _fire.bind(level, person))]
+	level.hud.show_actions(title, fire_actions)
 
 
-func _fire(level: Level) -> void:
-	var result := Game.sim.apply(FireWorkerCommand.new())
-	level.show_message("%s уволен." % Game.sim.workers.definition().display_name if result.ok else UiText.error(result.error))
+func _open_people(level: Level) -> void:
+	level.hud.close_actions()
+	level.hud.phone.open(Phone.TAB_PEOPLE)
+
+
+func _fire(level: Level, person: WorkerDef) -> void:
+	var result := Game.sim.apply(FireWorkerCommand.new(person.id))
+	level.show_message("%s %s." % [person.display_name, PeopleText.fired_word(person)] if result.ok else UiText.error(result.error))

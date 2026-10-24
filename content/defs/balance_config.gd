@@ -8,6 +8,10 @@ extends Resource
 @export var extra_strains: Array[StrainDef] = []
 @export var worker: WorkerDef
 @export var worker_candidates: Array[WorkerDef] = []
+## Hired from the first minute; null plays the farm without him.
+@export var helper: WorkerDef
+@export var skills: Array[SkillDef] = []
+@export var packer_candidates: Array[WorkerDef] = []
 @export var courier_candidates: Array[CourierDef] = []
 @export var max_couriers: int = 2
 @export var orders: OrdersDef
@@ -27,6 +31,13 @@ extends Resource
 @export var plot_price: int = 0
 @export var starting_plot_cap: int = 1
 @export var max_plots: int = 1
+## One-tap restock tops each item up to this count (stock + parcels on the way).
+@export var restock_basket: Dictionary[String, int] = {}
+@export var auto_reorder_check_hours: float = 1.0
+
+@export_group("Helper")
+## He dims the lights himself this many game hours before an inspection.
+@export var helper_lights_out_hours: float = 0.5
 
 
 func strains() -> Array[StrainDef]:
@@ -46,6 +57,20 @@ func find_worker(worker_id: String) -> WorkerDef:
 	if worker_id.is_empty():
 		return worker
 	for candidate: WorkerDef in candidates():
+		if candidate.id == worker_id:
+			return candidate
+	return null
+
+
+func find_skill(skill_id: String) -> SkillDef:
+	for candidate: SkillDef in skills:
+		if candidate.id == skill_id:
+			return candidate
+	return null
+
+
+func find_packer(worker_id: String) -> WorkerDef:
+	for candidate: WorkerDef in packer_candidates:
 		if candidate.id == worker_id:
 			return candidate
 	return null

@@ -1,6 +1,7 @@
 class_name Couriers
 extends RefCounted
 
+## Jack no longer drives; the id stays for saves with him on the road.
 const JACK: String = "jack"
 
 var hired: Array[String] = []
@@ -13,6 +14,7 @@ var _economy: Economy
 var _suspicion: Suspicion
 var _rng: SimRng
 var _event_log: EventLog
+var _helper: Helper = null
 
 
 func _init(config: BalanceConfig, orders: Orders, economy: Economy, suspicion: Suspicion, rng: SimRng, event_log: EventLog) -> void:
@@ -24,8 +26,37 @@ func _init(config: BalanceConfig, orders: Orders, economy: Economy, suspicion: S
 	_event_log = event_log
 
 
+func attach_helper(helper: Helper) -> void:
+	_helper = helper
+
+
+func is_helper(courier_id: String) -> bool:
+	return courier_id == Helper.ACTOR and _helper != null and _helper.exists()
+
+
 func is_free(courier_id: String, now: float) -> bool:
+	if is_helper(courier_id):
+		return _helper.present()
 	return busy_until.get(courier_id, -INF) <= now
+
+
+## Who can take this order right now: the helper first, then hired couriers.
+func available_for(order: Order, now: float) -> Array[String]:
+	var free: Array[String] = []
+	if _suspicion.quiet or not _orders.can_fill(order):
+		return free
+	for courier_id: String in drivers():
+		if is_free(courier_id, now):
+			free.append(courier_id)
+	return free
+
+
+func drivers() -> Array[String]:
+	var all: Array[String] = []
+	if _helper != null and _helper.exists():
+		all.append(Helper.ACTOR)
+	all.append_array(hired)
+	return all
 
 
 func hire(courier_id: String, now: float, actor: String) -> CommandResult:
@@ -67,8 +98,12 @@ func trip_risk(courier_id: String) -> float:
 	var def := _config.find_courier(courier_id)
 	if def != null:
 		reliability = def.reliability
+	var factor := 1.0
+	if is_helper(courier_id):
+		reliability = _helper.definition().reliability
+		factor = _helper.trip_risk_factor()
 	var heat := 1.0 + _suspicion.level * _config.orders.suspicion_risk_factor
-	return clampf(_config.orders.base_trip_risk * heat * (1.0 - reliability), 0.0, 1.0)
+	return clampf(_config.orders.base_trip_risk * heat * (1.0 - reliability) * factor, 0.0, 1.0)
 
 
 func dispatch(order_id: int, courier_id: String, now: float, actor: String) -> CommandResult:
@@ -77,17 +112,19 @@ func dispatch(order_id: int, courier_id: String, now: float, actor: String) -> C
 		return CommandResult.failure(CommandResult.UNKNOWN_ORDER)
 	if order.status != Order.Status.ACCEPTED:
 		return CommandResult.failure(CommandResult.ORDER_NOT_OPEN)
-	if courier_id != JACK and not hired.has(courier_id):
+	if not is_helper(courier_id) and not hired.has(courier_id):
 		return CommandResult.failure(CommandResult.WORKER_NOT_HIRED)
-	if not is_free(courier_id, now):
-		return CommandResult.failure(CommandResult.COURIER_BUSY)
-	if _suspicion.quiet:
-		return CommandResult.failure(CommandResult.LYING_LOW)
 	if not _orders.can_fill(order):
 		return CommandResult.failure(CommandResult.NOT_ENOUGH_PRODUCT)
+	if not is_free(courier_id, now):
+		return CommandResult.failure(CommandResult.HELPER_AWAY if is_helper(courier_id) else CommandResult.COURIER_BUSY)
+	if _suspicion.quiet:
+		return CommandResult.failure(CommandResult.LYING_LOW)
 	var trip := trip_seconds(courier_id)
 	var product_ids := _orders.start_transit(order, courier_id, now + trip)
 	busy_until[courier_id] = now + trip * 1.5
+	if is_helper(courier_id):
+		_helper.leave_for_delivery(now, busy_until[courier_id])
 	_suspicion.add(_config.suspicion.per_delivery)
 	_event_log.record(EventLog.ORDER_DISPATCHED, now, PackedStringArray([actor, courier_id, "order:%d" % order.id]), {
 		"order_id": order.id,

@@ -47,6 +47,11 @@ const RAID_RESOLVED: String = "raid_resolved"
 const RENT_PAID: String = "rent_paid"
 const RENT_MISSED: String = "rent_missed"
 const RENT_EVICTED: String = "rent_evicted"
+const HELPER_UNPAID: String = "helper_unpaid"
+const HELPER_TRAINING_STARTED: String = "helper_training_started"
+const HELPER_SKILL_LEARNED: String = "helper_skill_learned"
+const HELPER_SAVED: String = "helper_saved"
+const SUPPLY_RULE_SET: String = "supply_rule_set"
 
 var _entries: Array[SimEvent] = []
 

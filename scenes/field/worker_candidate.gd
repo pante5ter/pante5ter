@@ -40,7 +40,7 @@ func _hire(level: Level) -> void:
 	if not result.ok:
 		level.show_message(UiText.error(result.error))
 		return
-	level.show_message("%s нанят(а). Идёт к контейнеру и спускается на плантацию." % candidate.display_name)
+	level.show_message("%s %s. Идёт к контейнеру и спускается на плантацию." % [candidate.display_name, PeopleText.hired_word(candidate)])
 	_walk_to_container()
 
 

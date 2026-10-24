@@ -122,18 +122,30 @@ func test_packing_needs_harvest() -> void:
 
 # --- couriers
 
-func test_jack_delivers_himself_without_a_fee() -> void:
+func test_the_helper_delivers_without_a_fee() -> void:
 	var state := SimState.new(_config(), 1)
 	var order := _accepted_order(state)
 	_stock_packed(state, order.quantity, 100)
 	var money := state.economy.money
-	assert_true(state.apply(DispatchCommand.new(order.id, Couriers.JACK)).ok)
+	assert_true(state.apply(DispatchCommand.new(order.id, Helper.ACTOR)).ok)
 	assert_eq(order.status, Order.Status.IN_TRANSIT)
 	assert_eq(state.inventory.count(), 0)
-	assert_false(state.couriers.is_free(Couriers.JACK, state.clock.elapsed_game_seconds))
+	assert_false(state.couriers.is_free(Helper.ACTOR, state.clock.elapsed_game_seconds))
+	assert_false(state.helper.present(), "he leaves the farm for the trip")
 	_advance(state, state.config.orders.trip_hours + 0.01)
 	assert_eq(state.economy.money, money + order.reward)
 	assert_null(state.orders.find(order.id))
+	_advance(state, state.config.orders.trip_hours * 0.5)
+	assert_true(state.helper.present(), "and comes back after the return leg")
+
+
+func test_jack_no_longer_drives_orders() -> void:
+	var state := SimState.new(_config(), 1)
+	var order := _accepted_order(state)
+	_stock_packed(state, order.quantity, 100)
+	assert_eq(state.apply(DispatchCommand.new(order.id, Couriers.JACK)).error, CommandResult.WORKER_NOT_HIRED)
+	assert_eq(order.status, Order.Status.ACCEPTED)
+	assert_true(state.couriers.is_free(Couriers.JACK, state.clock.elapsed_game_seconds))
 
 
 func test_hired_courier_keeps_his_cut_and_comes_back() -> void:
@@ -160,11 +172,11 @@ func test_faster_couriers_arrive_sooner() -> void:
 func test_dispatch_rules() -> void:
 	var state := SimState.new(_config(), 1)
 	var order := _accepted_order(state)
-	assert_eq(state.apply(DispatchCommand.new(order.id, Couriers.JACK)).error, CommandResult.NOT_ENOUGH_PRODUCT)
+	assert_eq(state.apply(DispatchCommand.new(order.id, Helper.ACTOR)).error, CommandResult.NOT_ENOUGH_PRODUCT)
 	assert_eq(state.apply(DispatchCommand.new(order.id, "frank")).error, CommandResult.WORKER_NOT_HIRED)
 	_stock_packed(state, order.quantity, 100)
 	state.apply(LieLowCommand.new(true))
-	assert_eq(state.apply(DispatchCommand.new(order.id, Couriers.JACK)).error, CommandResult.LYING_LOW)
+	assert_eq(state.apply(DispatchCommand.new(order.id, Helper.ACTOR)).error, CommandResult.LYING_LOW)
 
 
 func test_courier_hiring_rules() -> void:
@@ -181,11 +193,15 @@ func test_courier_hiring_rules() -> void:
 
 
 func test_a_stopped_delivery_loses_the_goods_and_raises_suspicion() -> void:
-	var state := SimState.new(_config(5000, 1.0), 1)
+	var config := _config(5000, 1.0)
+	var reckless := config.helper.duplicate() as WorkerDef
+	reckless.reliability = 0.0
+	config.helper = reckless
+	var state := SimState.new(config, 1)
 	var order := _accepted_order(state)
 	_stock_packed(state, order.quantity, 100)
 	var money := state.economy.money
-	state.apply(DispatchCommand.new(order.id, Couriers.JACK))
+	state.apply(DispatchCommand.new(order.id, Helper.ACTOR))
 	var before := state.suspicion.level
 	_advance(state, state.config.orders.trip_hours + 0.01)
 	assert_eq(state.event_log.of_type(EventLog.DELIVERY_STOPPED).size(), 1)
@@ -221,7 +237,7 @@ func test_dispatching_raises_suspicion() -> void:
 	var state := SimState.new(_config(), 1)
 	var order := _accepted_order(state)
 	_stock_packed(state, order.quantity, 100)
-	state.apply(DispatchCommand.new(order.id, Couriers.JACK))
+	state.apply(DispatchCommand.new(order.id, Helper.ACTOR))
 	assert_almost_eq(state.suspicion.level, state.config.suspicion.per_delivery, 0.01)
 
 
@@ -230,7 +246,7 @@ func test_goods_on_the_road_count_towards_empire_value() -> void:
 	var order := _accepted_order(state)
 	_stock_packed(state, order.quantity, 100)
 	var base := state.config.starting_money + state.grow.plots().size() * state.config.plot_price
-	state.apply(DispatchCommand.new(order.id, Couriers.JACK))
+	state.apply(DispatchCommand.new(order.id, Helper.ACTOR))
 	assert_eq(state.empire_value(), base + order.reward)
 
 

@@ -5,6 +5,10 @@ extends Interactable
 @export var progress_label: Label3D
 
 
+func _ready() -> void:
+	add_to_group(WorkerView.BENCH_GROUP)
+
+
 func _process(_delta: float) -> void:
 	var packing := Game.sim.packing
 	sacks.visible = packing.unpacked_count() > 0

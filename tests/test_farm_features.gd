@@ -199,7 +199,10 @@ func test_buying_a_bed_needs_money() -> void:
 # --- worker
 
 func test_firing_the_worker_stops_wages() -> void:
-	var state := SimState.new(_rich(), 1)
+	var config := _rich()
+	# Only the farmhand's wages are under test here.
+	config.helper = null
+	var state := SimState.new(config, 1)
 	assert_eq(state.apply(FireWorkerCommand.new()).error, CommandResult.WORKER_NOT_HIRED)
 	state.apply(HireWorkerCommand.new())
 	assert_true(state.apply(FireWorkerCommand.new()).ok)

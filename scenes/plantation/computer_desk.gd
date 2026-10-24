@@ -5,13 +5,22 @@ extends Interactable
 
 
 func _process(_delta: float) -> void:
-	screen_glow.visible = not Game.sim.orders.with_status(Order.Status.OFFERED).is_empty()
+	screen_glow.visible = ready_orders() > 0
+
+
+## Accepted orders whose boxes are on the shelf, waiting for a driver.
+static func ready_orders() -> int:
+	var ready := 0
+	for order: Order in Game.sim.orders.with_status(Order.Status.ACCEPTED):
+		if Game.sim.orders.can_fill(order):
+			ready += 1
+	return ready
 
 
 func hover_text() -> String:
-	var calls := Game.sim.orders.with_status(Order.Status.OFFERED).size()
-	if calls > 0:
-		return "Компьютер — звонков: %d" % calls
+	var ready := ready_orders()
+	if ready > 0:
+		return "Компьютер — заказов к отправке: %d" % ready
 	return "Компьютер — заказы, курьеры, ферма"
 
 

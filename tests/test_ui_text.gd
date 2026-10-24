@@ -61,7 +61,7 @@ func test_objective_walks_the_player_through_the_loop() -> void:
 	assert_string_contains(UiText.objective(state), "Полей")
 	state.apply(WaterCommand.new(0))
 	assert_string_contains(UiText.objective(state), "Найми")
-	assert_string_contains(UiText.objective(state), "у дороги")
+	assert_string_contains(UiText.objective(state), "«Люди»")
 	state.apply(HireWorkerCommand.new())
 	assert_string_contains(UiText.objective(state), "закажите семена")
 	assert_string_contains(UiText.objective(state), "(Tab)")

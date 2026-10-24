@@ -19,6 +19,7 @@ var _workers: Workers
 var _suspicion: Suspicion
 var _event_log: EventLog
 var _empire_value: Callable
+var _helper: Helper = null
 
 
 func _init(def: RaidsDef, rng: SimRng, inventory: Inventory, economy: Economy, orders: Orders, workers: Workers, suspicion: Suspicion, event_log: EventLog, empire_value: Callable) -> void:
@@ -37,12 +38,17 @@ func _init(def: RaidsDef, rng: SimRng, inventory: Inventory, economy: Economy, o
 	next_roll_at = first_night
 
 
+func attach_helper(helper: Helper) -> void:
+	_helper = helper
+
+
 func bribe() -> int:
 	return _def.bribe
 
 
 func chase_chance() -> float:
-	return clampf(_def.chase_chance + (_def.chase_bonus_with_worker if _workers.hired else 0.0), 0.0, 1.0)
+	var help := _workers.hired or (_helper != null and _helper.present())
+	return clampf(_def.chase_chance + (_def.chase_bonus_with_worker if help else 0.0), 0.0, 1.0)
 
 
 func next_event_time() -> float:
@@ -54,7 +60,7 @@ func next_event_time() -> float:
 
 func process(now: float) -> void:
 	if pending and now >= deadline:
-		_rob(now, "ignored")
+		_unanswered(now)
 	while now >= next_roll_at:
 		_roll(next_roll_at)
 		next_roll_at += SimClock.GAME_SECONDS_PER_DAY
@@ -99,6 +105,18 @@ func respond(choice: String, now: float, actor: String) -> CommandResult:
 		_:
 			return CommandResult.failure(CommandResult.UNKNOWN_CHOICE)
 	return CommandResult.success()
+
+
+func _unanswered(now: float) -> void:
+	if _helper == null or not _helper.chases_raiders():
+		_rob(now, "ignored")
+		return
+	_suspicion.add(_def.chase_noise)
+	if _rng.randf() < chase_chance():
+		_event_log.record(EventLog.HELPER_SAVED, now, PackedStringArray([Helper.ACTOR, RAIDER_ACTOR]), {"kind": Helper.SAVED_RAID})
+		_resolve(now, Helper.ACTOR, "helper_chased", {})
+	else:
+		_rob(now, "helper_failed")
 
 
 func _rob(now: float, outcome: String) -> void:
