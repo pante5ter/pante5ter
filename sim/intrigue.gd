@@ -220,10 +220,13 @@ func _accused(choice: int, now: float) -> void:
 		_suspicion.add(-_def.caught_relief)
 		_stories.shift(Stories.CREW, _def.caught_crew)
 		_raids.calm(now + _def.caught_calm_days * SimClock.GAME_SECONDS_PER_DAY)
-		if not accused.courier_id.is_empty() and _couriers.hired.has(accused.courier_id):
-			_couriers.fire(accused.courier_id, now, ACTOR)
+		if not accused.courier_id.is_empty():
+			_couriers.dismiss(accused.courier_id, now, ACTOR, Couriers.REASON_RAT, true)
 		_finish(CAUGHT, accused.id, now)
 		return
+	# The innocent reply has him walk out; a courier who drove for Jack goes with it.
+	if not accused.courier_id.is_empty():
+		_couriers.dismiss(accused.courier_id, now, ACTOR, Couriers.REASON_INSULTED, false)
 	_suspicion.add(_def.wrong_suspicion)
 	_stories.shift(Stories.VILLAGE, _def.wrong_village)
 	_raids.expect()

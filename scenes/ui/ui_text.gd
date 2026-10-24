@@ -54,6 +54,7 @@ const ERRORS: Dictionary[String, String] = {
 	CommandResult.UNKNOWN_WORKER: "Такого работника нет.",
 	CommandResult.TOO_MANY_COURIERS: "Больше курьеров не нужно — уволь кого-нибудь.",
 	CommandResult.COURIER_BUSY: "Курьер ещё в дороге.",
+	CommandResult.COURIER_BANNED: "С этим человеком мы больше не работаем. Второй раз — это уже не доверие, а глупость.",
 	CommandResult.LYING_LOW: "Ферма затихла — курьеры сидят дома.",
 	CommandResult.NOTHING_TO_PACK: "Фасовать нечего — сначала собери урожай.",
 	CommandResult.NO_PARCEL: "Посылок нет.",
@@ -298,7 +299,12 @@ static func announcement(event: SimEvent, sim: SimState) -> String:
 		EventLog.DELIVERY_STOPPED:
 			return "%s остановили по дороге. Товар потерян, о ферме пошли разговоры. Неприятно." % courier_name(String(event.data["courier_id"]), sim)
 		EventLog.COURIER_STOLE:
-			return "Курьер %s исчез вместе с товаром. Открытки, полагаю, не будет." % courier_name(String(event.data["courier_id"]), sim)
+			return "Курьер %s исчез вместе с товаром. Открытки, полагаю, не будет — и работы у нас тоже." % courier_name(String(event.data["courier_id"]), sim)
+		EventLog.COURIER_FIRED:
+			if String(event.data.get("reason", "")) == Couriers.REASON_RAT:
+				return "%s больше не работает на нас. Крысам ключи от фургона не дают." % courier_name(String(event.data["courier_id"]), sim)
+		EventLog.COURIER_QUIT:
+			return "%s обиделся на обвинение и ушёл. Курьером у нас он больше не работает." % courier_name(String(event.data["courier_id"]), sim)
 		EventLog.PACKING_DONE:
 			return "Расфасовано: %d шт. — на полке склада." % int(event.data["units"])
 		EventLog.SUPPLY_DELIVERED:

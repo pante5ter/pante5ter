@@ -1,17 +1,20 @@
 class_name SimState
 extends RefCounted
 
-const SAVE_VERSION: int = 10
+const SAVE_VERSION: int = 11
 ## v7 saves load too: they get a fresh helper and no packer.
 const MIGRATABLE_VERSION: int = 7
 ## v8 saves load too: they skip the first-day script and the director starts counting at load.
 const V8_VERSION: int = 8
 ## v9 saves load too: the rat hunt waits for the next raid.
 const V9_VERSION: int = 9
+## v10 saves load too: no banned couriers, no theft calls waiting.
+const V10_VERSION: int = 10
 const V7_SAVE_KEYS: Array[String] = ["save_version", "clock", "rng", "economy", "inventory", "plots", "workers", "supplies", "orders", "progress", "problems", "suspicion", "raids", "couriers", "packing", "rent", "event_log"]
 const V8_SAVE_KEYS: Array[String] = ["helper", "packer"]
 const V9_SAVE_KEYS: Array[String] = ["first_day", "director", "stories"]
 const V10_SAVE_KEYS: Array[String] = ["intrigue"]
+const V11_SAVE_KEYS: Array[String] = ["thefts"]
 
 var config: BalanceConfig
 var clock: SimClock
@@ -36,6 +39,7 @@ var stories: Stories
 var first_day: FirstDay
 var director: Director
 var intrigue: Intrigue
+var thefts: CourierThefts
 
 
 func _init(balance: BalanceConfig, seed_value: int) -> void:
@@ -71,9 +75,11 @@ func _init(balance: BalanceConfig, seed_value: int) -> void:
 	first_day = FirstDay.new(balance, grow, inventory, orders, problems, stories, event_log)
 	director = Director.new(balance, rng, orders, problems, suspicion, raids, couriers, stories, first_day, event_log)
 	intrigue = Intrigue.new(balance, rng, stories, raids, couriers, suspicion, event_log)
+	thefts = CourierThefts.new(balance, stories, event_log)
 	progress.update(empire_value(), clock.elapsed_game_seconds)
 	# Whatever the start logged is not news to the intrigue; a refused first command must change nothing.
 	intrigue.seen_events = event_log.size()
+	thefts.seen_events = event_log.size()
 
 
 func apply(command: SimCommand) -> CommandResult:
@@ -82,6 +88,7 @@ func apply(command: SimCommand) -> CommandResult:
 	var result := _apply(command)
 	first_day.update(clock.elapsed_game_seconds)
 	intrigue.update(clock.elapsed_game_seconds)
+	thefts.update(clock.elapsed_game_seconds)
 	progress.update(empire_value(), clock.elapsed_game_seconds)
 	return result
 
@@ -201,6 +208,7 @@ func _process_events(now: float) -> void:
 	stories.process(now)
 	first_day.update(now)
 	intrigue.update(now)
+	thefts.update(now)
 	director.process(now)
 
 
@@ -254,6 +262,7 @@ func to_dict() -> Dictionary:
 		"first_day": first_day.to_dict(),
 		"director": director.to_dict(),
 		"intrigue": intrigue.to_dict(),
+		"thefts": thefts.to_dict(),
 		"event_log": event_log.to_array(),
 	}
 
@@ -276,7 +285,9 @@ static func from_json(text: String, balance: BalanceConfig) -> SimState:
 		return null
 	if version >= V9_VERSION and not data.has_all(V9_SAVE_KEYS):
 		return null
-	if version == SAVE_VERSION and not data.has_all(V10_SAVE_KEYS):
+	if version >= V10_VERSION and not data.has_all(V10_SAVE_KEYS):
+		return null
+	if version == SAVE_VERSION and not data.has_all(V11_SAVE_KEYS):
 		return null
 	var state := SimState.new(balance, 0)
 	state._load_dict(data)
@@ -285,8 +296,10 @@ static func from_json(text: String, balance: BalanceConfig) -> SimState:
 	if version < V9_VERSION:
 		state.first_day.skip()
 		state.director.restart(state.clock.elapsed_game_seconds)
-	if version < SAVE_VERSION:
+	if version < V10_VERSION:
 		state.intrigue.seen_events = state.event_log.size()
+	if version < SAVE_VERSION:
+		state.thefts.seen_events = state.event_log.size()
 	if is_nan(state.clock.elapsed_game_seconds):
 		return null
 	return state
@@ -321,3 +334,5 @@ func _load_dict(data: Dictionary) -> void:
 		director.load_dict(data["director"] as Dictionary)
 	if data.has("intrigue"):
 		intrigue.load_dict(data["intrigue"] as Dictionary)
+	if data.has("thefts"):
+		thefts.load_dict(data["thefts"] as Dictionary)

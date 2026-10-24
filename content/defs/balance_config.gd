@@ -25,6 +25,8 @@ extends Resource
 @export var director: DirectorDef
 ## null plays without the rat hunt after the first raid.
 @export var intrigue: IntrigueDef
+## Finn's call after a courier steals; %s in the texts is the thief's name. Null: no call.
+@export var courier_theft_story: StoryDef
 
 @export_group("Care")
 @export var fertilizer_price: int = 0
