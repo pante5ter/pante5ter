@@ -43,7 +43,7 @@ func _press_key(level: Level, keycode: Key) -> void:
 func _lines(count: int) -> Array[DialogueLineDef]:
 	var lines: Array[DialogueLineDef] = []
 	for index: int in count:
-		lines.append(DialogueLineDef.make("Финн", "Строка %d." % index))
+		lines.append(DialogueLineDef.make("Реджи", "Строка %d." % index))
 	return lines
 
 
@@ -120,16 +120,16 @@ func test_a_refused_choice_keeps_the_question_open() -> void:
 	assert_string_contains(box.choice_buttons()[0].text, "£500")
 
 
-func test_hud_shows_the_crew_and_finn_knows_where_jack_is() -> void:
+func test_hud_shows_the_crew_and_reggie_knows_where_jack_is() -> void:
 	var field := await _open(FIELD_SCENE)
 	await wait_process_frames(2)
 	assert_string_contains(field.hud.worker_label.text, "Реджи")
-	assert_string_contains(field.hud.objective_label.text, "контейнер", "on the field Finn sends Jack down")
+	assert_string_contains(field.hud.objective_label.text, "контейнер", "on the field Reggie sends Jack down")
 	field.queue_free()
 	var bunker := await _open(PLANTATION_SCENE)
 	await wait_process_frames(2)
 	assert_true(bunker.hud.underground)
-	assert_false(bunker.hud.objective_label.text.contains("контейнер"), "in the bunker Finn does not send Jack down again")
+	assert_false(bunker.hud.objective_label.text.contains("контейнер"), "in the bunker Reggie does not send Jack down again")
 	assert_string_contains(bunker.hud.objective_label.text, "Посадите")
 
 
@@ -152,7 +152,7 @@ func test_everyday_objective_is_location_aware() -> void:
 	assert_string_contains(UiText.objective(state, true), "Посадите")
 
 
-func test_finn_follows_the_script_and_announces_director_news() -> void:
+func test_reggie_follows_the_script_and_announces_director_news() -> void:
 	var state := SimState.new(load(BALANCE_PATH) as BalanceConfig, 1)
 	var def := state.config.first_day
 	assert_eq(UiText.objective(state, false), def.plant_field_line)

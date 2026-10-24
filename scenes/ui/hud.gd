@@ -33,8 +33,12 @@ var alert_banner: AlertBanner
 var edge_markers: EdgeMarkers
 var jack_button: JackButton
 var day_card: DayCard
-## Set by the level: Finn phrases directions from where Jack stands.
+var night: NightFlow
+var remote_bar: RemoteBar
+## Set by the level: Reggie phrases directions from where Jack stands.
 var underground: bool = false
+## Set by the level: which of Jack's places this view shows.
+var place: String = ""
 var speed_buttons: Array[Button] = []
 
 var _message_left: float = 0.0
@@ -98,6 +102,12 @@ func _ready() -> void:
 	story_presenter = StoryPresenter.new()
 	story_presenter.hud = self
 	add_child(story_presenter)
+	remote_bar = RemoteBar.new()
+	remote_bar.hud = self
+	add_child(remote_bar)
+	night = NightFlow.new()
+	night.hud = self
+	add_child(night)
 
 
 func _add_corner_button(text: String, on_pressed: Callable, anchor: Vector2, rect: Rect2) -> void:
@@ -119,7 +129,7 @@ func _process(delta: float) -> void:
 	time_label.text = UiText.clock(sim.clock)
 	stock_label.text = UiText.stock(sim)
 	worker_label.text = StoryText.crew_status(sim)
-	objective_label.text = "Финн: " + UiText.objective(sim, underground)
+	objective_label.text = UiText.REGGIE + ": " + UiText.objective(sim, underground)
 	empire_label.text = UiText.empire(sim)
 	suspicion_label.text = UiText.suspicion(sim)
 	suspicion_label.modulate = Color(1.0, 0.55, 0.45) if sim.suspicion.inspection_pending() or sim.raids.pending else Color.WHITE
@@ -162,7 +172,7 @@ func show_message(text: String) -> void:
 
 
 func set_hover(text: String) -> void:
-	var blocked := action_menu.visible or phone.visible or pause_menu.visible or computer.visible or dialogue_box.is_open()
+	var blocked := action_menu.visible or phone.visible or pause_menu.visible or computer.visible or dialogue_box.is_open() or night.is_open()
 	hover_label.text = text
 	hover_label.visible = not text.is_empty() and not blocked
 
@@ -176,7 +186,7 @@ func close_actions() -> void:
 
 
 func is_blocking_world() -> bool:
-	return action_menu.visible or pause_menu.visible or computer.visible or dialogue_box.is_open()
+	return action_menu.visible or pause_menu.visible or computer.visible or dialogue_box.is_open() or night.is_open()
 
 
 ## With choices the box waits on the last line for one; its chosen signal carries the index.
@@ -255,7 +265,16 @@ func _on_alert_action(topic: String) -> void:
 		action_menu.close()
 		phone.open(Phone.APP_CALLS)
 		return
+	if topic == Alert.HOME:
+		action_menu.close()
+		var result := Travel.go(DayCycle.HOME)
+		if not result.ok:
+			show_message(UiText.error(result.error))
+		return
 	var target := AlertTarget.find_live(get_tree(), topic)
+	if target == null and Alert.is_farm_trouble(topic) and place != DayCycle.FARM:
+		Travel.look_at(DayCycle.FARM)
+		return
 	var camera := get_viewport().get_camera_3d()
 	var rig := camera.get_parent() as IsoCameraRig if camera != null else null
 	if target != null and rig != null:
@@ -289,6 +308,9 @@ func _input(event: InputEvent) -> void:
 		return
 	var key := event as InputEventKey
 	if key == null or not key.pressed or key.echo:
+		return
+	if night.handle_key(key):
+		get_viewport().set_input_as_handled()
 		return
 	match key.physical_keycode:
 		KEY_TAB:

@@ -44,7 +44,7 @@ func test_a_story_beat_drops_the_game_to_normal_speed() -> void:
 	assert_eq(Game.time_scale, Game.SPEEDS[0])
 
 
-func test_a_clue_from_finn_is_a_beat() -> void:
+func test_a_clue_from_reggie_is_a_beat() -> void:
 	var clue := SimEvent.new()
 	clue.type = EventLog.INTRIGUE_CLUE
 	assert_true(Stories.is_beat(clue))

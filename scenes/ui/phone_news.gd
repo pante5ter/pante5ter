@@ -1,7 +1,7 @@
 class_name PhoneNews
 extends RefCounted
 
-## The «Финн» app: what to do next and the farm news, newest first. Counts what was not read yet.
+## The «Реджи» app: what to do next and the farm news, newest first. Counts what was not read yet.
 
 const SHOWN: int = 15
 
@@ -28,9 +28,9 @@ func mark_read() -> void:
 
 
 func fill(box: VBoxContainer, sim: SimState, underground: bool) -> void:
-	var finn := PhoneKit.card(box, PhoneKit.GOLD)
-	PhoneKit.heading(finn, UiText.FINN, "", PhoneKit.GOLD)
-	finn.add_child(PhoneKit.label(UiText.objective(sim, underground)))
+	var reggie := PhoneKit.card(box, PhoneKit.GOLD)
+	PhoneKit.heading(reggie, UiText.REGGIE, "", PhoneKit.GOLD)
+	reggie.add_child(PhoneKit.label(UiText.objective(sim, underground)))
 	var hunt := StoryText.rat_hunt(sim)
 	if not hunt.is_empty():
 		var clues := PhoneKit.card(box, PhoneKit.DANGER)
@@ -49,7 +49,7 @@ func fill(box: VBoxContainer, sim: SimState, underground: bool) -> void:
 		if shown >= SHOWN:
 			break
 	if shown == 0:
-		box.add_child(PhoneKit.label("Пока тихо. Всё важное с фермы Финн пишет сюда.", PhoneKit.BODY_SIZE, PhoneKit.MUTED))
+		box.add_child(PhoneKit.label("Пока тихо. Всё важное с фермы Реджи пишет сюда.", PhoneKit.BODY_SIZE, PhoneKit.MUTED))
 
 
 static func time_of_day(game_seconds: float) -> String:

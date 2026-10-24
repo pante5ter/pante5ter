@@ -1,17 +1,17 @@
 class_name CourierThefts
 extends RefCounted
 
-## A courier ran off with a parcel: Finn calls, and Jack decides whether Finn has a word with him.
+## A courier ran off with a parcel: Reggie calls, and Jack decides whether Reggie has a word with him.
 ## The story is built from the content template with the thief's name, one per thief.
 
-const ACTOR: String = "finn"
+const ACTOR: String = "reggie"
 const STORY_PREFIX: String = "courier_theft:"
 ## The template's choices, in this order.
 const HAVE_A_WORD: int = 0
 const LET_GO: int = 1
 const NAME_MARK: String = "%s"
 
-## Thieves Finn has not called about yet, oldest first.
+## Thieves Reggie has not called about yet, oldest first.
 var waiting: Array[String] = []
 var seen_events: int = 0
 

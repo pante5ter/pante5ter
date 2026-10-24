@@ -5,11 +5,11 @@ extends RefCounted
 
 const LESSON_STEPS: Array[FirstDay.Step] = [
 	FirstDay.Step.PLANT, FirstDay.Step.CALL, FirstDay.Step.ANSWER, FirstDay.Step.HARVEST,
-	FirstDay.Step.PACK, FirstDay.Step.SEND, FirstDay.Step.TROUBLE,
+	FirstDay.Step.HAUL, FirstDay.Step.PACK, FirstDay.Step.SEND, FirstDay.Step.TROUBLE,
 ]
 
 
-## Finn's line while the script teaches something; empty when the script has nothing to say.
+## Reggie's line while the script teaches something; empty when the script has nothing to say.
 static func lesson(sim: SimState, underground: bool) -> String:
 	var first_day := sim.first_day
 	var def := first_day.definition()
@@ -24,6 +24,12 @@ static func lesson(sim: SimState, underground: bool) -> String:
 			return def.answer_line
 		FirstDay.Step.HARVEST:
 			return def.harvest_line
+		FirstDay.Step.HAUL:
+			if sim.stash.on_the_road():
+				return ""
+			if sim.inventory.farm_crates().is_empty():
+				return def.harvest_line
+			return def.haul_line
 		FirstDay.Step.PACK:
 			return def.pack_line
 		FirstDay.Step.SEND:
@@ -35,7 +41,7 @@ static func lesson(sim: SimState, underground: bool) -> String:
 	return ""
 
 
-## Finn's line for the quiet stretches of the first day, below anything the player can act on.
+## Reggie's line for the quiet stretches of the first day, below anything the player can act on.
 static func idle_line(sim: SimState) -> String:
 	var def := sim.first_day.definition()
 	if def == null:
@@ -54,8 +60,8 @@ static func crew_status(sim: SimState) -> String:
 	var lines := PackedStringArray()
 	if sim.helper.exists():
 		lines.append(PeopleText.helper_status(sim))
-	if sim.workers.hired:
-		lines.append(UiText.worker_status(sim.workers))
+	for gardener: Gardener in sim.workers.gardeners():
+		lines.append(UiText.gardener_status(gardener))
 	if sim.packer.hired:
 		lines.append(PeopleText.packer_status(sim))
 	if lines.is_empty():

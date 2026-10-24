@@ -19,8 +19,11 @@ const IDLE_OFFSETS: Dictionary[String, Vector3] = {
 @export var arrival_spot: Marker3D
 @export var talk: WorkerTalk
 @export var status_label: Label3D
-## The level's Worker node is the farmhand and spawns the other two at start.
+## The bunker's Worker node is the first gardener and spawns Reggie and the rest of the crew at start;
+## the packer stands at the stash.
 @export_enum("farmhand", "helper", "packer") var role: String = WorkerDef.FARMHAND
+## Which gardener of the crew this figure shows, in hire order.
+@export var gardener_index: int = 0
 
 var _target: Vector3 = Vector3.INF
 var _retry_left: float = 0.0
@@ -29,17 +32,28 @@ var _seen_absent: bool = false
 
 
 func _ready() -> void:
-	if role != WorkerDef.FARMHAND or scene_file_path.is_empty():
+	if role != WorkerDef.FARMHAND or gardener_index != 0 or scene_file_path.is_empty():
 		return
 	var scene := load(scene_file_path) as PackedScene
-	for extra_role: String in [WorkerDef.HELPER, WorkerDef.PACKER]:
-		var extra := scene.instantiate() as WorkerView
-		extra.role = extra_role
-		extra.name = extra_role.capitalize()
-		extra.plots_grid = plots_grid
-		extra.idle_spot = idle_spot
-		extra.arrival_spot = arrival_spot
-		get_parent().add_child.call_deferred(extra)
+	_spawn(scene, WorkerDef.HELPER, 0, "Helper")
+	for index: int in range(1, Game.sim.workers.capacity()):
+		_spawn(scene, WorkerDef.FARMHAND, index, "Gardener%d" % index)
+
+
+func _spawn(scene: PackedScene, extra_role: String, index: int, node_name: String) -> void:
+	var extra := scene.instantiate() as WorkerView
+	extra.role = extra_role
+	extra.gardener_index = index
+	extra.name = node_name
+	extra.plots_grid = plots_grid
+	extra.idle_spot = idle_spot
+	extra.arrival_spot = arrival_spot
+	get_parent().add_child.call_deferred(extra)
+
+
+func _gardener() -> Gardener:
+	var crew := Game.sim.workers.gardeners()
+	return crew[gardener_index] if gardener_index < crew.size() else null
 
 
 func _process(delta: float) -> void:
@@ -62,7 +76,7 @@ func _process(delta: float) -> void:
 		_target = target
 		_retry_left = RETRY_SECONDS
 		move_to(target)
-	status_label.text = _status()
+	status_label.text = status_text()
 	if _task() != Workers.Task.NONE and not far and not is_moving():
 		_face(_work_point())
 		model.play_work()
@@ -76,7 +90,8 @@ func person() -> WorkerDef:
 			return Game.sim.helper.definition()
 		WorkerDef.PACKER:
 			return Game.sim.packer.definition()
-	return Game.sim.workers.definition()
+	var gardener := _gardener()
+	return gardener.definition() if gardener != null else Game.sim.workers.definition()
 
 
 func _present() -> bool:
@@ -85,7 +100,7 @@ func _present() -> bool:
 			return Game.sim.helper.present()
 		WorkerDef.PACKER:
 			return Game.sim.packer.hired
-	return Game.sim.workers.hired
+	return _gardener() != null
 
 
 func _task() -> Workers.Task:
@@ -94,7 +109,8 @@ func _task() -> Workers.Task:
 			return Game.sim.helper.task
 		WorkerDef.PACKER:
 			return Workers.Task.PACK if Game.sim.packer.working else Workers.Task.NONE
-	return Game.sim.workers.task
+	var gardener := _gardener()
+	return gardener.task if gardener != null else Workers.Task.NONE
 
 
 func _task_plot_id() -> int:
@@ -103,16 +119,18 @@ func _task_plot_id() -> int:
 			return Game.sim.helper.task_plot_id
 		WorkerDef.PACKER:
 			return -1
-	return Game.sim.workers.task_plot_id
+	var gardener := _gardener()
+	return gardener.task_plot_id if gardener != null else -1
 
 
-func _status() -> String:
+func status_text() -> String:
 	match role:
 		WorkerDef.HELPER:
 			return PeopleText.helper_status(Game.sim)
 		WorkerDef.PACKER:
 			return PeopleText.packer_status(Game.sim)
-	return UiText.worker_status(Game.sim.workers)
+	var gardener := _gardener()
+	return UiText.gardener_status(gardener) if gardener != null else UiText.worker_status(Game.sim.workers)
 
 
 func _bench() -> PackingBench:
@@ -120,7 +138,7 @@ func _bench() -> PackingBench:
 
 
 func _idle_point() -> Vector3:
-	return idle_spot.global_position + IDLE_OFFSETS.get(role, Vector3.ZERO)
+	return idle_spot.global_position + IDLE_OFFSETS.get(role, Vector3.ZERO) + Vector3(0.0, 0.0, 1.1 * float(gardener_index))
 
 
 func _desired_target() -> Vector3:
@@ -130,7 +148,7 @@ func _desired_target() -> Vector3:
 	if task == Workers.Task.PACK:
 		var bench := _bench()
 		return bench.approach_position() if bench != null else _idle_point()
-	var view := plots_grid.view_for(_task_plot_id())
+	var view := plots_grid.view_for(_task_plot_id()) if plots_grid != null else null
 	if view == null:
 		return _idle_point()
 	return view.approach_position() + WORK_OFFSET
@@ -140,7 +158,7 @@ func _work_point() -> Vector3:
 	if _task() == Workers.Task.PACK:
 		var bench := _bench()
 		return bench.global_position if bench != null else global_position
-	var view := plots_grid.view_for(_task_plot_id())
+	var view := plots_grid.view_for(_task_plot_id()) if plots_grid != null else null
 	return view.global_position if view != null else global_position
 
 

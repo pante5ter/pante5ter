@@ -24,7 +24,7 @@ extends Resource
 @export var urgent_deadline_hours: float = 4.0
 
 @export_group("Rumour")
-## Finn hears about an inspection only once the farm is this suspicious; below it the rumour is about raiders.
+## Reggie hears about an inspection only once the farm is this suspicious; below it the rumour is about raiders.
 @export var rumour_inspection_min_suspicion: float = 25.0
 @export var rumour_inspection_hours: float = 3.0
 

@@ -20,6 +20,8 @@ func _config(money: int = 500, problems: float = 0.0, raids: float = 0.0) -> Bal
 	# The script and the director roll their own dice and add their own trouble; these tests check the bare threats.
 	config.first_day = null
 	config.director = null
+	# Jack never goes home here; his nights out are tested in test_day_cycle.
+	config.day = null
 	return config
 
 

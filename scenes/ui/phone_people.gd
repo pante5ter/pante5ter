@@ -4,14 +4,17 @@ extends RefCounted
 
 static func fill(box: VBoxContainer, sim: SimState, phone: Phone) -> void:
 	_add_helper(box, sim, phone)
-	box.add_child(PhoneKit.label("На грядки", PhoneKit.TITLE_SIZE, PhoneKit.MUTED))
+	var crew := sim.workers
+	box.add_child(PhoneKit.label("Садовники на грядки — %d из %d" % [crew.gardeners().size(), crew.capacity()], PhoneKit.TITLE_SIZE, PhoneKit.MUTED))
+	var crew_full := crew.gardeners().size() >= crew.capacity()
 	for person: WorkerDef in sim.config.candidates():
-		_add_candidate(box, sim, phone, person, sim.workers.hired, sim.workers.definition())
+		var hired := crew.is_hired(person.id)
+		_add_candidate(box, sim, phone, person, hired or crew_full, person if hired else null)
 	if not sim.config.packer_candidates.is_empty():
-		box.add_child(PhoneKit.label("На фасовку", PhoneKit.TITLE_SIZE, PhoneKit.MUTED))
+		box.add_child(PhoneKit.label("На фасовку в тайнике", PhoneKit.TITLE_SIZE, PhoneKit.MUTED))
 		for person: WorkerDef in sim.config.packer_candidates:
 			_add_candidate(box, sim, phone, person, sim.packer.hired, sim.packer.definition())
-	box.add_child(PhoneKit.label("Курьеры — на компьютере на плантации, вкладка «Курьеры».", PhoneKit.SMALL_SIZE, PhoneKit.MUTED))
+	box.add_child(PhoneKit.label("Курьеры — на компьютере (в бункере или в тайнике), вкладка «Курьеры».", PhoneKit.SMALL_SIZE, PhoneKit.MUTED))
 
 
 static func _add_helper(box: VBoxContainer, sim: SimState, phone: Phone) -> void:
@@ -29,7 +32,7 @@ static func _add_helper(box: VBoxContainer, sim: SimState, phone: Phone) -> void
 		var skill := sim.config.find_skill(skill_id)
 		if skill != null:
 			known.append(skill.display_name)
-	card.add_child(PhoneKit.label("Умеет: %s." % (", ".join(known) if not known.is_empty() else "возить заказы, лечить грядки, гасить свет перед проверкой"), PhoneKit.SMALL_SIZE, PhoneKit.MUTED))
+	card.add_child(PhoneKit.label("Умеет: %s." % (", ".join(known) if not known.is_empty() else "возить заказы, ящики и Джека, лечить грядки, гасить свет перед проверкой"), PhoneKit.SMALL_SIZE, PhoneKit.MUTED))
 	for skill: SkillDef in sim.config.skills:
 		if helper.skills.has(skill.id) or helper.training_skill_id == skill.id:
 			continue
@@ -46,11 +49,12 @@ static func _add_candidate(box: VBoxContainer, sim: SimState, phone: Phone, pers
 	PhoneKit.heading(card, person.display_name + (" · у вас" if works_here else ""), "%s/день" % UiText.money(person.daily_wage), PhoneKit.TEXT if works_here or not slot_taken else PhoneKit.MUTED)
 	card.add_child(PhoneKit.label(PeopleText.person_traits(person), PhoneKit.SMALL_SIZE, PhoneKit.MUTED))
 	if works_here:
-		var status := PeopleText.packer_status(sim) if person.role == WorkerDef.PACKER else UiText.worker_status(sim.workers)
+		var gardener := sim.workers.find(person.id)
+		var status := UiText.gardener_status(gardener) if gardener != null else PeopleText.packer_status(sim)
 		card.add_child(PhoneKit.label(status))
 		card.add_child(PhoneKit.danger("Уволить", phone.fire.bind(person.id)))
 	elif slot_taken:
-		card.add_child(PhoneKit.secondary("Место занято", phone.hire.bind(person.id), false))
+		card.add_child(PhoneKit.secondary("Бригада укомплектована" if person.role == WorkerDef.FARMHAND else "Место занято", phone.hire.bind(person.id), false))
 	else:
 		card.add_child(PhoneKit.label(person.description, PhoneKit.SMALL_SIZE))
 		card.add_child(PhoneKit.primary("Нанять (первый день вперёд)", phone.hire.bind(person.id), sim.economy.money >= person.daily_wage))

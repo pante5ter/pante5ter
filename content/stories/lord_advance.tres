@@ -16,7 +16,7 @@ text = "Мистер Кэллоуэй, неловкий вопрос. Банк �
 
 [sub_resource type="Resource" id="Line_3"]
 script = ExtResource("3_line")
-speaker = "Финн"
+speaker = "Реджи"
 text = "Деньги вперёд — это деньги вперёд. Зато лорд, которому помогли, — лорд, который не задаёт вопросов."
 
 [sub_resource type="Resource" id="Line_4"]
@@ -26,7 +26,7 @@ text = "Вы спасаете мне весну. Я, знаете ли, тепе
 
 [sub_resource type="Resource" id="Line_5"]
 script = ExtResource("3_line")
-speaker = "Финн"
+speaker = "Реджи"
 text = "Пятьсот фунтов уйдут в счёт следующей аренды. Это не расход, это предоплата за слепоту."
 
 [sub_resource type="Resource" id="Choice_1"]
@@ -45,7 +45,7 @@ text = "Разумеется. Разумеется, я понимаю. Банк 
 
 [sub_resource type="Resource" id="Line_7"]
 script = ExtResource("3_line")
-speaker = "Финн"
+speaker = "Реджи"
 text = "Он улыбнулся. Лорды улыбаются, когда обижены."
 
 [sub_resource type="Resource" id="Choice_2"]

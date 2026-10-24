@@ -53,7 +53,7 @@ func _on_chosen(index: int) -> void:
 	var choice := story.choices[index]
 	var result := Game.sim.apply(ChooseCommand.new(_story_id, index))
 	if not result.ok:
-		var refusal: Array[DialogueLineDef] = [DialogueLineDef.make(UiText.FINN, StoryText.refusal(result.error, choice))]
+		var refusal: Array[DialogueLineDef] = [DialogueLineDef.make(UiText.REGGIE, StoryText.refusal(result.error, choice))]
 		hud.play_dialogue(refusal, story.choice_labels())
 		hud.dialogue_box.set_choices_enabled(Game.sim.stories.affordable(story))
 		return

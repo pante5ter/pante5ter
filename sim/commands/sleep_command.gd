@@ -1,0 +1,2 @@
+class_name SleepCommand
+extends SimCommand

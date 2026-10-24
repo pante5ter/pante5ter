@@ -1,0 +1,796 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scenes/common/level.gd" id="1_level"]
+[ext_resource type="PackedScene" path="res://scenes/actors/jack.tscn" id="2_jack"]
+[ext_resource type="Script" path="res://scenes/common/iso_camera_rig.gd" id="3_iso_camera_rig"]
+[ext_resource type="Script" path="res://scenes/plantation/packing_bench.gd" id="4_packing_bench"]
+[ext_resource type="PackedScene" path="res://assets/models/plantation/harvest_pile.glb" id="5_harvest_pile"]
+[ext_resource type="Script" path="res://scenes/plantation/stock_shelf.gd" id="6_stock_shelf"]
+[ext_resource type="PackedScene" path="res://assets/models/field/stash_crate.glb" id="7_stash_crate"]
+[ext_resource type="Script" path="res://scenes/plantation/computer_desk.gd" id="8_computer_desk"]
+[ext_resource type="Script" path="res://scenes/common/travel_car.gd" id="9_travel_car"]
+[ext_resource type="PackedScene" path="res://assets/models/field/land_rover.glb" id="10_land_rover"]
+[ext_resource type="PackedScene" path="res://scenes/actors/worker.tscn" id="11_worker"]
+[ext_resource type="PackedScene" path="res://scenes/ui/hud.tscn" id="12_hud"]
+
+[sub_resource type="Environment" id="env_stash"]
+background_mode = 1
+background_color = Color(0.08, 0.07, 0.06, 1)
+ambient_light_source = 2
+ambient_light_color = Color(0.36, 0.32, 0.27, 1)
+ambient_light_energy = 1.3
+tonemap_mode = 4
+glow_enabled = true
+glow_intensity = 0.5
+
+[sub_resource type="NavigationMesh" id="navmesh_stash"]
+geometry_parsed_geometry_type = 1
+agent_radius = 0.5
+agent_height = 1.5
+agent_max_climb = 0.25
+geometry_collision_mask = 3
+
+[sub_resource type="BoxShape3D" id="shape_Floor"]
+size = Vector3(16, 1, 12)
+
+[sub_resource type="BoxMesh" id="mesh_Floor"]
+size = Vector3(16, 1, 12)
+
+[sub_resource type="StandardMaterial3D" id="mat_concrete"]
+albedo_color = Color(0.435, 0.431, 0.416, 1)
+roughness = 0.9
+
+[sub_resource type="BoxShape3D" id="shape_WallNorth"]
+size = Vector3(17, 3, 0.5)
+
+[sub_resource type="BoxMesh" id="mesh_WallNorth"]
+size = Vector3(17, 3, 0.5)
+
+[sub_resource type="StandardMaterial3D" id="mat_brick"]
+albedo_color = Color(0.541, 0.29, 0.227, 1)
+roughness = 0.9
+
+[sub_resource type="BoxShape3D" id="shape_WallWest"]
+size = Vector3(0.5, 3, 12)
+
+[sub_resource type="BoxMesh" id="mesh_WallWest"]
+size = Vector3(0.5, 3, 12)
+
+[sub_resource type="StandardMaterial3D" id="mat_brick"]
+albedo_color = Color(0.541, 0.29, 0.227, 1)
+roughness = 0.9
+
+[sub_resource type="BoxShape3D" id="shape_CurbSouth"]
+size = Vector3(17, 0.5, 0.5)
+
+[sub_resource type="BoxMesh" id="mesh_CurbSouth"]
+size = Vector3(17, 0.5, 0.5)
+
+[sub_resource type="StandardMaterial3D" id="mat_brick"]
+albedo_color = Color(0.541, 0.29, 0.227, 1)
+roughness = 0.9
+
+[sub_resource type="BoxShape3D" id="shape_Bench"]
+size = Vector3(1.2, 0.85, 1.6)
+
+[sub_resource type="BoxMesh" id="mesh_Bench"]
+size = Vector3(1.2, 0.85, 1.6)
+
+[sub_resource type="StandardMaterial3D" id="mat_timber"]
+albedo_color = Color(0.29, 0.227, 0.173, 1)
+roughness = 0.9
+
+[sub_resource type="BoxShape3D" id="shape_Shelf"]
+size = Vector3(2.0, 2.1, 0.6)
+
+[sub_resource type="BoxMesh" id="mesh_shelf_frame"]
+size = Vector3(2.0, 2.1, 0.08)
+
+[sub_resource type="BoxMesh" id="mesh_shelf_plank"]
+size = Vector3(1.9, 0.05, 0.45)
+
+[sub_resource type="StandardMaterial3D" id="mat_oak"]
+albedo_color = Color(0.478, 0.353, 0.227, 1)
+roughness = 0.9
+
+[sub_resource type="StandardMaterial3D" id="mat_oak"]
+albedo_color = Color(0.478, 0.353, 0.227, 1)
+roughness = 0.9
+
+[sub_resource type="StandardMaterial3D" id="mat_oak"]
+albedo_color = Color(0.478, 0.353, 0.227, 1)
+roughness = 0.9
+
+[sub_resource type="StandardMaterial3D" id="mat_oak"]
+albedo_color = Color(0.478, 0.353, 0.227, 1)
+roughness = 0.9
+
+[sub_resource type="BoxShape3D" id="shape_Computer"]
+size = Vector3(1.2, 0.85, 1.6)
+
+[sub_resource type="BoxMesh" id="mesh_Computer"]
+size = Vector3(1.2, 0.85, 1.6)
+
+[sub_resource type="StandardMaterial3D" id="mat_oak"]
+albedo_color = Color(0.478, 0.353, 0.227, 1)
+roughness = 0.9
+
+[sub_resource type="BoxMesh" id="mesh_monitor"]
+size = Vector3(0.12, 0.55, 0.8)
+
+[sub_resource type="BoxMesh" id="mesh_screen"]
+size = Vector3(0.02, 0.45, 0.7)
+
+[sub_resource type="StandardMaterial3D" id="mat_pot_black"]
+albedo_color = Color(0.149, 0.153, 0.165, 1)
+roughness = 0.9
+
+[sub_resource type="StandardMaterial3D" id="mat_police_blue_glow"]
+albedo_color = Color(0.184, 0.365, 0.62, 1)
+roughness = 0.9
+emission_enabled = true
+emission = Color(0.184, 0.365, 0.62, 1)
+emission_energy_multiplier = 2.0
+
+[sub_resource type="BoxShape3D" id="shape_Sack0"]
+size = Vector3(0.8, 0.7, 0.6)
+
+[sub_resource type="BoxMesh" id="mesh_Sack0"]
+size = Vector3(0.8, 0.7, 0.6)
+
+[sub_resource type="StandardMaterial3D" id="mat_plaster"]
+albedo_color = Color(0.847, 0.812, 0.745, 1)
+roughness = 0.9
+
+[sub_resource type="BoxShape3D" id="shape_Sack1"]
+size = Vector3(0.8, 0.7, 0.6)
+
+[sub_resource type="BoxMesh" id="mesh_Sack1"]
+size = Vector3(0.8, 0.7, 0.6)
+
+[sub_resource type="StandardMaterial3D" id="mat_wheat"]
+albedo_color = Color(0.824, 0.745, 0.518, 1)
+roughness = 0.9
+
+[sub_resource type="BoxShape3D" id="shape_Sack2"]
+size = Vector3(0.8, 0.7, 0.6)
+
+[sub_resource type="BoxMesh" id="mesh_Sack2"]
+size = Vector3(0.8, 0.7, 0.6)
+
+[sub_resource type="StandardMaterial3D" id="mat_plaster"]
+albedo_color = Color(0.847, 0.812, 0.745, 1)
+roughness = 0.9
+
+[sub_resource type="BoxShape3D" id="shape_Sack3"]
+size = Vector3(0.8, 0.7, 0.6)
+
+[sub_resource type="BoxMesh" id="mesh_Sack3"]
+size = Vector3(0.8, 0.7, 0.6)
+
+[sub_resource type="StandardMaterial3D" id="mat_wheat"]
+albedo_color = Color(0.824, 0.745, 0.518, 1)
+roughness = 0.9
+
+[sub_resource type="BoxShape3D" id="shape_Sack4"]
+size = Vector3(0.8, 0.7, 0.6)
+
+[sub_resource type="BoxMesh" id="mesh_Sack4"]
+size = Vector3(0.8, 0.7, 0.6)
+
+[sub_resource type="StandardMaterial3D" id="mat_plaster"]
+albedo_color = Color(0.847, 0.812, 0.745, 1)
+roughness = 0.9
+
+[sub_resource type="BoxShape3D" id="shape_Oven"]
+size = Vector3(3.0, 2.2, 1.2)
+
+[sub_resource type="BoxMesh" id="mesh_Oven"]
+size = Vector3(3.0, 2.2, 1.2)
+
+[sub_resource type="StandardMaterial3D" id="mat_brick_dark"]
+albedo_color = Color(0.416, 0.216, 0.173, 1)
+roughness = 0.9
+
+[sub_resource type="BoxMesh" id="mesh_NavRegion_Oven_OvenDoor"]
+size = Vector3(1.2, 0.7, 0.05)
+
+[sub_resource type="StandardMaterial3D" id="mat_lamp_warm_glow"]
+albedo_color = Color(0.949, 0.769, 0.42, 1)
+roughness = 0.9
+emission_enabled = true
+emission = Color(0.949, 0.769, 0.42, 1)
+emission_energy_multiplier = 2.0
+
+[sub_resource type="BoxShape3D" id="shape_Rack0"]
+size = Vector3(1.4, 1.8, 0.6)
+
+[sub_resource type="BoxMesh" id="mesh_Rack0"]
+size = Vector3(1.4, 1.8, 0.6)
+
+[sub_resource type="StandardMaterial3D" id="mat_steel_dark"]
+albedo_color = Color(0.298, 0.318, 0.341, 1)
+roughness = 0.9
+
+[sub_resource type="BoxMesh" id="mesh_NavRegion_Rack0_Loaves0"]
+size = Vector3(1.2, 0.14, 0.45)
+
+[sub_resource type="StandardMaterial3D" id="mat_hay"]
+albedo_color = Color(0.725, 0.643, 0.416, 1)
+roughness = 0.9
+
+[sub_resource type="BoxMesh" id="mesh_NavRegion_Rack0_Loaves1"]
+size = Vector3(1.2, 0.14, 0.45)
+
+[sub_resource type="StandardMaterial3D" id="mat_hay"]
+albedo_color = Color(0.725, 0.643, 0.416, 1)
+roughness = 0.9
+
+[sub_resource type="BoxMesh" id="mesh_NavRegion_Rack0_Loaves2"]
+size = Vector3(1.2, 0.14, 0.45)
+
+[sub_resource type="StandardMaterial3D" id="mat_hay"]
+albedo_color = Color(0.725, 0.643, 0.416, 1)
+roughness = 0.9
+
+[sub_resource type="BoxShape3D" id="shape_Rack1"]
+size = Vector3(1.4, 1.8, 0.6)
+
+[sub_resource type="BoxMesh" id="mesh_Rack1"]
+size = Vector3(1.4, 1.8, 0.6)
+
+[sub_resource type="StandardMaterial3D" id="mat_steel_dark"]
+albedo_color = Color(0.298, 0.318, 0.341, 1)
+roughness = 0.9
+
+[sub_resource type="BoxMesh" id="mesh_NavRegion_Rack1_Loaves0"]
+size = Vector3(1.2, 0.14, 0.45)
+
+[sub_resource type="StandardMaterial3D" id="mat_hay"]
+albedo_color = Color(0.725, 0.643, 0.416, 1)
+roughness = 0.9
+
+[sub_resource type="BoxMesh" id="mesh_NavRegion_Rack1_Loaves1"]
+size = Vector3(1.2, 0.14, 0.45)
+
+[sub_resource type="StandardMaterial3D" id="mat_hay"]
+albedo_color = Color(0.725, 0.643, 0.416, 1)
+roughness = 0.9
+
+[sub_resource type="BoxMesh" id="mesh_NavRegion_Rack1_Loaves2"]
+size = Vector3(1.2, 0.14, 0.45)
+
+[sub_resource type="StandardMaterial3D" id="mat_hay"]
+albedo_color = Color(0.725, 0.643, 0.416, 1)
+roughness = 0.9
+
+[sub_resource type="BoxShape3D" id="shape_FlourBin"]
+size = Vector3(1.0, 1.0, 0.8)
+
+[sub_resource type="BoxMesh" id="mesh_FlourBin"]
+size = Vector3(1.0, 1.0, 0.8)
+
+[sub_resource type="StandardMaterial3D" id="mat_steel"]
+albedo_color = Color(0.604, 0.627, 0.651, 1)
+roughness = 0.9
+
+[sub_resource type="BoxMesh" id="mesh_Yard"]
+size = Vector3(6.0, 0.02, 12.0)
+
+[sub_resource type="StandardMaterial3D" id="mat_concrete_dark"]
+albedo_color = Color(0.29, 0.286, 0.275, 1)
+roughness = 0.9
+
+[sub_resource type="BoxShape3D" id="shape_YardGround"]
+size = Vector3(6.0, 1, 12.0)
+
+[sub_resource type="BoxShape3D" id="shape_WallEastNorth"]
+size = Vector3(0.5, 0.5, 5.0)
+
+[sub_resource type="BoxMesh" id="mesh_WallEastNorth"]
+size = Vector3(0.5, 0.5, 5.0)
+
+[sub_resource type="StandardMaterial3D" id="mat_timber"]
+albedo_color = Color(0.29, 0.227, 0.173, 1)
+roughness = 0.9
+
+[sub_resource type="BoxShape3D" id="shape_WallEastSouth"]
+size = Vector3(0.5, 0.5, 4.0)
+
+[sub_resource type="BoxMesh" id="mesh_WallEastSouth"]
+size = Vector3(0.5, 0.5, 4.0)
+
+[sub_resource type="StandardMaterial3D" id="mat_timber"]
+albedo_color = Color(0.29, 0.227, 0.173, 1)
+roughness = 0.9
+
+[sub_resource type="BoxShape3D" id="shape_Car"]
+size = Vector3(2.0, 2.0, 4.4)
+
+[node name="Stash" type="Node3D" node_paths=PackedStringArray("nav_region", "jack", "camera_rig", "hud", "spawn_points")]
+script = ExtResource("1_level")
+nav_region = NodePath("NavRegion")
+jack = NodePath("Jack")
+camera_rig = NodePath("CameraRig")
+hud = NodePath("Hud")
+spawn_points = NodePath("SpawnPoints")
+default_spawn = "from_car"
+place = "stash"
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("env_stash")
+
+[node name="NavRegion" type="NavigationRegion3D" parent="."]
+navigation_mesh = SubResource("navmesh_stash")
+
+[node name="Floor" type="StaticBody3D" parent="NavRegion"]
+position = Vector3(0, -0.5, 0)
+collision_layer = 1
+collision_mask = 0
+
+[node name="Shape" type="CollisionShape3D" parent="NavRegion/Floor"]
+position = Vector3(0, 0, 0)
+shape = SubResource("shape_Floor")
+
+[node name="Mesh" type="MeshInstance3D" parent="NavRegion/Floor"]
+position = Vector3(0, 0, 0)
+mesh = SubResource("mesh_Floor")
+surface_material_override/0 = SubResource("mat_concrete")
+
+[node name="WallNorth" type="StaticBody3D" parent="NavRegion"]
+position = Vector3(0, 1.5, -6.25)
+collision_layer = 1
+collision_mask = 0
+
+[node name="Shape" type="CollisionShape3D" parent="NavRegion/WallNorth"]
+position = Vector3(0, 0, 0)
+shape = SubResource("shape_WallNorth")
+
+[node name="Mesh" type="MeshInstance3D" parent="NavRegion/WallNorth"]
+position = Vector3(0, 0, 0)
+mesh = SubResource("mesh_WallNorth")
+surface_material_override/0 = SubResource("mat_brick")
+
+[node name="WallWest" type="StaticBody3D" parent="NavRegion"]
+position = Vector3(-8.25, 1.5, 0)
+collision_layer = 1
+collision_mask = 0
+
+[node name="Shape" type="CollisionShape3D" parent="NavRegion/WallWest"]
+position = Vector3(0, 0, 0)
+shape = SubResource("shape_WallWest")
+
+[node name="Mesh" type="MeshInstance3D" parent="NavRegion/WallWest"]
+position = Vector3(0, 0, 0)
+mesh = SubResource("mesh_WallWest")
+surface_material_override/0 = SubResource("mat_brick")
+
+[node name="CurbSouth" type="StaticBody3D" parent="NavRegion"]
+position = Vector3(0, 0.25, 6.25)
+collision_layer = 1
+collision_mask = 0
+
+[node name="Shape" type="CollisionShape3D" parent="NavRegion/CurbSouth"]
+position = Vector3(0, 0, 0)
+shape = SubResource("shape_CurbSouth")
+
+[node name="Mesh" type="MeshInstance3D" parent="NavRegion/CurbSouth"]
+position = Vector3(0, 0, 0)
+mesh = SubResource("mesh_CurbSouth")
+surface_material_override/0 = SubResource("mat_brick")
+
+[node name="Jack" parent="." instance=ExtResource("2_jack")]
+
+[node name="CameraRig" type="Node3D" parent="." node_paths=PackedStringArray("camera")]
+rotation = Vector3(0, 0.785398, 0)
+script = ExtResource("3_iso_camera_rig")
+camera = NodePath("Camera")
+distance = 26.0
+zoom_min = 12.0
+zoom_max = 44.0
+bounds = Rect2(-8, -6, 22, 12)
+
+[node name="Camera" type="Camera3D" parent="CameraRig"]
+
+[node name="SpawnPoints" type="Node3D" parent="."]
+
+[node name="Bench" type="StaticBody3D" parent="NavRegion" node_paths=PackedStringArray("pile", "progress_label", "approach")]
+position = Vector3(-7.0, 0, -2.4)
+collision_layer = 2
+collision_mask = 0
+script = ExtResource("4_packing_bench")
+pile = NodePath("Pile")
+progress_label = NodePath("Label")
+approach = NodePath("Approach")
+
+[node name="Shape" type="CollisionShape3D" parent="NavRegion/Bench"]
+position = Vector3(0, 0.425, 0)
+shape = SubResource("shape_Bench")
+
+[node name="Mesh" type="MeshInstance3D" parent="NavRegion/Bench"]
+position = Vector3(0, 0.425, 0)
+mesh = SubResource("mesh_Bench")
+surface_material_override/0 = SubResource("mat_timber")
+
+[node name="Pile" type="Node3D" parent="NavRegion/Bench"]
+visible = false
+position = Vector3(0, 0.85, 0)
+
+[node name="Heap0" parent="NavRegion/Bench/Pile" instance=ExtResource("5_harvest_pile")]
+position = Vector3(0.05, 0, 0.0)
+
+[node name="Heap1" parent="NavRegion/Bench/Pile" instance=ExtResource("5_harvest_pile")]
+position = Vector3(-0.1, 0, -0.45)
+rotation = Vector3(0, 1.22173, 0)
+scale = Vector3(0.8, 0.8, 0.8)
+
+[node name="Heap2" parent="NavRegion/Bench/Pile" instance=ExtResource("5_harvest_pile")]
+position = Vector3(0.1, 0, 0.45)
+rotation = Vector3(0, 2.443461, 0)
+scale = Vector3(0.8, 0.8, 0.8)
+
+[node name="Label" type="Label3D" parent="NavRegion/Bench"]
+position = Vector3(0, 2.0, 0)
+pixel_size = 0.008
+billboard = 1
+no_depth_test = true
+text = "Стол фасовки"
+font_size = 36
+outline_size = 10
+
+[node name="Approach" type="Marker3D" parent="NavRegion/Bench"]
+position = Vector3(1.5, 0, 0)
+
+[node name="Shelf" type="StaticBody3D" parent="NavRegion"]
+position = Vector3(-5.0, 0, -5.4)
+collision_layer = 1
+collision_mask = 0
+
+[node name="Shape" type="CollisionShape3D" parent="NavRegion/Shelf"]
+position = Vector3(0, 1.05, 0)
+shape = SubResource("shape_Shelf")
+
+[node name="Back" type="MeshInstance3D" parent="NavRegion/Shelf"]
+position = Vector3(0, 1.05, -0.25)
+mesh = SubResource("mesh_shelf_frame")
+surface_material_override/0 = SubResource("mat_oak")
+
+[node name="Plank0" type="MeshInstance3D" parent="NavRegion/Shelf"]
+position = Vector3(0, 0.05, 0)
+mesh = SubResource("mesh_shelf_plank")
+surface_material_override/0 = SubResource("mat_oak")
+
+[node name="Plank1" type="MeshInstance3D" parent="NavRegion/Shelf"]
+position = Vector3(0, 0.67, 0)
+mesh = SubResource("mesh_shelf_plank")
+surface_material_override/0 = SubResource("mat_oak")
+
+[node name="Plank2" type="MeshInstance3D" parent="NavRegion/Shelf"]
+position = Vector3(0, 1.29, 0)
+mesh = SubResource("mesh_shelf_plank")
+surface_material_override/0 = SubResource("mat_oak")
+
+[node name="Stock" type="Node3D" parent="NavRegion/Shelf" node_paths=PackedStringArray("label")]
+script = ExtResource("6_stock_shelf")
+box_scene = ExtResource("7_stash_crate")
+box_scale = 0.55
+label = NodePath("Label")
+
+[node name="Label" type="Label3D" parent="NavRegion/Shelf/Stock"]
+position = Vector3(0, 2.5, 0)
+pixel_size = 0.008
+billboard = 1
+no_depth_test = true
+text = "Склад"
+font_size = 36
+outline_size = 10
+
+[node name="Computer" type="StaticBody3D" parent="NavRegion" node_paths=PackedStringArray("screen_glow", "approach")]
+position = Vector3(-7.0, 0, 2.6)
+collision_layer = 2
+collision_mask = 0
+script = ExtResource("8_computer_desk")
+screen_glow = NodePath("Glow")
+approach = NodePath("Approach")
+
+[node name="Shape" type="CollisionShape3D" parent="NavRegion/Computer"]
+position = Vector3(0, 0.425, 0)
+shape = SubResource("shape_Computer")
+
+[node name="Mesh" type="MeshInstance3D" parent="NavRegion/Computer"]
+position = Vector3(0, 0.425, 0)
+mesh = SubResource("mesh_Computer")
+surface_material_override/0 = SubResource("mat_oak")
+
+[node name="Monitor" type="MeshInstance3D" parent="NavRegion/Computer"]
+position = Vector3(-0.1, 1.15, 0)
+mesh = SubResource("mesh_monitor")
+surface_material_override/0 = SubResource("mat_pot_black")
+
+[node name="Glow" type="MeshInstance3D" parent="NavRegion/Computer"]
+position = Vector3(-0.03, 1.15, 0)
+mesh = SubResource("mesh_screen")
+surface_material_override/0 = SubResource("mat_police_blue_glow")
+
+[node name="Label" type="Label3D" parent="NavRegion/Computer"]
+position = Vector3(0, 2.0, 0)
+pixel_size = 0.008
+billboard = 1
+no_depth_test = true
+text = "Компьютер"
+font_size = 36
+outline_size = 10
+
+[node name="Approach" type="Marker3D" parent="NavRegion/Computer"]
+position = Vector3(1.5, 0, 0)
+
+[node name="Sack0" type="StaticBody3D" parent="NavRegion"]
+position = Vector3(1.0, 0, -5.3)
+collision_layer = 1
+collision_mask = 0
+
+[node name="Shape" type="CollisionShape3D" parent="NavRegion/Sack0"]
+position = Vector3(0, 0.35, 0)
+shape = SubResource("shape_Sack0")
+
+[node name="Mesh" type="MeshInstance3D" parent="NavRegion/Sack0"]
+position = Vector3(0, 0.35, 0)
+mesh = SubResource("mesh_Sack0")
+surface_material_override/0 = SubResource("mat_plaster")
+
+[node name="Sack1" type="StaticBody3D" parent="NavRegion"]
+position = Vector3(1.9, 0, -5.3)
+collision_layer = 1
+collision_mask = 0
+
+[node name="Shape" type="CollisionShape3D" parent="NavRegion/Sack1"]
+position = Vector3(0, 0.35, 0)
+shape = SubResource("shape_Sack1")
+
+[node name="Mesh" type="MeshInstance3D" parent="NavRegion/Sack1"]
+position = Vector3(0, 0.35, 0)
+mesh = SubResource("mesh_Sack1")
+surface_material_override/0 = SubResource("mat_wheat")
+
+[node name="Sack2" type="StaticBody3D" parent="NavRegion"]
+position = Vector3(2.8, 0, -5.3)
+collision_layer = 1
+collision_mask = 0
+
+[node name="Shape" type="CollisionShape3D" parent="NavRegion/Sack2"]
+position = Vector3(0, 0.35, 0)
+shape = SubResource("shape_Sack2")
+
+[node name="Mesh" type="MeshInstance3D" parent="NavRegion/Sack2"]
+position = Vector3(0, 0.35, 0)
+mesh = SubResource("mesh_Sack2")
+surface_material_override/0 = SubResource("mat_plaster")
+
+[node name="Sack3" type="StaticBody3D" parent="NavRegion"]
+position = Vector3(1.4, 0, -4.5)
+collision_layer = 1
+collision_mask = 0
+
+[node name="Shape" type="CollisionShape3D" parent="NavRegion/Sack3"]
+position = Vector3(0, 0.35, 0)
+shape = SubResource("shape_Sack3")
+
+[node name="Mesh" type="MeshInstance3D" parent="NavRegion/Sack3"]
+position = Vector3(0, 0.35, 0)
+mesh = SubResource("mesh_Sack3")
+surface_material_override/0 = SubResource("mat_wheat")
+
+[node name="Sack4" type="StaticBody3D" parent="NavRegion"]
+position = Vector3(2.4, 0, -4.5)
+collision_layer = 1
+collision_mask = 0
+
+[node name="Shape" type="CollisionShape3D" parent="NavRegion/Sack4"]
+position = Vector3(0, 0.35, 0)
+shape = SubResource("shape_Sack4")
+
+[node name="Mesh" type="MeshInstance3D" parent="NavRegion/Sack4"]
+position = Vector3(0, 0.35, 0)
+mesh = SubResource("mesh_Sack4")
+surface_material_override/0 = SubResource("mat_plaster")
+
+[node name="Oven" type="StaticBody3D" parent="NavRegion"]
+position = Vector3(5.6, 0, -5.2)
+collision_layer = 1
+collision_mask = 0
+
+[node name="Shape" type="CollisionShape3D" parent="NavRegion/Oven"]
+position = Vector3(0, 1.1, 0)
+shape = SubResource("shape_Oven")
+
+[node name="Mesh" type="MeshInstance3D" parent="NavRegion/Oven"]
+position = Vector3(0, 1.1, 0)
+mesh = SubResource("mesh_Oven")
+surface_material_override/0 = SubResource("mat_brick_dark")
+
+[node name="OvenDoor" type="MeshInstance3D" parent="NavRegion/Oven"]
+position = Vector3(0, 0.9, 0.62)
+mesh = SubResource("mesh_NavRegion_Oven_OvenDoor")
+surface_material_override/0 = SubResource("mat_lamp_warm_glow")
+
+[node name="Rack0" type="StaticBody3D" parent="NavRegion"]
+position = Vector3(2.2, 0, 3.4)
+collision_layer = 1
+collision_mask = 0
+
+[node name="Shape" type="CollisionShape3D" parent="NavRegion/Rack0"]
+position = Vector3(0, 0.9, 0)
+shape = SubResource("shape_Rack0")
+
+[node name="Mesh" type="MeshInstance3D" parent="NavRegion/Rack0"]
+position = Vector3(0, 0.9, 0)
+mesh = SubResource("mesh_Rack0")
+surface_material_override/0 = SubResource("mat_steel_dark")
+
+[node name="Loaves0" type="MeshInstance3D" parent="NavRegion/Rack0"]
+position = Vector3(0, 0.5, 0)
+mesh = SubResource("mesh_NavRegion_Rack0_Loaves0")
+surface_material_override/0 = SubResource("mat_hay")
+
+[node name="Loaves1" type="MeshInstance3D" parent="NavRegion/Rack0"]
+position = Vector3(0, 1.0, 0)
+mesh = SubResource("mesh_NavRegion_Rack0_Loaves1")
+surface_material_override/0 = SubResource("mat_hay")
+
+[node name="Loaves2" type="MeshInstance3D" parent="NavRegion/Rack0"]
+position = Vector3(0, 1.5, 0)
+mesh = SubResource("mesh_NavRegion_Rack0_Loaves2")
+surface_material_override/0 = SubResource("mat_hay")
+
+[node name="Rack1" type="StaticBody3D" parent="NavRegion"]
+position = Vector3(4.2, 0, 3.4)
+collision_layer = 1
+collision_mask = 0
+
+[node name="Shape" type="CollisionShape3D" parent="NavRegion/Rack1"]
+position = Vector3(0, 0.9, 0)
+shape = SubResource("shape_Rack1")
+
+[node name="Mesh" type="MeshInstance3D" parent="NavRegion/Rack1"]
+position = Vector3(0, 0.9, 0)
+mesh = SubResource("mesh_Rack1")
+surface_material_override/0 = SubResource("mat_steel_dark")
+
+[node name="Loaves0" type="MeshInstance3D" parent="NavRegion/Rack1"]
+position = Vector3(0, 0.5, 0)
+mesh = SubResource("mesh_NavRegion_Rack1_Loaves0")
+surface_material_override/0 = SubResource("mat_hay")
+
+[node name="Loaves1" type="MeshInstance3D" parent="NavRegion/Rack1"]
+position = Vector3(0, 1.0, 0)
+mesh = SubResource("mesh_NavRegion_Rack1_Loaves1")
+surface_material_override/0 = SubResource("mat_hay")
+
+[node name="Loaves2" type="MeshInstance3D" parent="NavRegion/Rack1"]
+position = Vector3(0, 1.5, 0)
+mesh = SubResource("mesh_NavRegion_Rack1_Loaves2")
+surface_material_override/0 = SubResource("mat_hay")
+
+[node name="FlourBin" type="StaticBody3D" parent="NavRegion"]
+position = Vector3(-2.0, 0, -5.3)
+collision_layer = 1
+collision_mask = 0
+
+[node name="Shape" type="CollisionShape3D" parent="NavRegion/FlourBin"]
+position = Vector3(0, 0.5, 0)
+shape = SubResource("shape_FlourBin")
+
+[node name="Mesh" type="MeshInstance3D" parent="NavRegion/FlourBin"]
+position = Vector3(0, 0.5, 0)
+mesh = SubResource("mesh_FlourBin")
+surface_material_override/0 = SubResource("mat_steel")
+
+[node name="Yard" type="MeshInstance3D" parent="."]
+position = Vector3(11.0, -0.02, 0.0)
+mesh = SubResource("mesh_Yard")
+surface_material_override/0 = SubResource("mat_concrete_dark")
+
+[node name="YardGround" type="StaticBody3D" parent="NavRegion"]
+position = Vector3(11.0, -0.5, 0.0)
+collision_layer = 1
+collision_mask = 0
+
+[node name="Shape" type="CollisionShape3D" parent="NavRegion/YardGround"]
+position = Vector3(0, 0, 0)
+shape = SubResource("shape_YardGround")
+
+[node name="WallEastNorth" type="StaticBody3D" parent="NavRegion"]
+position = Vector3(8.25, 0.25, -3.5)
+collision_layer = 1
+collision_mask = 0
+
+[node name="Shape" type="CollisionShape3D" parent="NavRegion/WallEastNorth"]
+position = Vector3(0, 0, 0)
+shape = SubResource("shape_WallEastNorth")
+
+[node name="Mesh" type="MeshInstance3D" parent="NavRegion/WallEastNorth"]
+position = Vector3(0, 0, 0)
+mesh = SubResource("mesh_WallEastNorth")
+surface_material_override/0 = SubResource("mat_timber")
+
+[node name="WallEastSouth" type="StaticBody3D" parent="NavRegion"]
+position = Vector3(8.25, 0.25, 4.0)
+collision_layer = 1
+collision_mask = 0
+
+[node name="Shape" type="CollisionShape3D" parent="NavRegion/WallEastSouth"]
+position = Vector3(0, 0, 0)
+shape = SubResource("shape_WallEastSouth")
+
+[node name="Mesh" type="MeshInstance3D" parent="NavRegion/WallEastSouth"]
+position = Vector3(0, 0, 0)
+mesh = SubResource("mesh_WallEastSouth")
+surface_material_override/0 = SubResource("mat_timber")
+
+[node name="Car" type="StaticBody3D" parent="NavRegion" node_paths=PackedStringArray("approach")]
+position = Vector3(11.0, 0, 1.0)
+collision_layer = 2
+collision_mask = 0
+script = ExtResource("9_travel_car")
+approach = NodePath("Approach")
+
+[node name="Shape" type="CollisionShape3D" parent="NavRegion/Car"]
+position = Vector3(0, 1.0, 0)
+shape = SubResource("shape_Car")
+
+[node name="Model" parent="NavRegion/Car" instance=ExtResource("10_land_rover")]
+
+[node name="Label" type="Label3D" parent="NavRegion/Car"]
+position = Vector3(0, 2.6, 0)
+pixel_size = 0.008
+billboard = 1
+no_depth_test = true
+text = "Лендровер"
+font_size = 34
+outline_size = 10
+
+[node name="Approach" type="Marker3D" parent="NavRegion/Car"]
+position = Vector3(-1.9, 0, 0.4)
+
+[node name="Packer" parent="." node_paths=PackedStringArray("idle_spot", "arrival_spot") instance=ExtResource("11_worker")]
+idle_spot = NodePath("../SpawnPoints/packer_idle")
+arrival_spot = NodePath("../SpawnPoints/from_car")
+role = "packer"
+
+[node name="BenchLight" type="OmniLight3D" parent="."]
+position = Vector3(-5.8, 2.6, -2.4)
+light_color = Color(0.949, 0.769, 0.42, 1)
+light_energy = 1.2
+omni_range = 6.0
+
+[node name="DeskLight" type="OmniLight3D" parent="."]
+position = Vector3(-5.8, 2.6, 2.6)
+light_color = Color(0.949, 0.769, 0.42, 1)
+light_energy = 1.2
+omni_range = 6.0
+
+[node name="OvenLight" type="OmniLight3D" parent="."]
+position = Vector3(5.6, 1.2, -4.0)
+light_color = Color(0.949, 0.6, 0.3, 1)
+light_energy = 1.0
+omni_range = 5.0
+
+[node name="CeilingLight" type="OmniLight3D" parent="."]
+position = Vector3(0.5, 3.2, 0.0)
+light_color = Color(0.949, 0.769, 0.42, 1)
+light_energy = 0.9
+omni_range = 11.0
+
+[node name="YardLight" type="OmniLight3D" parent="."]
+position = Vector3(9.5, 2.6, 1.0)
+light_color = Color(0.949, 0.769, 0.42, 1)
+light_energy = 0.8
+omni_range = 6.0
+
+[node name="from_car" type="Marker3D" parent="SpawnPoints"]
+position = Vector3(7.0, 0, 0.6)
+
+[node name="packer_idle" type="Marker3D" parent="SpawnPoints"]
+position = Vector3(-5.0, 0, -1.0)
+
+[node name="Hud" parent="." instance=ExtResource("12_hud")]

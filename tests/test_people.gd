@@ -26,6 +26,8 @@ func _config(money: int = 5000, skills: Array[String] = []) -> BalanceConfig:
 	# The first-day script holds regular calls and the director adds its own; these tests check the bare systems.
 	config.first_day = null
 	config.director = null
+	# Jack never goes home here; his nights out are tested in test_day_cycle.
+	config.day = null
 	return config
 
 
@@ -47,9 +49,18 @@ func _accepted_order(state: SimState) -> Order:
 	return order
 
 
+## Goods on the stash shelf and bench.
 func _stock(state: SimState, count: int, quality: int, packed: bool) -> void:
 	for index: int in count:
-		state.inventory.create(state.config.strain.id, quality).packed = packed
+		var product := state.inventory.create(state.config.strain.id, quality)
+		product.packed = packed
+		product.at_stash = true
+
+
+## Fresh crates still at the farm.
+func _crates(state: SimState, count: int, quality: int) -> void:
+	for index: int in count:
+		state.inventory.create(state.config.strain.id, quality)
 
 
 func _helper_tasks(state: SimState) -> int:
@@ -84,8 +95,11 @@ func test_people_content_is_sane() -> void:
 		assert_gt(skill.price, 0, skill.id)
 		assert_gt(skill.train_hours, 0.0, skill.id)
 		kinds[skill.kind] = true
-	for kind: String in [SkillDef.CARE, SkillDef.PRUNE, SkillDef.FERTILIZE, SkillDef.PACK, SkillDef.DRIVING]:
+	for kind: String in [SkillDef.PACK, SkillDef.DRIVING, SkillDef.ELECTRICS]:
 		assert_true(kinds.has(kind), "a course teaches %s" % kind)
+	for skill_id: String in _balance.retired_skills:
+		assert_null(_balance.find_skill(skill_id), "bed work is the gardeners' job, not a course for him: %s" % skill_id)
+		assert_gt(_balance.retired_skills[skill_id], 0, "old saves get the course fee back")
 	var state := SimState.new(_balance, 1)
 	for item: String in _balance.restock_basket:
 		assert_gt(state.supplies.unit_price(item), 0, "basket item %s is sold" % item)
@@ -120,10 +134,15 @@ func test_a_short_stock_is_not_enough_either() -> void:
 
 # --- the helper drives
 
-func test_while_he_drives_the_farm_goes_untended() -> void:
-	var state := SimState.new(_config(5000, ["care"] as Array[String]), 1)
+func test_while_he_drives_sick_beds_wait() -> void:
+	var state := SimState.new(_config(), 1)
 	var order := _accepted_order(state)
-	assert_gt(_helper_tasks(state), 0, "with the care skill he tends the beds")
+	state.apply(PlantCommand.new(0))
+	state.apply(PlantCommand.new(1))
+	state.grow.plot(0).problem = Problems.MOLD
+	state.grow.plot(1).problem = Problems.MOLD
+	_advance(state, 0.1)
+	assert_gt(_helper_tasks(state), 0, "he sees to the mold")
 	_stock(state, order.quantity, 100, true)
 	assert_true(state.apply(DispatchCommand.new(order.id, Helper.ACTOR)).ok)
 	assert_eq(state.helper.task, Workers.Task.NONE, "he drops what he was doing")
@@ -134,7 +153,7 @@ func test_while_he_drives_the_farm_goes_untended() -> void:
 	assert_eq(_helper_tasks(state), tasks, "no farm work while he is on the road")
 	_advance(state, 0.25)
 	assert_true(state.helper.present())
-	assert_gt(_helper_tasks(state), tasks)
+	assert_gt(_helper_tasks(state), tasks, "back home, he deals with the second bed")
 
 
 func test_he_cannot_take_two_orders_at_once() -> void:
@@ -167,7 +186,7 @@ func _config_with_risk(risk: float, skills: Array[String]) -> BalanceConfig:
 
 func test_learning_costs_money_and_time_away() -> void:
 	var state := SimState.new(_config(), 1)
-	var skill := state.config.find_skill("prune")
+	var skill := state.config.find_skill("electrics")
 	var money := state.economy.money
 	assert_true(state.apply(LearnSkillCommand.new(skill.id)).ok)
 	assert_eq(state.economy.money, money - skill.price)
@@ -175,10 +194,10 @@ func test_learning_costs_money_and_time_away() -> void:
 	assert_eq(state.apply(LearnSkillCommand.new("pack")).error, CommandResult.HELPER_AWAY)
 	assert_eq(state.apply(LearnSkillCommand.new(skill.id)).error, CommandResult.ALREADY_DONE)
 	_advance(state, skill.train_hours - 0.25)
-	assert_false(state.helper.knows(SkillDef.PRUNE))
+	assert_false(state.helper.knows(SkillDef.ELECTRICS))
 	_advance(state, 0.5)
 	assert_true(state.helper.present())
-	assert_true(state.helper.knows(SkillDef.PRUNE))
+	assert_true(state.helper.knows(SkillDef.ELECTRICS))
 	assert_eq(state.event_log.of_type(EventLog.HELPER_SKILL_LEARNED).size(), 1)
 	assert_eq(state.apply(LearnSkillCommand.new(skill.id)).error, CommandResult.ALREADY_DONE)
 
@@ -186,11 +205,12 @@ func test_learning_costs_money_and_time_away() -> void:
 func test_learning_rules() -> void:
 	var state := SimState.new(_config(10), 1)
 	assert_eq(state.apply(LearnSkillCommand.new("juggling")).error, CommandResult.UNKNOWN_SKILL)
-	assert_eq(state.apply(LearnSkillCommand.new("care")).error, CommandResult.NOT_ENOUGH_MONEY)
+	assert_eq(state.apply(LearnSkillCommand.new("driving")).error, CommandResult.NOT_ENOUGH_MONEY)
+	assert_eq(state.apply(LearnSkillCommand.new("care")).error, CommandResult.UNKNOWN_SKILL, "no bed courses any more")
 	assert_true(state.helper.present())
 	var alone := _config()
 	alone.helper = null
-	assert_eq(SimState.new(alone, 1).apply(LearnSkillCommand.new("care")).error, CommandResult.WORKER_NOT_HIRED)
+	assert_eq(SimState.new(alone, 1).apply(LearnSkillCommand.new("driving")).error, CommandResult.WORKER_NOT_HIRED)
 
 
 func test_without_skills_he_leaves_the_beds_to_others() -> void:
@@ -201,37 +221,46 @@ func test_without_skills_he_leaves_the_beds_to_others() -> void:
 		assert_eq(plot.stage, Plot.Stage.EMPTY)
 
 
-func test_care_skill_runs_the_beds() -> void:
-	var state := SimState.new(_config(5000, ["care"] as Array[String]), 3)
-	_advance_in_steps(state, 72.0, 0.5)
-	var planted := state.event_log.of_type(EventLog.PLOT_PLANTED).filter(func(event: SimEvent) -> bool: return event.actors.has(Helper.ACTOR))
-	var harvested := state.event_log.of_type(EventLog.PLOT_HARVESTED).filter(func(event: SimEvent) -> bool: return event.actors.has(Helper.ACTOR))
-	assert_true(planted.size() >= state.config.plot_count)
-	assert_gt(harvested.size(), 0)
-
-
-func test_prune_and_fertilize_skills_raise_quality_work() -> void:
-	var state := SimState.new(_config(5000, ["care", "prune", "fertilize"] as Array[String]), 3)
+func test_he_leaves_bed_work_to_the_gardeners_whatever_he_learned_before() -> void:
+	var state := SimState.new(_config(5000, ["care", "prune", "fertilize", "pack"] as Array[String]), 3)
 	state.apply(BuyCommand.new(Supplies.FERTILIZER, 3))
 	_advance(state, state.config.delivery_hours + 0.01)
 	state.apply(PickUpParcelCommand.new())
-	_advance_in_steps(state, 24.0, 0.5)
-	assert_eq(state.supplies.fertilizer, 0, "he uses the fertilizer in stock")
-	var fertilized := state.event_log.of_type(EventLog.PLOT_FERTILIZED).filter(func(event: SimEvent) -> bool: return event.actors.has(Helper.ACTOR))
-	var pruned := state.event_log.of_type(EventLog.PLOT_PRUNED).filter(func(event: SimEvent) -> bool: return event.actors.has(Helper.ACTOR))
-	assert_eq(fertilized.size(), 3)
-	assert_gt(pruned.size(), 0)
+	state.apply(PlantCommand.new(0))
+	_advance_in_steps(state, 48.0, 0.5)
+	for type: String in [EventLog.PLOT_PLANTED, EventLog.PLOT_WATERED, EventLog.PLOT_HARVESTED, EventLog.PLOT_FERTILIZED, EventLog.PLOT_PRUNED]:
+		var his := state.event_log.of_type(type).filter(func(event: SimEvent) -> bool: return event.actors.has(Helper.ACTOR))
+		assert_eq(his.size(), 0, type)
+	assert_eq(state.supplies.fertilizer, 3, "the fertilizer waits for hands")
 
 
-func test_pack_skill_packs_the_harvest() -> void:
-	var state := SimState.new(_config(5000, ["pack"] as Array[String]), 1)
-	_stock(state, 3, 60, false)
-	_advance(state, 0.1)
-	assert_true(state.packing.busy())
-	assert_eq(state.helper.task, Workers.Task.PACK)
-	_advance_in_steps(state, 1.0, 0.25)
+func test_pack_skill_packs_the_crates_he_brings_to_the_stash() -> void:
+	var state := SimState.new(_safe_roads(_config(5000, ["pack"] as Array[String])), 1)
+	_crates(state, 3, 60)
+	assert_true(state.apply(HaulCommand.new(Helper.ACTOR)).ok)
+	_advance(state, state.config.stash.haul_hours + 0.05)
+	assert_true(state.packing.busy(), "he packs before he drives back")
+	assert_false(state.helper.present())
+	assert_true(state.event_log.of_type(EventLog.PACKING_STARTED)[0].actors.has(Helper.ACTOR))
+	_advance_in_steps(state, 2.0, 0.25)
 	assert_eq(state.packing.unpacked_count(), 0)
-	assert_eq(state.helper.task, Workers.Task.NONE)
+	assert_true(state.helper.present())
+
+
+func test_without_the_pack_skill_he_drops_the_crates_and_comes_back() -> void:
+	var state := SimState.new(_safe_roads(_config()), 1)
+	_crates(state, 3, 60)
+	assert_true(state.apply(HaulCommand.new(Helper.ACTOR)).ok)
+	_advance(state, state.config.stash.haul_hours * 2.0 + 0.05)
+	assert_false(state.packing.busy())
+	assert_eq(state.packing.unpacked_count(), 3, "loose crates wait on the stash bench")
+	assert_true(state.helper.present())
+
+
+func _safe_roads(config: BalanceConfig) -> BalanceConfig:
+	config.stash = _balance.stash.duplicate() as StashDef
+	config.stash.base_risk = 0.0
+	return config
 
 
 # --- he saves the day
@@ -290,7 +319,7 @@ func test_he_sees_off_raiders_nobody_answered() -> void:
 		var config := _config(1000)
 		config.raids.chance_per_night = 1.0
 		var state := SimState.new(config, seed_value)
-		_stock(state, 2, 60, true)
+		_crates(state, 2, 60)
 		_advance_in_steps(state, config.raids.start_hours + config.raids.night_hour + config.raids.deadline_hours + 0.1, 2.0)
 		for event: SimEvent in state.event_log.of_type(EventLog.RAID_RESOLVED):
 			outcomes[String(event.data["outcome"])] = true
@@ -401,7 +430,7 @@ func test_auto_reorder_rules() -> void:
 # --- time and saves
 
 func _busy_state(seed_value: int) -> SimState:
-	var state := SimState.new(_config(20000, ["care", "pack", "prune"] as Array[String]), seed_value)
+	var state := SimState.new(_config(20000, ["pack"] as Array[String]), seed_value)
 	state.apply(HireWorkerCommand.new("dave"))
 	state.apply(HireWorkerCommand.new("gladys"))
 	state.apply(SetAutoReorderCommand.new(Supplies.FERTILIZER, 2))

@@ -19,12 +19,12 @@ const APP_PEOPLE: int = 4
 const APP_EMPIRE: int = 5
 const APP_MAP: int = 6
 const APP_FINANCE: int = 7
-const APP_TITLES: PackedStringArray = ["Звонки", "Финн", "Магазин", "Склад", "Люди", "Империя", "Карта", "Финансы"]
+const APP_TITLES: PackedStringArray = ["Звонки", "Реджи", "Магазин", "Склад", "Люди", "Империя", "Карта", "Финансы"]
 const APP_GLYPHS: PackedStringArray = [PhoneGlyphs.CALLS, PhoneGlyphs.MESSAGES, PhoneGlyphs.SHOP, PhoneGlyphs.STOCK, PhoneGlyphs.PEOPLE, PhoneGlyphs.EMPIRE, PhoneGlyphs.MAP, PhoneGlyphs.MONEY]
 ## plant_mid, brass, container_red, oak, camel_coat, hazard_yellow, grass_light, money_green
 const APP_COLORS: PackedColorArray = [Color("5A8A45"), Color("B08D4A"), Color("A14A35"), Color("7A5A3A"), Color("A88A62"), Color("C9A23A"), Color("7A8F5C"), Color("6E8F5E")]
 
-## Set by the HUD: Finn phrases directions from where Jack stands.
+## Set by the HUD: Reggie phrases directions from where Jack stands.
 var underground: bool = false
 
 var _app: int = HOME
@@ -236,7 +236,7 @@ func set_auto_reorder(item: String, keep: int) -> void:
 	if not result.ok:
 		message.emit(UiText.error(result.error))
 	elif keep > 0:
-		message.emit("Финн будет держать %s: %d шт. Докупит сам, пока есть деньги." % [UiText.item_name(item, Game.sim), keep])
+		message.emit("Реджи будет держать %s: %d шт. Докупит сам, пока есть деньги." % [UiText.item_name(item, Game.sim), keep])
 	else:
 		message.emit("Автозаказ «%s» выключен." % UiText.item_name(item, Game.sim))
 	refresh()
@@ -252,7 +252,8 @@ func hire(worker_id: String) -> void:
 	var result := Game.sim.apply(HireWorkerCommand.new(worker_id))
 	var person := _find_person(worker_id)
 	if result.ok and person != null:
-		message.emit("%s %s. Спустится на плантацию и возьмётся за дело." % [person.display_name, PeopleText.hired_word(person)])
+		var where := "Ждёт в тайнике при пекарне — фасовать." if person.role == WorkerDef.PACKER else "Спустится на плантацию и возьмётся за дело."
+		message.emit("%s %s. %s" % [person.display_name, PeopleText.hired_word(person), where])
 	else:
 		message.emit(UiText.error(result.error))
 	refresh()

@@ -1,17 +1,16 @@
 class_name Workers
 extends RefCounted
 
+## The gardeners' crew: up to config.max_gardeners people, each on a bed of his own.
+
 const ACTOR: String = "worker"
 
 enum Task { NONE, PLANT, WATER, HARVEST, PRUNE, FERTILIZE, TREAT, PACK }
 
-var hired: bool = false
-var task: Task = Task.NONE
-var task_plot_id: int = -1
-var task_ends_at: float = 0.0
-var next_check_at: float = 0.0
-var next_wage_at: float = 0.0
+const CARE_ORDER: Array[Task] = [Task.HARVEST, Task.WATER, Task.PLANT]
 
+## Hire order; the first one is the crew's face in single-line texts.
+var _crew: Array[Gardener] = []
 var _def: WorkerDef
 var _grow: Grow
 var _economy: Economy
@@ -22,6 +21,20 @@ var _inventory: Inventory = null
 var _suspicion: Suspicion = null
 ## Set by SimState: the helper's plot is left to him.
 var helper: Helper = null
+
+## Anyone on the crew.
+var hired: bool:
+	get:
+		return not _crew.is_empty()
+
+## The first gardener's current job, for one-line status texts.
+var task: Task:
+	get:
+		return _crew[0].task if hired else Task.NONE
+
+var task_plot_id: int:
+	get:
+		return _crew[0].task_plot_id if hired else -1
 
 
 func _init(def: WorkerDef, grow: Grow, economy: Economy, event_log: EventLog) -> void:
@@ -38,140 +51,129 @@ func attach(config: BalanceConfig, rng: SimRng, inventory: Inventory, suspicion:
 	_suspicion = suspicion
 
 
+## The first gardener on the crew, or the default candidate when nobody is hired.
 func definition() -> WorkerDef:
-	return _def
+	return _crew[0].definition() if hired else _def
+
+
+func gardeners() -> Array[Gardener]:
+	return _crew.duplicate()
+
+
+func find(worker_id: String) -> Gardener:
+	for gardener: Gardener in _crew:
+		if gardener.definition().id == worker_id:
+			return gardener
+	return null
+
+
+func is_hired(worker_id: String) -> bool:
+	return find(worker_id) != null
+
+
+func capacity() -> int:
+	return maxi(_config.max_gardeners if _config != null else 1, 1)
+
+
+func daily_wages() -> int:
+	var total := 0
+	for gardener: Gardener in _crew:
+		total += gardener.definition().daily_wage
+	return total
 
 
 func hire(now: float, actor: String, worker_id: String = "") -> CommandResult:
-	if hired:
-		return CommandResult.failure(CommandResult.WORKER_ALREADY_HIRED)
 	var chosen := _def
 	if not worker_id.is_empty():
 		chosen = _config.find_worker(worker_id) if _config != null else null
 		if chosen == null:
 			return CommandResult.failure(CommandResult.UNKNOWN_WORKER)
+	if is_hired(chosen.id):
+		return CommandResult.failure(CommandResult.WORKER_ALREADY_HIRED)
+	if _crew.size() >= capacity():
+		return CommandResult.failure(CommandResult.CREW_FULL)
 	if not _economy.spend(chosen.daily_wage):
 		return CommandResult.failure(CommandResult.NOT_ENOUGH_MONEY)
-	_def = chosen
-	hired = true
-	_clear_task()
-	next_check_at = now
-	next_wage_at = now + SimClock.GAME_SECONDS_PER_DAY
+	var gardener := Gardener.new(chosen, self)
+	gardener.start_at(now)
+	_crew.append(gardener)
 	_event_log.record(EventLog.WORKER_HIRED, now, PackedStringArray([actor, ACTOR]), {
-		"worker_id": _def.id,
+		"worker_id": chosen.id,
 		"role": WorkerDef.FARMHAND,
-		"wage": _def.daily_wage,
+		"wage": chosen.daily_wage,
 		"money": _economy.money,
 	})
 	return CommandResult.success()
 
 
-func fire(now: float, actor: String) -> CommandResult:
-	if not hired:
+## Empty fires the first gardener.
+func fire(now: float, actor: String, worker_id: String = "") -> CommandResult:
+	var gardener := _crew[0] if hired and worker_id.is_empty() else find(worker_id)
+	if gardener == null:
 		return CommandResult.failure(CommandResult.WORKER_NOT_HIRED)
-	hired = false
-	_clear_task()
-	_event_log.record(EventLog.WORKER_FIRED, now, PackedStringArray([actor, ACTOR]), {"worker_id": _def.id})
+	_crew.erase(gardener)
+	_event_log.record(EventLog.WORKER_FIRED, now, PackedStringArray([actor, ACTOR]), {"worker_id": gardener.definition().id})
 	return CommandResult.success()
 
 
 func next_event_time() -> float:
-	if not hired:
-		return INF
-	var pending := task_ends_at if task != Task.NONE else next_check_at
-	return minf(next_wage_at, pending)
+	var next := INF
+	for gardener: Gardener in _crew:
+		next = minf(next, gardener.next_event_time())
+	return next
 
 
 func process(now: float) -> void:
-	if not hired:
-		return
-	if now >= next_wage_at:
-		_pay_wage(now)
-		if not hired:
-			return
-	if task != Task.NONE and now >= task_ends_at:
-		_finish_task(now)
-	if task == Task.NONE and now >= next_check_at:
-		if _suspicion != null and _suspicion.quiet:
-			next_check_at = now + _def.idle_check_minutes * 60.0
-		else:
-			_start_next_task(now)
+	for gardener: Gardener in _crew.duplicate():
+		if not gardener.process(now):
+			_crew.erase(gardener)
 
 
-func _pay_wage(now: float) -> void:
-	if _economy.spend(_def.daily_wage):
-		next_wage_at += SimClock.GAME_SECONDS_PER_DAY
-		if _suspicion != null:
-			_suspicion.add(_def.talkativeness)
-		_event_log.record(EventLog.WORKER_PAID, now, PackedStringArray([ACTOR]), {
-			"worker_id": _def.id,
-			"wage": _def.daily_wage,
-			"money": _economy.money,
-		})
-		return
-	hired = false
-	_clear_task()
-	_event_log.record(EventLog.WORKER_QUIT, now, PackedStringArray([ACTOR]), {
-		"worker_id": _def.id,
-		"reason": "unpaid",
-		"money": _economy.money,
-	})
+## Beds someone else on the farm is working, so nobody doubles up.
+func busy_plot_ids(except: Gardener = null) -> Array[int]:
+	var taken: Array[int] = []
+	for gardener: Gardener in _crew:
+		if gardener != except and gardener.task_plot_id >= 0:
+			taken.append(gardener.task_plot_id)
+	if helper != null and helper.task_plot_id >= 0:
+		taken.append(helper.task_plot_id)
+	return taken
 
 
-func _finish_task(now: float) -> void:
-	match task:
-		Task.PLANT:
-			_grow.plant(task_plot_id, now, ACTOR, _grow.replant_strain(_grow.plot(task_plot_id)))
-		Task.WATER:
-			_grow.water(task_plot_id, now, ACTOR)
-		Task.HARVEST:
-			_harvest(now)
-	_clear_task()
-	next_check_at = now
+func farm_is_quiet() -> bool:
+	return _suspicion != null and _suspicion.quiet
 
 
-func _harvest(now: float) -> void:
-	var result := _grow.harvest(task_plot_id, now, ACTOR)
-	if not result.ok or _rng == null or _rng.randf() >= _def.steal_chance():
-		return
-	var stolen := _inventory.take(result.value)
-	_event_log.record(EventLog.WORKER_STOLE, now, PackedStringArray([ACTOR, "plot:%d" % task_plot_id]), {
-		"worker_id": _def.id,
-		"plot_id": task_plot_id,
-		"product_id": stolen.id,
-		"quality": stolen.quality,
-	})
+func talk(amount: float) -> void:
+	if _suspicion != null:
+		_suspicion.add(amount)
 
 
-func _start_next_task(now: float) -> void:
-	var busy_plot := helper.task_plot_id if helper != null else -1
-	var chosen := Task.NONE
-	var target: Plot = null
-	for kind: Task in CARE_ORDER:
-		target = pick_plot(_grow, kind, _def.water_below_hours, busy_plot)
-		if target != null:
-			chosen = kind
-			break
-	if target == null:
-		next_check_at = now + _def.idle_check_minutes * 60.0
-		return
-	task = chosen
-	task_plot_id = target.id
-	task_ends_at = now + _def.task_seconds()
-	_event_log.record(EventLog.WORKER_TASK_STARTED, now, PackedStringArray([ACTOR, "plot:%d" % target.id]), {
-		"plot_id": target.id,
-		"task": task_name(task),
-	})
+func grow() -> Grow:
+	return _grow
 
 
-const CARE_ORDER: Array[Task] = [Task.HARVEST, Task.WATER, Task.PLANT]
+func economy() -> Economy:
+	return _economy
 
 
-## The plot most in need of this care, skipping the one someone else is on.
-static func pick_plot(grow: Grow, kind: Task, water_below_hours: float, skip_plot_id: int = -1, can_do: Callable = Callable()) -> Plot:
+func event_log() -> EventLog:
+	return _event_log
+
+
+func rng() -> SimRng:
+	return _rng
+
+
+func inventory() -> Inventory:
+	return _inventory
+
+
+## The plot most in need of this care, skipping the ones someone else is on.
+static func pick_plot(grow: Grow, kind: Task, water_below_hours: float, skip_plot_ids: Array[int] = [], can_do: Callable = Callable()) -> Plot:
 	var best: Plot = null
 	for candidate: Plot in grow.plots():
-		if candidate.id == skip_plot_id or not needs(candidate, kind, water_below_hours):
+		if skip_plot_ids.has(candidate.id) or not needs(candidate, kind, water_below_hours):
 			continue
 		if can_do.is_valid() and not bool(can_do.call(kind, candidate)):
 			continue
@@ -197,36 +199,36 @@ static func needs(target: Plot, kind: Task, water_below_hours: float) -> bool:
 	return false
 
 
-func _clear_task() -> void:
-	task = Task.NONE
-	task_plot_id = -1
-	task_ends_at = 0.0
-
-
 static func task_name(value: Task) -> String:
 	return String(Task.keys()[value]).to_lower()
 
 
 func to_dict() -> Dictionary:
-	return {
-		"worker_id": _def.id,
-		"hired": hired,
-		"task": task_name(task),
-		"task_plot_id": task_plot_id,
-		"task_ends_at": ExactFloat.encode(task_ends_at),
-		"next_check_at": ExactFloat.encode(next_check_at),
-		"next_wage_at": ExactFloat.encode(next_wage_at),
-	}
+	var crew: Array[Dictionary] = []
+	for gardener: Gardener in _crew:
+		crew.append(gardener.to_dict())
+	return {"gardeners": crew}
 
 
 func load_dict(data: Dictionary) -> void:
-	hired = data["hired"] == true
-	if _config != null:
-		var stored := _config.find_worker(String(data["worker_id"]))
-		if stored != null:
-			_def = stored
-	task = Task.get(String(data["task"]).to_upper(), Task.NONE) as Task
-	task_plot_id = int(data["task_plot_id"])
-	task_ends_at = ExactFloat.decode(data["task_ends_at"])
-	next_check_at = ExactFloat.decode(data["next_check_at"])
-	next_wage_at = ExactFloat.decode(data["next_wage_at"])
+	_crew.clear()
+	if not data.has("gardeners"):
+		_load_single(data)
+		return
+	for item: Variant in data["gardeners"] as Array:
+		_load_gardener(item as Dictionary)
+
+
+## v11 and older: one farmhand.
+func _load_single(data: Dictionary) -> void:
+	if data["hired"] == true:
+		_load_gardener(data)
+
+
+func _load_gardener(data: Dictionary) -> void:
+	var def := _config.find_worker(String(data["worker_id"])) if _config != null else null
+	if def == null:
+		def = _def
+	var gardener := Gardener.new(def, self)
+	gardener.load_dict(data)
+	_crew.append(gardener)

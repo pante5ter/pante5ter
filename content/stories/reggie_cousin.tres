@@ -11,8 +11,8 @@ text = "Мистер Кэллоуэй, тут такое дело. Кузен м
 
 [sub_resource type="Resource" id="Line_2"]
 script = ExtResource("3_line")
-speaker = "Финн"
-text = "Родня Реджи — это ещё пара глаз и ещё один язык. Решать вам."
+speaker = "Реджи"
+text = "Сам понимаю: родня — это ещё пара глаз и ещё один язык. Решать вам."
 
 [sub_resource type="Resource" id="Line_3"]
 script = ExtResource("3_line")
@@ -39,8 +39,8 @@ text = "Лиам обиделся. Вчера в пабе рассказывал
 
 [sub_resource type="Resource" id="Line_6"]
 script = ExtResource("3_line")
-speaker = "Финн"
-text = "Поговорите. Желательно убедительно."
+speaker = "Реджи"
+text = "Поговорю. Убедительно."
 
 [sub_resource type="Resource" id="Choice_2"]
 script = ExtResource("2_choice")

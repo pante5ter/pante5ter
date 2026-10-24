@@ -16,7 +16,7 @@ text = "Тоби Пэлфри, «Котсуолдский вестник». Чи
 
 [sub_resource type="Resource" id="Line_3"]
 script = ExtResource("3_line")
-speaker = "Финн"
+speaker = "Реджи"
 text = "Местная газета — не Скотленд-Ярд. Хуже: её читают все."
 
 [sub_resource type="Resource" id="Line_4"]
@@ -26,7 +26,7 @@ text = "Экологичные вешенки для лондонских рес
 
 [sub_resource type="Resource" id="Line_5"]
 script = ExtResource("3_line")
-speaker = "Финн"
+speaker = "Реджи"
 text = "Скучнее заголовка не придумать. Ровно то, что нужно."
 
 [sub_resource type="Resource" id="Line_6"]
@@ -36,7 +36,7 @@ text = "Грибы. Которые возят по ночам фургонами
 
 [sub_resource type="Resource" id="Line_7"]
 script = ExtResource("3_line")
-speaker = "Финн"
+speaker = "Реджи"
 text = "Слово «продолжается» мне не нравится."
 
 [sub_resource type="Resource" id="Choice_1"]
@@ -55,7 +55,7 @@ text = "Целую полосу? «Кэллоуэй: органические у
 
 [sub_resource type="Resource" id="Line_9"]
 script = ExtResource("3_line")
-speaker = "Финн"
+speaker = "Реджи"
 text = "Свобода прессы — дорогое удовольствие. Особенно её отсутствие."
 
 [sub_resource type="Resource" id="Choice_2"]

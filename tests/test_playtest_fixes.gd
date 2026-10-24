@@ -93,7 +93,7 @@ func test_paying_when_affordable_takes_exactly_the_cost() -> void:
 func test_the_dialogue_shows_an_unaffordable_option_as_unavailable() -> void:
 	var level := await _open(FIELD_SCENE)
 	Game.sim.economy.money = 100
-	level.hud.play_dialogue([DialogueLineDef.make("Финн", "Платим?")], PackedStringArray(["Заплатить £500", "Отказать"]))
+	level.hud.play_dialogue([DialogueLineDef.make("Реджи", "Платим?")], PackedStringArray(["Заплатить £500", "Отказать"]))
 	var box := level.hud.dialogue_box
 	box.set_choices_enabled([false, true] as Array[bool])
 	var buttons := box.choice_buttons()
@@ -133,7 +133,7 @@ func test_the_lord_never_appears_in_the_bunker() -> void:
 	Game.sim.stories.start(Game.sim.stories.find("lord_advance"), 0.0, Director.ACTOR)
 	await wait_process_frames(5)
 	assert_false(bunker.hud.is_dialogue_open(), "no lord underground")
-	assert_string_contains(bunker.hud.objective_label.text, "поместь", "Finn says where to go")
+	assert_string_contains(bunker.hud.objective_label.text, "поместь", "Reggie says where to go")
 	assert_true(Game.sim.stories.is_pending())
 
 

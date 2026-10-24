@@ -1,7 +1,7 @@
 class_name PhoneHome
 extends VBoxContainer
 
-## The phone's home screen: a big clock, the app grid with badges and Finn's latest word.
+## The phone's home screen: a big clock, the app grid with badges and Reggie's latest word.
 
 signal app_chosen(app: int)
 
@@ -10,7 +10,7 @@ const COLUMNS: int = 3
 var _clock: Label
 var _date: Label
 var _icons: Array[PhoneAppIcon] = []
-var _finn: Button
+var _reggie: Button
 
 
 func _ready() -> void:
@@ -37,24 +37,24 @@ func _ready() -> void:
 	var spacer := Control.new()
 	spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	add_child(spacer)
-	_finn = Button.new()
-	_finn.name = "FinnCard"
-	_finn.focus_mode = Control.FOCUS_NONE
-	_finn.alignment = HORIZONTAL_ALIGNMENT_LEFT
-	_finn.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_finn.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-	_finn.custom_minimum_size = Vector2(0.0, 64.0)
-	_finn.add_theme_font_size_override("font_size", PhoneKit.SMALL_SIZE + 1)
+	_reggie = Button.new()
+	_reggie.name = "ReggieCard"
+	_reggie.focus_mode = Control.FOCUS_NONE
+	_reggie.alignment = HORIZONTAL_ALIGNMENT_LEFT
+	_reggie.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_reggie.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	_reggie.custom_minimum_size = Vector2(0.0, 64.0)
+	_reggie.add_theme_font_size_override("font_size", PhoneKit.SMALL_SIZE + 1)
 	var card := PhoneKit.rounded(PhoneKit.CARD, 12, 10.0)
 	card.border_color = PhoneKit.GOLD
 	card.border_width_left = 4
-	_finn.add_theme_stylebox_override("normal", card)
-	_finn.add_theme_stylebox_override("hover", PhoneKit.rounded(PhoneKit.CARD.lightened(0.08), 12, 10.0))
-	_finn.add_theme_stylebox_override("pressed", card)
-	_finn.add_theme_color_override("font_color", PhoneKit.TEXT)
-	_finn.add_theme_color_override("font_hover_color", PhoneKit.TEXT)
-	_finn.pressed.connect(app_chosen.emit.bind(Phone.APP_MESSAGES))
-	add_child(_finn)
+	_reggie.add_theme_stylebox_override("normal", card)
+	_reggie.add_theme_stylebox_override("hover", PhoneKit.rounded(PhoneKit.CARD.lightened(0.08), 12, 10.0))
+	_reggie.add_theme_stylebox_override("pressed", card)
+	_reggie.add_theme_color_override("font_color", PhoneKit.TEXT)
+	_reggie.add_theme_color_override("font_hover_color", PhoneKit.TEXT)
+	_reggie.pressed.connect(app_chosen.emit.bind(Phone.APP_MESSAGES))
+	add_child(_reggie)
 
 
 func icon(app: int) -> PhoneAppIcon:
@@ -66,7 +66,7 @@ func refresh(sim: SimState, underground: bool, unread: int) -> void:
 	_date.text = "День %d · поместье Эшкомб" % (sim.clock.day() + 1)
 	for app_icon: PhoneAppIcon in _icons:
 		app_icon.badge = badge(app_icon.app, sim, unread)
-	_finn.text = "%s: %s" % [UiText.FINN, _first_sentence(UiText.objective(sim, underground))]
+	_reggie.text = "%s: %s" % [UiText.REGGIE, _first_sentence(UiText.objective(sim, underground))]
 
 
 ## Red counts on the icons; "!" where something needs a look rather than a number.

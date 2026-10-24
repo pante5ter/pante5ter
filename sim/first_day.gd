@@ -1,11 +1,11 @@
 class_name FirstDay
 extends RefCounted
 
-## Finn walks a new player through one full loop. Every step also completes when the player
+## Reggie walks a new player through one full loop. Every step also completes when the player
 ## already did the thing, so playing ahead simply skips the lesson.
-enum Step { PLANT, CALL, ANSWER, HARVEST, PACK, SEND, PAID, EVENING, LORD, MORNING, TROUBLE, DONE }
+enum Step { PLANT, CALL, ANSWER, HARVEST, HAUL, PACK, SEND, PAID, EVENING, LORD, MORNING, TROUBLE, DONE }
 
-const ACTOR: String = "finn"
+const ACTOR: String = "reggie"
 
 var step: Step = Step.DONE
 var call_at: float = INF
@@ -111,7 +111,7 @@ func _advance(now: float) -> bool:
 			if offered == null:
 				return _go(Step.EVENING, now)
 			return offered.status != Order.Status.OFFERED and _go(Step.HARVEST, now)
-		Step.HARVEST, Step.PACK, Step.SEND:
+		Step.HARVEST, Step.HAUL, Step.PACK, Step.SEND:
 			return _selling(now)
 		Step.PAID:
 			return script_order() == null and _go(Step.EVENING, now)
@@ -142,6 +142,8 @@ func _selling(now: float) -> bool:
 	if order.status == Order.Status.IN_TRANSIT:
 		return _go(Step.PAID, now)
 	if step == Step.HARVEST and _inventory.count() > 0:
+		return _go(Step.HAUL, now)
+	if step == Step.HAUL and not _inventory.at_stash().is_empty():
 		return _go(Step.PACK, now)
 	if step == Step.PACK and _orders.can_fill(order):
 		return _go(Step.SEND, now)

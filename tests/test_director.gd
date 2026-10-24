@@ -165,7 +165,7 @@ func test_rumour_about_raiders_makes_the_next_night_certain() -> void:
 	assert_true(state.raids.expected)
 	assert_eq(String(_director_events(state)[0].data["about"]), Director.ABOUT_RAID)
 	_advance(state, state.raids.next_roll_at / HOUR - state.clock.elapsed_game_seconds / HOUR + STEP_HOURS)
-	assert_eq(state.event_log.of_type(EventLog.RAID_STARTED).size(), 1, "Finn heard right")
+	assert_eq(state.event_log.of_type(EventLog.RAID_STARTED).size(), 1, "Reggie heard right")
 
 
 func test_rumours_about_raiders_need_raids_in_the_game() -> void:

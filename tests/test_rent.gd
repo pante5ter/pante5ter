@@ -21,6 +21,8 @@ func _calm(money: int) -> BalanceConfig:
 	calm.suspicion.inspection_threshold = SuspicionDef.new().inspection_threshold + 1.0
 	# Rent arithmetic is checked to the pound; the helper's wage would blur it.
 	calm.helper = null
+	# Jack never goes home here; his nights out are tested in test_day_cycle.
+	calm.day = null
 	return calm
 
 

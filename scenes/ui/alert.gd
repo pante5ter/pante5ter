@@ -12,9 +12,13 @@ const PARCEL: String = "parcel"
 const CALL: String = "call"
 const COURIER: String = "courier"
 const PAID: String = "paid"
+const HOME: String = "home"
+const HAUL: String = "haul"
 
 const SHOW: String = "Показать"
 const ANSWER: String = "Ответить"
+const GO_HOME: String = "Домой"
+const LOOK_AT_FARM: String = "На ферму"
 
 var severity: Severity = Severity.INFO
 var topic: String = ""
@@ -66,6 +70,13 @@ static func from_event(event: SimEvent, sim: SimState) -> Alert:
 			return make(Severity.DANGER, COURIER, PhoneGlyphs.DANGER, "Курьер сбежал с товаром", news)
 		EventLog.DELIVERY_STOPPED:
 			return make(Severity.DANGER, COURIER, PhoneGlyphs.DANGER, "Заказ перехватили", news)
+		EventLog.HAUL_STOPPED:
+			return make(Severity.DANGER, HAUL, PhoneGlyphs.DANGER, "Ящики перехватили", news)
+		EventLog.EVENING_CALL:
+			var call_home := make(Severity.INFO, HOME, PhoneGlyphs.CALLS, "Реджи: пора домой", news)
+			call_home.action = GO_HOME
+			call_home.seconds = 14.0
+			return call_home
 	return null
 
 
@@ -80,7 +91,14 @@ static func is_live(alert_topic: String, sim: SimState) -> bool:
 			return not sim.supplies.parcel().is_empty()
 		CALL:
 			return not sim.orders.with_status(Order.Status.OFFERED).is_empty()
+		HOME:
+			return not sim.day.is_home() and not sim.day.travelling()
 	return true
+
+
+## Trouble that happens at the container, wherever Jack is.
+static func is_farm_trouble(alert_topic: String) -> bool:
+	return alert_topic == RAID or alert_topic == INSPECTION
 
 
 static func topic_title(alert_topic: String) -> String:

@@ -11,7 +11,7 @@ text = "Мистер Кэллоуэй! Преподобный Кэткарт. К
 
 [sub_resource type="Resource" id="Line_2"]
 script = ExtResource("3_line")
-speaker = "Финн"
+speaker = "Реджи"
 text = "Церковь в деревне — лучшая крыша. Во всех смыслах."
 
 [sub_resource type="Resource" id="Line_3"]
@@ -40,7 +40,7 @@ text = "В воскресной проповеди, пожалуй, вспомн
 
 [sub_resource type="Resource" id="Line_6"]
 script = ExtResource("3_line")
-speaker = "Финн"
+speaker = "Реджи"
 text = "Без имён. Но с адресом."
 
 [sub_resource type="Resource" id="Choice_2"]

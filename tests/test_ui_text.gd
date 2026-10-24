@@ -10,11 +10,13 @@ func before_all() -> void:
 	_balance = load(BALANCE_PATH) as BalanceConfig
 
 
-## Finn's everyday guidance; the first-day script's own lines are checked in test_first_day.
+## Reggie's everyday guidance; the first-day script's own lines are checked in test_first_day.
 func _new_state() -> SimState:
 	var plain := _balance.duplicate() as BalanceConfig
 	plain.first_day = null
 	plain.director = null
+	plain.stash = _balance.stash.duplicate() as StashDef
+	plain.stash.base_risk = 0.0
 	return SimState.new(plain, 1)
 
 
@@ -83,7 +85,12 @@ func test_objective_points_at_harvest_and_then_the_buyer() -> void:
 		hours_left -= step
 	assert_string_contains(UiText.objective(state), "Собери")
 	state.apply(HarvestCommand.new(0))
-	assert_string_contains(UiText.objective(state), "Расфасуй", "fresh harvest has to be packed first")
+	assert_string_contains(UiText.objective(state), "тайник", "fresh crates leave the farm first")
+	state.apply(HaulCommand.new(Helper.ACTOR))
+	state.apply(AdvanceTimeCommand.new(_real_seconds_for_game_hours(state.config.stash.haul_hours + 0.01)))
+	for call: Order in state.orders.with_status(Order.Status.OFFERED):
+		state.apply(AnswerOrderCommand.new(call.id, Orders.DECLINE))
+	assert_string_contains(UiText.objective(state), "Расфасуй", "crates at the stash have to be packed")
 
 
 func test_objective_skips_hiring_when_wage_is_unaffordable() -> void:

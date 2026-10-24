@@ -16,7 +16,7 @@ text = "Доброе утро! По карте общественная троп
 
 [sub_resource type="Resource" id="Line_3"]
 script = ExtResource("3_line")
-speaker = "Финн"
+speaker = "Реджи"
 text = "Турист с картой, блогом и бессонницей. Худшее сочетание."
 
 [sub_resource type="Resource" id="Line_4"]
@@ -31,7 +31,7 @@ text = "Спасибо за чай! А фургоны всё-таки стран
 
 [sub_resource type="Resource" id="Line_6"]
 script = ExtResource("3_line")
-speaker = "Финн"
+speaker = "Реджи"
 text = "Блог. Боже, храни Англию."
 
 [sub_resource type="Resource" id="Choice_1"]
@@ -51,7 +51,7 @@ text = "Пятьдесят фунтов за то, чтобы ничего не 
 
 [sub_resource type="Resource" id="Line_8"]
 script = ExtResource("3_line")
-speaker = "Финн"
+speaker = "Реджи"
 text = "Он будет молчать. Но запомнит: взятки запоминаются лучше чая."
 
 [sub_resource type="Resource" id="Choice_2"]

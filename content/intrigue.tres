@@ -12,7 +12,7 @@ text = "Пит долго смотрел в пол. Потом выложил в
 
 [sub_resource type="Resource" id="Line_2"]
 script = ExtResource("3_line")
-speaker = "Финн"
+speaker = "Реджи"
 text = "Если Пит у нас работал — больше не работает. «Зубы» остались без наводчика, на неделю станет тише."
 
 [sub_resource type="Resource" id="Line_3"]
@@ -22,7 +22,7 @@ text = "Пит побелел, потом покраснел, потом ушё�
 
 [sub_resource type="Resource" id="Line_4"]
 script = ExtResource("3_line")
-speaker = "Финн"
+speaker = "Реджи"
 text = "Пит ни при чём, мистер Кэллоуэй. А тот, кто нас сдал, сегодня спит спокойно — и, похоже, снова звонит своим."
 
 [sub_resource type="Resource" id="Suspect_1"]
@@ -43,8 +43,8 @@ text = "Лиам. Родная кровь. Я с ним поговорил, ми
 
 [sub_resource type="Resource" id="Line_6"]
 script = ExtResource("3_line")
-speaker = "Финн"
-text = "Без наводчика «Зубам» здесь делать нечего. Реджи, сочувствую."
+speaker = "Реджи"
+text = "Без наводчика «Зубам» здесь делать нечего. Жаль, что им оказался свой."
 
 [sub_resource type="Resource" id="Line_7"]
 script = ExtResource("3_line")
@@ -53,8 +53,8 @@ text = "Лиам был в Уэльсе, мистер Кэллоуэй. Я эт�
 
 [sub_resource type="Resource" id="Line_8"]
 script = ExtResource("3_line")
-speaker = "Финн"
-text = "Реджи это запомнит. А настоящая крыса — нет, ей запоминать нечего."
+speaker = "Реджи"
+text = "Я это запомню. А настоящая крыса — нет, ей запоминать нечего."
 
 [sub_resource type="Resource" id="Suspect_2"]
 script = ExtResource("2_suspect")
@@ -74,7 +74,7 @@ text = "Ладно, ладно! Подошли в пабе, спросили п�
 
 [sub_resource type="Resource" id="Line_10"]
 script = ExtResource("3_line")
-speaker = "Финн"
+speaker = "Реджи"
 text = "Хоббс будет молчать — теперь ему есть что терять. «Зубам» больше не к кому идти."
 
 [sub_resource type="Resource" id="Line_11"]
@@ -84,7 +84,7 @@ text = "Я? Да я ночью свинье помогал, мистер! Вся
 
 [sub_resource type="Resource" id="Line_12"]
 script = ExtResource("3_line")
-speaker = "Финн"
+speaker = "Реджи"
 text = "Деревня узнает. А крыса — посмеётся."
 
 [sub_resource type="Resource" id="Suspect_3"]
@@ -101,11 +101,11 @@ innocent_reply = Array[ExtResource("3_line")]([SubResource("Line_11"), SubResour
 [sub_resource type="Resource" id="Line_13"]
 script = ExtResource("3_line")
 speaker = ""
-text = "Вечер. Финн раскладывает на столе всё, что удалось узнать."
+text = "Вечер. Реджи раскладывает на столе всё, что удалось узнать."
 
 [sub_resource type="Resource" id="Line_14"]
 script = ExtResource("3_line")
-speaker = "Финн"
+speaker = "Реджи"
 text = "Пора решать, мистер Кэллоуэй. Вот что у нас есть."
 
 [resource]
@@ -114,7 +114,7 @@ opening_story = ExtResource("4_opening")
 suspects = Array[ExtResource("2_suspect")]([SubResource("Suspect_1"), SubResource("Suspect_2"), SubResource("Suspect_3")])
 clue_interval_hours = 5.0
 accuse_lines = Array[ExtResource("3_line")]([SubResource("Line_13"), SubResource("Line_14")])
-finn_speaker = "Финн"
+crew_speaker = "Реджи"
 boss_speaker = "Гаффер"
 boss_name_line = "Как обещал. Ваш болтун — %s. Дальше без меня."
 caught_calm_days = 5.0

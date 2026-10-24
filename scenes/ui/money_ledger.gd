@@ -65,6 +65,8 @@ static func of_event(event: SimEvent, sim: SimState) -> Array[Entry]:
 		EventLog.HELPER_TRAINING_STARTED:
 			var skill := sim.config.find_skill(String(data.get("skill_id", "")))
 			found.append(Entry.make(at, -int(data.get("cost", 0)), "Курсы «%s»" % (skill.display_name if skill != null else "?")))
+		EventLog.HELPER_SKILLS_REFUNDED:
+			found.append(Entry.make(at, int(data.get("refund", 0)), "Возврат за курсы Реджи"))
 		EventLog.RENT_PAID:
 			found.append(Entry.make(at, -int(data.get("amount", 0)), "Аренда лорду Эшкомбу"))
 		EventLog.RAID_RESOLVED:

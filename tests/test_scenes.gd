@@ -2,6 +2,7 @@ extends GutTest
 
 const FIELD_SCENE: String = "res://scenes/field/field.tscn"
 const PLANTATION_SCENE: String = "res://scenes/plantation/plantation.tscn"
+const STASH_SCENE: String = "res://scenes/stash/stash.tscn"
 const SETTLE_FRAMES: int = 3
 
 
@@ -280,10 +281,10 @@ func test_phone_people_hire_and_shop_restock() -> void:
 	assert_eq(Game.sim.workers.definition().id, "dave")
 	assert_true(Game.sim.packer.hired)
 	assert_eq(_phone_buttons(level, "Уволить").size(), 2)
-	assert_eq(_phone_buttons(level, "Место занято").size(), Game.sim.config.candidates().size() - 1)
+	assert_eq(_phone_buttons(level, "Нанять").size(), Game.sim.config.candidates().size() - 1, "the rest of the crew can still be hired")
+	assert_eq(_phone_buttons(level, "Место занято").size(), 0, "Gladys is the only packer")
 	assert_gt(_phone_buttons(level, "Учить").size(), 0, "the helper's courses are listed")
-	await wait_physics_frames(2)
-	assert_true((level.get_node("Packer") as WorkerView).visible, "the packer comes down to the bench")
+	assert_null(level.get_node_or_null("Packer"), "the packer works at the stash, not in the bunker")
 	level.hud.phone.fire("gladys")
 	assert_false(Game.sim.packer.hired)
 	Game.sim.economy.earn(1000)
@@ -317,11 +318,12 @@ func test_dispatch_buttons_need_matching_packed_boxes() -> void:
 
 
 func test_bench_packs_the_harvest_onto_the_shelf() -> void:
-	var level := await _open(PLANTATION_SCENE)
+	Game.sim.apply(TravelCommand.new(DayCycle.STASH))
+	var level := await _open(STASH_SCENE)
 	var bench := level.get_node("NavRegion/Bench") as PackingBench
 	var shelf := level.get_node("NavRegion/Shelf/Stock") as StockShelf
-	Game.sim.inventory.create(Game.sim.config.strain.id, 60)
-	Game.sim.inventory.create(Game.sim.config.strain.id, 70)
+	for quality: int in [60, 70]:
+		Game.sim.inventory.create(Game.sim.config.strain.id, quality).at_stash = true
 	await wait_process_frames(2)
 	assert_gt(bench.shown_heaps(), 0, "the loose harvest lies on the bench")
 	assert_eq(shelf.shown_boxes(), 0, "nothing is boxed before packing")
@@ -336,7 +338,7 @@ func test_bench_packs_the_harvest_onto_the_shelf() -> void:
 
 
 func test_bench_heap_grows_with_the_unpacked_harvest() -> void:
-	var level := await _open(PLANTATION_SCENE)
+	var level := await _open(STASH_SCENE)
 	var bench := level.get_node("NavRegion/Bench") as PackingBench
 	bench.show_pile(1)
 	var small := bench.shown_heaps()
@@ -445,8 +447,10 @@ func test_land_rover_drives_jack_to_the_container_and_back() -> void:
 	var rover := level.get_node("NavRegion/RoverManor") as LandRover
 	var container_spot := level.get_node("Parking/Container") as ParkingSpot
 	var labels := rover.actions(level).map(func(action: UiAction) -> String: return action.label)
-	assert_eq(labels.size(), 2, "the other two places")
+	assert_eq(labels.size(), 4, "the other two estate spots, home and the stash")
 	assert_true(labels.has("Ехать: к контейнеру"))
+	assert_true(labels.any(func(label: String) -> bool: return label.begins_with("Ехать домой")))
+	assert_true(labels.any(func(label: String) -> bool: return label.begins_with("Ехать в тайник")))
 	rover.drive_to(level, container_spot)
 	await wait_physics_frames(2)
 	assert_true(rover.is_driving())

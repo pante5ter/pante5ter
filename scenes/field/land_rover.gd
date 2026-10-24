@@ -1,7 +1,7 @@
 class_name LandRover
 extends Interactable
-## Estate car for fast travel. Jack gets in, the car drives the lanes and the main road to another
-## parking spot in a few seconds, and Jack steps out there. Scene-only: the sim never hears of it.
+## Estate car. Between parking spots on the estate it is scene-only: the car drives the lanes in a few
+## seconds and Jack steps out there. Home and the stash are real trips: the sim moves Jack and the clock.
 
 const DRIVE_SECONDS: float = 3.0
 const GROUP: StringName = &"land_rovers"
@@ -37,7 +37,23 @@ func actions(level: Level) -> Array[UiAction]:
 	var result: Array[UiAction] = []
 	for destination: ParkingSpot in destinations():
 		result.append(UiAction.make("Ехать: %s" % destination.title, drive_to.bind(level, destination)))
+	for place: String in [DayCycle.HOME, DayCycle.STASH]:
+		result.append(UiAction.make("Ехать %s (%s)" % [Travel.TITLES[place], Travel.driver_note()], _leave_farm.bind(level, place)))
+	if not Game.sim.inventory.farm_crates().is_empty() and not Game.sim.stash.on_the_road():
+		result.append(UiAction.make("Отвезти ящики в тайник самому (%d шт.)" % Game.sim.inventory.farm_crates().size(), _haul.bind(level)))
 	return result
+
+
+func _leave_farm(level: Level, place: String) -> void:
+	var result := Travel.go(place)
+	if not result.ok:
+		level.show_message(UiText.error(result.error))
+
+
+func _haul(level: Level) -> void:
+	var result := Travel.haul_myself()
+	if not result.ok:
+		level.show_message(UiText.error(result.error))
 
 
 func destinations() -> Array[ParkingSpot]:

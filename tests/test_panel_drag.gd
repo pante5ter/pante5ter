@@ -115,11 +115,11 @@ func test_phone_cannot_be_dragged_off_screen() -> void:
 
 func test_dialogue_speakers_have_their_own_colours() -> void:
 	var level := await _open()
-	var lines: Array[DialogueLineDef] = [DialogueLineDef.make(UiText.LORD, "a"), DialogueLineDef.make(UiText.FINN, "b")]
+	var lines: Array[DialogueLineDef] = [DialogueLineDef.make(UiText.LORD, "a"), DialogueLineDef.make(UiText.REGGIE, "b")]
 	level.hud.play_dialogue(lines)
 	var box := level.hud.dialogue_box
 	var lord_colour := box.speaker_label.get_theme_color("font_color")
 	box.advance()
-	assert_ne(box.speaker_label.get_theme_color("font_color"), lord_colour, "Finn and the lord must not look alike")
-	assert_string_contains(box.speaker_label.text, UiText.FINN)
+	assert_ne(box.speaker_label.get_theme_color("font_color"), lord_colour, "Reggie and the lord must not look alike")
+	assert_string_contains(box.speaker_label.text, UiText.REGGIE)
 	box.skip()

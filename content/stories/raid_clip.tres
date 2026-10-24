@@ -7,21 +7,21 @@
 [sub_resource type="Resource" id="Line_1"]
 script = ExtResource("3_line")
 speaker = ""
-text = "Утро после налёта. Финн кладёт на стол чужой телефон с треснувшим экраном."
+text = "Утро после налёта. Реджи кладёт на стол чужой телефон с треснувшим экраном."
 
 [sub_resource type="Resource" id="Line_2"]
 script = ExtResource("3_line")
-speaker = "Финн"
+speaker = "Реджи"
 text = "Один из «Молочных зубов» обронил у контейнера. Тут их новый клип: бит, балаклавы, наш контейнер крупным планом."
 
 [sub_resource type="Resource" id="Line_3"]
 script = ExtResource("3_line")
-speaker = "Финн"
+speaker = "Реджи"
 text = "На сорок второй секунде один из них сразу тянет стеллаж — не ищет, не стучит по стенам. Он знал, что стеллаж отъезжает. Кто-то им рассказал, мистер Кэллоуэй."
 
 [sub_resource type="Resource" id="Line_4"]
 script = ExtResource("3_line")
-speaker = "Финн"
+speaker = "Реджи"
 text = "Тогда смотрим и слушаем: кто что купил, кто где был. Улики буду приносить я, выводы — за вами."
 
 [sub_resource type="Resource" id="Choice_1"]
@@ -36,7 +36,7 @@ text = "Мои пацаны дурные, но я — нет. Имя получ�
 
 [sub_resource type="Resource" id="Line_6"]
 script = ExtResource("3_line")
-speaker = "Финн"
+speaker = "Реджи"
 text = "Дорого. Зато быстро и без самодеятельности."
 
 [sub_resource type="Resource" id="Choice_2"]
@@ -57,7 +57,7 @@ text = "Нас ждали. Ушли целыми, но «Зубы» обещал
 
 [sub_resource type="Resource" id="Line_9"]
 script = ExtResource("3_line")
-speaker = "Финн"
+speaker = "Реджи"
 text = "Месть — блюдо, которое лучше подавать молча. У нас вышло громко."
 
 [sub_resource type="Resource" id="Choice_3"]

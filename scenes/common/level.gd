@@ -12,6 +12,8 @@ const PROLOGUE_PATH: String = "res://content/prologue.tres"
 @export var hud: Hud
 @export var spawn_points: Node3D
 @export var default_spawn: String = "start"
+## Which of Jack's places this level is; the field and the bunker are both the farm.
+@export var place: String = DayCycle.FARM
 
 ## While a Land Rover carries Jack he is hidden and clicks on the world do nothing.
 var jack_in_vehicle: bool = false
@@ -29,7 +31,8 @@ func _ready() -> void:
 	camera_rig.focus(spawn)
 	hud.jack_focus_requested.connect(centre_on_jack)
 	Game.is_running = true
-	hud.underground = not _is_opening_level()
+	hud.underground = place == DayCycle.FARM and not _is_opening_level()
+	hud.place = place
 	if _is_opening_level() and Game.take_fresh_start():
 		hud.play_dialogue((load(PROLOGUE_PATH) as DialogueDef).lines)
 
@@ -37,6 +40,11 @@ func _ready() -> void:
 ## A new game starts in the main scene, so only that level opens with the prologue.
 func _is_opening_level() -> bool:
 	return scene_file_path == str(ProjectSettings.get_setting("application/run/main_scene"))
+
+
+## Jack is somewhere else (asleep at home, at the stash): the view is here, he is not.
+func observing() -> bool:
+	return Game.sim.day.place != place or Game.sim.day.travelling()
 
 
 func is_navigation_ready() -> bool:
@@ -96,6 +104,9 @@ func _click(screen_position: Vector2) -> void:
 		return
 	if SceneRouter.is_busy() or not _navigation_ready or jack_in_vehicle:
 		return
+	if observing():
+		show_message("Джека здесь нет — %s. Поехать сюда можно кнопкой внизу." % UiText.where_is_jack(Game.sim))
+		return
 	if jack_away():
 		var back := Game.sim.couriers.busy_until.get(Couriers.JACK, 0.0) as float
 		show_message("Джек в дороге с заказом. Вернётся через %s." % UiText.real_duration(back - Game.sim.clock.elapsed_game_seconds, Game.sim))
@@ -117,7 +128,7 @@ func jack_away() -> bool:
 func _physics_process(_delta: float) -> void:
 	if not _navigation_ready:
 		_refresh_navigation_ready()
-	jack.visible = not jack_away() and not jack_in_vehicle
+	jack.visible = not jack_away() and not jack_in_vehicle and not observing()
 	var hit := _pick(get_viewport().get_mouse_position())
 	var interactable: Interactable = null
 	if not hit.is_empty():

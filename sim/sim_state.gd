@@ -1,7 +1,7 @@
 class_name SimState
 extends RefCounted
 
-const SAVE_VERSION: int = 11
+const SAVE_VERSION: int = 12
 ## v7 saves load too: they get a fresh helper and no packer.
 const MIGRATABLE_VERSION: int = 7
 ## v8 saves load too: they skip the first-day script and the director starts counting at load.
@@ -10,11 +10,14 @@ const V8_VERSION: int = 8
 const V9_VERSION: int = 9
 ## v10 saves load too: no banned couriers, no theft calls waiting.
 const V10_VERSION: int = 10
+## v11 saves load too: their goods move to the stash, Jack is on the farm, Reggie drops the bed courses.
+const V11_VERSION: int = 11
 const V7_SAVE_KEYS: Array[String] = ["save_version", "clock", "rng", "economy", "inventory", "plots", "workers", "supplies", "orders", "progress", "problems", "suspicion", "raids", "couriers", "packing", "rent", "event_log"]
 const V8_SAVE_KEYS: Array[String] = ["helper", "packer"]
 const V9_SAVE_KEYS: Array[String] = ["first_day", "director", "stories"]
 const V10_SAVE_KEYS: Array[String] = ["intrigue"]
 const V11_SAVE_KEYS: Array[String] = ["thefts", "climate"]
+const V12_SAVE_KEYS: Array[String] = ["day", "stash"]
 
 var config: BalanceConfig
 var clock: SimClock
@@ -41,6 +44,8 @@ var director: Director
 var intrigue: Intrigue
 var thefts: CourierThefts
 var climate: Climate
+var day: DayCycle
+var stash: Stash
 
 
 func _init(balance: BalanceConfig, seed_value: int) -> void:
@@ -70,7 +75,6 @@ func _init(balance: BalanceConfig, seed_value: int) -> void:
 	packer = Packer.new(balance, packing, economy, suspicion, event_log)
 	helper = Helper.new(balance, grow, supplies, packing, economy, suspicion, event_log)
 	helper.farmhand = workers
-	helper.packer = packer
 	workers.helper = helper
 	couriers.attach_helper(helper)
 	raids.attach_helper(helper)
@@ -79,6 +83,9 @@ func _init(balance: BalanceConfig, seed_value: int) -> void:
 	director = Director.new(balance, rng, orders, problems, suspicion, raids, couriers, stories, first_day, event_log)
 	intrigue = Intrigue.new(balance, rng, stories, raids, couriers, suspicion, event_log)
 	thefts = CourierThefts.new(balance, stories, event_log)
+	day = DayCycle.new(balance.day, suspicion, event_log)
+	stash = Stash.new(balance, inventory, packing, suspicion, rng, event_log)
+	stash.attach(helper, packer)
 	progress.update(empire_value(), clock.elapsed_game_seconds)
 	# Whatever the start logged is not news to the intrigue; a refused first command must change nothing.
 	intrigue.seen_events = event_log.size()
@@ -102,7 +109,7 @@ func empire_value() -> int:
 		value += economy.price_of(product)
 	for order: Order in orders.with_status(Order.Status.IN_TRANSIT):
 		value += order.reward
-	return value
+	return value + stash.value(economy)
 
 
 func _apply(command: SimCommand) -> CommandResult:
@@ -151,7 +158,7 @@ func _apply(command: SimCommand) -> CommandResult:
 		var fire := command as FireWorkerCommand
 		if config.find_packer(fire.worker_id) != null:
 			return packer.fire(now, command.actor)
-		return workers.fire(now, command.actor)
+		return workers.fire(now, command.actor, fire.worker_id)
 	if command is LearnSkillCommand:
 		return helper.learn((command as LearnSkillCommand).skill_id, now, command.actor)
 	if command is RestockCommand:
@@ -166,6 +173,12 @@ func _apply(command: SimCommand) -> CommandResult:
 		return climate.buy_sensor(now, command.actor)
 	if command is SetVentilationCommand:
 		return climate.set_ventilation((command as SetVentilationCommand).level, now, command.actor)
+	if command is TravelCommand:
+		return _travel((command as TravelCommand).place, now, command.actor)
+	if command is HaulCommand:
+		return _haul((command as HaulCommand).driver, now, command.actor)
+	if command is SleepCommand:
+		return _sleep(now, command.actor)
 	if command is BuyPlotCommand:
 		return _buy_plot(now, command.actor)
 	if command is ChooseCommand:
@@ -188,6 +201,64 @@ func _buy_plot(now: float, actor: String) -> CommandResult:
 	return CommandResult.success(added.id)
 
 
+func _travel(destination: String, now: float, actor: String) -> CommandResult:
+	var started := day.start_trip(destination, now, actor)
+	if not started.ok:
+		return started
+	_run_until(day.trip_arrives_at)
+	return started
+
+
+## Jack drives the crates to the stash himself and stays there.
+func _haul(driver: String, now: float, actor: String) -> CommandResult:
+	if driver == Helper.ACTOR:
+		return stash.send_with_helper(now, actor)
+	if driver != DayCycle.JACK:
+		return CommandResult.failure(CommandResult.UNKNOWN_WORKER)
+	if day.place != DayCycle.FARM or day.travelling():
+		return CommandResult.failure(CommandResult.NOT_AT_FARM)
+	var loaded := stash.load_for_jack(now, now + day.travel_seconds(), actor)
+	if not loaded.ok:
+		return loaded
+	_travel(DayCycle.STASH, now, actor)
+	return loaded
+
+
+## Sleep runs the night through to the morning; a farm alarm stops it on the spot.
+## The result value is the alarm's event seq, or -1 when Jack slept through.
+func _sleep(now: float, actor: String) -> CommandResult:
+	var refused := day.can_sleep(now)
+	if not refused.is_empty():
+		return CommandResult.failure(refused)
+	day.fall_asleep(now, actor)
+	var alarm := _run_until(day.wake_time(now), DayCycle.is_alarm)
+	if alarm != null:
+		day.interrupt_sleep(alarm)
+		return CommandResult.success(alarm.seq)
+	day.wake_up(clock.elapsed_game_seconds)
+	return CommandResult.success(-1)
+
+
+## Runs the world to exactly `target`; with `stop_on` it halts at the first matching event instead.
+func _run_until(target: float, stop_on: Callable = Callable()) -> SimEvent:
+	var seen := event_log.size()
+	while not rent.evicted:
+		var now := clock.elapsed_game_seconds
+		var step_to := minf(_next_event_time(), target)
+		if step_to > now:
+			_grow_unless_quiet(now, step_to - now)
+			clock.advance_to(step_to)
+		_process_events(clock.elapsed_game_seconds)
+		if stop_on.is_valid():
+			for event: SimEvent in event_log.since(seen):
+				if bool(stop_on.call(event)):
+					return event
+			seen = event_log.size()
+		if clock.elapsed_game_seconds >= target:
+			break
+	return null
+
+
 func _next_event_time() -> float:
 	var next := minf(workers.next_event_time(), minf(supplies.next_event_time(), orders.next_event_time()))
 	next = minf(next, minf(problems.next_event_time(), suspicion.next_event_time()))
@@ -196,10 +267,13 @@ func _next_event_time() -> float:
 	next = minf(next, minf(helper.next_event_time(), packer.next_event_time()))
 	next = minf(next, minf(first_day.next_event_time(), director.next_event_time()))
 	next = minf(next, minf(intrigue.next_event_time(), stories.next_event_time()))
+	next = minf(next, minf(day.next_event_time(), stash.next_event_time()))
 	return minf(next, raids.next_event_time())
 
 
 func _process_events(now: float) -> void:
+	day.process(now)
+	stash.process(now)
 	supplies.process(now)
 	climate.process(now)
 	problems.process(now)
@@ -227,6 +301,9 @@ func _grow_unless_quiet(now: float, game_seconds: float) -> void:
 
 func _advance_time(real_seconds: float) -> CommandResult:
 	var remaining := clock.real_to_game(real_seconds)
+	# The last stretch lands on the exact target: summing the gaps drifts by an ulp and can leave a
+	# timer due "now" unprocessed, so one long step would differ from many short ones.
+	var target := clock.elapsed_game_seconds + remaining
 	while true:
 		var now := clock.elapsed_game_seconds
 		var event_time := _next_event_time()
@@ -238,7 +315,7 @@ func _advance_time(real_seconds: float) -> CommandResult:
 				remaining -= until_event
 		else:
 			_grow_unless_quiet(now, remaining)
-			clock.advance(remaining)
+			clock.advance_to(target)
 			remaining = 0.0
 		_process_events(clock.elapsed_game_seconds)
 		if remaining <= 0.0 or rent.evicted:
@@ -272,6 +349,8 @@ func to_dict() -> Dictionary:
 		"intrigue": intrigue.to_dict(),
 		"thefts": thefts.to_dict(),
 		"climate": climate.to_dict(),
+		"day": day.to_dict(),
+		"stash": stash.to_dict(),
 		"event_log": event_log.to_array(),
 	}
 
@@ -296,7 +375,9 @@ static func from_json(text: String, balance: BalanceConfig) -> SimState:
 		return null
 	if version >= V10_VERSION and not data.has_all(V10_SAVE_KEYS):
 		return null
-	if version == SAVE_VERSION and not data.has_all(V11_SAVE_KEYS):
+	if version > V10_VERSION and not data.has_all(V11_SAVE_KEYS):
+		return null
+	if version == SAVE_VERSION and not data.has_all(V12_SAVE_KEYS):
 		return null
 	var state := SimState.new(balance, 0)
 	state._load_dict(data)
@@ -307,9 +388,11 @@ static func from_json(text: String, balance: BalanceConfig) -> SimState:
 		state.director.restart(state.clock.elapsed_game_seconds)
 	if version < V10_VERSION:
 		state.intrigue.seen_events = state.event_log.size()
-	if version < SAVE_VERSION:
+	if version < V11_VERSION:
 		state.thefts.seen_events = state.event_log.size()
 		state.climate.start_at(state.clock.elapsed_game_seconds)
+	if version < SAVE_VERSION:
+		state._move_in_to_stash()
 	if is_nan(state.clock.elapsed_game_seconds):
 		return null
 	return state
@@ -348,3 +431,16 @@ func _load_dict(data: Dictionary) -> void:
 		thefts.load_dict(data["thefts"] as Dictionary)
 	if data.has("climate"):
 		climate.load_dict(data["climate"] as Dictionary)
+	if data.has("day"):
+		day.load_dict(data["day"] as Dictionary)
+	if data.has("stash"):
+		stash.load_dict(data["stash"] as Dictionary)
+
+
+## Before v12 the bench and the shelf stood in the bunker; everything on them now waits at the stash.
+func _move_in_to_stash() -> void:
+	var now := clock.elapsed_game_seconds
+	for product: Product in inventory.products():
+		product.at_stash = true
+	day.start_at(now)
+	helper.retire_skills(now)

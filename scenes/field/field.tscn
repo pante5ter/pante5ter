@@ -1029,6 +1029,12 @@ position = Vector3(-47.5, 0, -25)
 [node name="from_elevator" type="Marker3D" parent="SpawnPoints"]
 position = Vector3(61, 0, 7.6)
 
+[node name="car_container" type="Marker3D" parent="SpawnPoints"]
+position = Vector3(64.5, 0, 12.0)
+
+[node name="car_manor" type="Marker3D" parent="SpawnPoints"]
+position = Vector3(-40.5, 0, -19.5)
+
 [node name="road_west" type="Marker3D" parent="SpawnPoints"]
 position = Vector3(-83, 0, 44)
 

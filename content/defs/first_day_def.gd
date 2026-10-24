@@ -18,12 +18,13 @@ extends Resource
 ## Day-two trouble when no bed is growing for the pests to land on.
 @export var trouble_story: StoryDef
 
-@export_group("Finn")
+@export_group("Reggie")
 @export_multiline var plant_field_line: String = ""
 @export_multiline var plant_bunker_line: String = ""
 @export_multiline var call_line: String = ""
 @export_multiline var answer_line: String = ""
 @export_multiline var harvest_line: String = ""
+@export_multiline var haul_line: String = ""
 @export_multiline var pack_line: String = ""
 @export_multiline var send_line: String = ""
 @export_multiline var paid_line: String = ""

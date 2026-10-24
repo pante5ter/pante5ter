@@ -19,19 +19,24 @@ func busy() -> bool:
 	return not product_ids.is_empty()
 
 
+## Unpacked harvest at the stash; crates still on the farm cannot be packed.
 func unpacked_count() -> int:
-	return _inventory.products().filter(func(product: Product) -> bool: return not product.packed).size()
+	return _unpacked().size()
+
+
+func _unpacked() -> Array[Product]:
+	return _inventory.at_stash().filter(func(product: Product) -> bool: return not product.packed)
 
 
 ## Speed above 1 packs faster (a practised packer).
 func start(now: float, actor: String, speed: float = 1.0) -> CommandResult:
 	if busy():
 		return CommandResult.failure(CommandResult.ALREADY_DONE)
-	for product: Product in _inventory.products():
-		if not product.packed:
-			product_ids.append(product.id)
+	for product: Product in _unpacked():
+		product_ids.append(product.id)
 	if product_ids.is_empty():
-		return CommandResult.failure(CommandResult.NOTHING_TO_PACK)
+		var waiting := not _inventory.farm_crates().is_empty()
+		return CommandResult.failure(CommandResult.CRATES_ON_FARM if waiting else CommandResult.NOTHING_TO_PACK)
 	ends_at = now + _def.pack_minutes_per_unit * 60.0 * float(product_ids.size()) / maxf(speed, 0.1)
 	_event_log.record(EventLog.PACKING_STARTED, now, PackedStringArray([actor]), {"units": product_ids.size()})
 	return CommandResult.success(product_ids.size())

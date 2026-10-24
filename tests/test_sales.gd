@@ -22,6 +22,10 @@ func _config(money: int = 5000, base_risk: float = 0.0, haggle: float = 0.5) -> 
 	# The first-day script holds regular calls and the director adds its own; these tests check the bare systems.
 	config.first_day = null
 	config.director = null
+	# Jack never goes home here; his nights out are tested in test_day_cycle.
+	config.day = null
+	config.stash = _balance.stash.duplicate() as StashDef
+	config.stash.base_risk = 0.0
 	return config
 
 
@@ -110,6 +114,10 @@ func test_harvest_must_be_packed_before_it_can_ship() -> void:
 	for index: int in order.quantity:
 		state.inventory.create(state.config.strain.id, 100)
 	assert_false(state.orders.can_fill(order), "loose harvest does not ship")
+	assert_eq(state.apply(PackCommand.new()).error, CommandResult.CRATES_ON_FARM, "the bench is at the stash")
+	assert_true(state.apply(HaulCommand.new(Helper.ACTOR)).ok)
+	_advance(state, state.config.stash.haul_hours + 0.01)
+	assert_false(state.orders.can_fill(order), "crates at the stash are still loose")
 	assert_eq(state.apply(PackCommand.new()).value, order.quantity)
 	assert_eq(state.apply(PackCommand.new()).error, CommandResult.ALREADY_DONE)
 	_advance(state, state.config.orders.pack_minutes_per_unit * float(order.quantity) / 60.0 + 0.01)

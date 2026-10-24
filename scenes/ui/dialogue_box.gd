@@ -10,9 +10,9 @@ const DEFAULT_SPEAKER_COLOR: Color = Color("f2c46b")
 ## Playtesters mixed up who said what, so every regular speaker gets a colour of their own.
 const SPEAKER_COLORS: Dictionary[String, Color] = {
 	"Лорд Эшкомб": Color("f2c46b"),
-	"Финн": Color("8fb3d9"),
 	"Джек": Color("d98f6b"),
 	"Реджи": Color("9fc98a"),
+	"Вивьен": Color("d9909a"),
 }
 const HINT_TEXT: String = "Пробел / ЛКМ — дальше    Esc — пропустить"
 const CHOICE_HINT_TEXT: String = "Выберите ответ: клик или клавиши 1–2"

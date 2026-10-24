@@ -6,22 +6,22 @@
 
 [sub_resource type="Resource" id="Line_1"]
 script = ExtResource("3_line")
-speaker = "Финн"
+speaker = "Реджи"
 text = "Мистер Кэллоуэй, %s до клиента не доехал. Ни товара, ни денег, телефон выключен."
 
 [sub_resource type="Resource" id="Line_2"]
 script = ExtResource("3_line")
-speaker = "Финн"
+speaker = "Реджи"
 text = "Я знаю, в каком пабе он пьёт. Могу поговорить с ним по-взрослому. Или отпустим — и пусть рассказывает всем, у кого работал."
 
 [sub_resource type="Resource" id="Line_3"]
 script = ExtResource("3_line")
-speaker = "Финн"
+speaker = "Реджи"
 text = "Поговорили. %s теперь вздрагивает при слове «посылка», и про нас от него не услышат ни слова."
 
 [sub_resource type="Resource" id="Choice_1"]
 script = ExtResource("2_choice")
-label = "Финн поговорит с ним — £100"
+label = "Реджи поговорит с ним — £100"
 money = -100
 relation = "crew"
 relation_change = 1
@@ -29,7 +29,7 @@ reply = Array[ExtResource("3_line")]([SubResource("Line_3")])
 
 [sub_resource type="Resource" id="Line_4"]
 script = ExtResource("3_line")
-speaker = "Финн"
+speaker = "Реджи"
 text = "Как скажете. Только вор, которого отпустили, — это вор, который рассказывает в пабе, у кого работал."
 
 [sub_resource type="Resource" id="Choice_2"]

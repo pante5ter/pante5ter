@@ -18,7 +18,7 @@ func interact(level: Level) -> void:
 		var actions: Array[UiAction] = [UiAction.make("Открыть «Люди»", _open_people.bind(level))]
 		level.hud.show_actions(title, actions)
 		return
-	var status := PeopleText.packer_status(Game.sim) if view.role == WorkerDef.PACKER else UiText.worker_status(Game.sim.workers)
+	var status := view.status_text()
 	var title := "%s\nЗарплата %s в день" % [status, UiText.money(person.daily_wage)]
 	var fire_actions: Array[UiAction] = [UiAction.make("Уволить", _fire.bind(level, person))]
 	level.hud.show_actions(title, fire_actions)

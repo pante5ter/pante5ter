@@ -6,7 +6,7 @@
 script = ExtResource("1_skill")
 id = "pack"
 display_name = "Фасовка"
-description = "Сам фасует урожай на столе, когда тот лежит без дела."
+description = "Привёз ящики в тайник — сам их и расфасует, прежде чем ехать обратно."
 kind = "pack"
 price = 250
 train_hours = 3.0

@@ -16,7 +16,7 @@ text = "Тридцать лет нюхаю свиней, мистер. Но от
 
 [sub_resource type="Resource" id="Line_3"]
 script = ExtResource("3_line")
-speaker = "Финн"
+speaker = "Реджи"
 text = "Хоббс разговаривает в пабе со всеми. Со свиньями тоже, но те хотя бы молчат."
 
 [sub_resource type="Resource" id="Line_4"]
@@ -26,7 +26,7 @@ text = "Забор… Да, забор старый. Пока строю, я, п
 
 [sub_resource type="Resource" id="Line_5"]
 script = ExtResource("3_line")
-speaker = "Финн"
+speaker = "Реджи"
 text = "Деньги, потраченные на тишину, редко бывают лишними."
 
 [sub_resource type="Resource" id="Choice_1"]
@@ -50,7 +50,7 @@ text = "Я тридцать лет делаю силос, мистер. Сило
 
 [sub_resource type="Resource" id="Line_8"]
 script = ExtResource("3_line")
-speaker = "Финн"
+speaker = "Реджи"
 text = "Вечером он расскажет это в пабе. С выражением."
 
 [sub_resource type="Resource" id="Choice_2"]

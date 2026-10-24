@@ -2,9 +2,10 @@ class_name UiText
 extends RefCounted
 
 const LORD: String = "Лорд Эшкомб"
-const FINN: String = "Финн"
+const REGGIE: String = "Реджи"
+const VIVIENNE: String = "Вивьен"
 const JACK: String = "Джек"
-## Finn starts nagging about rent this many game hours before it is due.
+## Reggie starts nagging about rent this many game hours before it is due.
 const RENT_WARNING_HOURS: float = 12.0
 
 const STAGE_NAMES: Dictionary[Plot.Stage, String] = {
@@ -57,7 +58,16 @@ const ERRORS: Dictionary[String, String] = {
 	CommandResult.CROP_EATEN: "Собирать нечего: вредители съели весь урожай. Грядка свободна.",
 	CommandResult.COURIER_BANNED: "С этим человеком мы больше не работаем. Второй раз — это уже не доверие, а глупость.",
 	CommandResult.LYING_LOW: "Ферма затихла — курьеры сидят дома.",
-	CommandResult.NOTHING_TO_PACK: "Фасовать нечего — сначала собери урожай.",
+	CommandResult.NOTHING_TO_PACK: "Фасовать нечего — сначала собери урожай и привези ящики сюда.",
+	CommandResult.CRATES_ON_FARM: "Ящики ещё на ферме — сначала отвезите их в тайник.",
+	CommandResult.NOTHING_TO_HAUL: "Везти нечего — ящиков на ферме нет.",
+	CommandResult.HAUL_UNDER_WAY: "Одна машина с ящиками уже в пути.",
+	CommandResult.UNKNOWN_PLACE: "Туда не доехать.",
+	CommandResult.ON_THE_ROAD: "Джек уже в дороге.",
+	CommandResult.NOT_AT_HOME: "Спать — только дома.",
+	CommandResult.NOT_AT_FARM: "Ящики на ферме, а Джек — нет.",
+	CommandResult.TOO_EARLY_TO_SLEEP: "Рано спать — день ещё не кончился.",
+	CommandResult.CREW_FULL: "Садовников и так полный комплект — сначала кого-нибудь уволь.",
 	CommandResult.NO_PARCEL: "Посылок нет.",
 	CommandResult.EVICTED: "Лорд Эшкомб расторг аренду. Поле больше не ваше, мистер Кэллоуэй.",
 	CommandResult.UNKNOWN_SKILL: "Такому не учат.",
@@ -199,6 +209,19 @@ static func plot_number(plot_id: int) -> int:
 	return plot_id + 1
 
 
+static func gardener_status(gardener: Gardener) -> String:
+	var name := gardener.definition().display_name
+	if gardener.task == Workers.Task.NONE:
+		return "%s: ждёт работы" % name
+	return "%s: %s, грядка %d" % [name, TASK_VERBS.get(gardener.task, "работает"), plot_number(gardener.task_plot_id)]
+
+
+static func where_is_jack(sim: SimState) -> String:
+	if sim.day.travelling():
+		return "он в дороге (%s)" % Travel.TITLES.get(sim.day.trip_to, "")
+	return "он сейчас: %s" % Travel.NAMES.get(sim.day.place, sim.day.place)
+
+
 static func worker_status(workers: Workers) -> String:
 	var name := workers.definition().display_name
 	if not workers.hired:
@@ -219,6 +242,9 @@ static func objective(sim: SimState, underground: bool = false) -> String:
 		return "Едет проверка. Изобразим скуку: на компьютере выключите свет, придержите курьеров."
 	if _rent_is_short(sim):
 		return "Через %s аренда лорду — %s, а в кассе %s. Продайте товар через компьютер, иначе лорд обидится." % [real_duration(sim.rent.due_in(sim.clock.elapsed_game_seconds), sim), money(sim.rent.amount()), money(sim.economy.money)]
+	var day := DayText.objective(sim)
+	if not day.is_empty():
+		return day
 	if not sim.supplies.parcel().is_empty():
 		return "У контейнера посылка. Сама она вниз не спустится — заберите её."
 	var summons := StoryText.summons(sim, underground)
@@ -259,13 +285,15 @@ static func objective(sim: SimState, underground: bool = false) -> String:
 			return "Погреб пока пустой. Посадите семена на грядках."
 		return "Погреб пока пустой. Спуститесь через контейнер на плантацию и посадите семена."
 	if not sim.workers.hired and sim.economy.money >= sim.workers.definition().daily_wage:
-		return "Двух рук на ферму мало. Наймите работника в телефоне (Tab, «Люди») — он сам займётся грядками."
+		return "Двух рук на ферму мало. Наймите садовника в телефоне (Tab, «Люди») — он сам займётся грядками."
 	return "Терпение. А пока закажите семена и удобрения в телефоне (Tab), обрежьте кусты."
 
 
 static func _selling_objective(sim: SimState) -> String:
+	if not sim.inventory.farm_crates().is_empty() and not sim.stash.on_the_road():
+		return "Урожай в ящиках, а на ферме его не держат. Кликните по ящикам в бункере — отвезу в тайник. Или везите сами на лендровере."
 	if sim.packing.unpacked_count() > 0 and not sim.packing.busy():
-		return "Россыпью приличные люди не продают. Расфасуйте урожай на столе на плантации."
+		return "Россыпью приличные люди не продают. Расфасуйте товар на столе в тайнике."
 	var accepted := sim.orders.with_status(Order.Status.ACCEPTED)
 	for order: Order in accepted:
 		if sim.orders.can_fill(order):
@@ -339,7 +367,7 @@ static func announcement(event: SimEvent, sim: SimState) -> String:
 		EventLog.COURIER_QUIT:
 			return "%s обиделся на обвинение и ушёл. Курьером у нас он больше не работает." % courier_name(String(event.data["courier_id"]), sim)
 		EventLog.PACKING_DONE:
-			return "Расфасовано: %d шт. — на полке склада." % int(event.data["units"])
+			return "Расфасовано: %d шт. — на полке в тайнике." % int(event.data["units"])
 		EventLog.SUPPLY_DELIVERED:
 			return "Посылка у контейнера: %s × %d — заберите." % [item_name(String(event.data["item"]), sim), int(event.data["quantity"])]
 		EventLog.MILESTONE_REACHED:
@@ -382,6 +410,9 @@ static func announcement(event: SimEvent, sim: SimState) -> String:
 			return "Аренду заплатить нечем. Лорд недоволен, по округе пошли разговоры. Пропущено %d из %d." % [int(event.data["missed"]), int(event.data["evict_after"])]
 		EventLog.RENT_EVICTED:
 			return error(CommandResult.EVICTED)
+	var day := DayText.announcement(event, sim)
+	if not day.is_empty():
+		return day
 	return StoryText.announcement(event, sim)
 
 
@@ -397,18 +428,18 @@ static func lord_lines(sim: SimState) -> Array[DialogueLineDef]:
 	if rent.evicted:
 		return [
 			DialogueLineDef.make(LORD, "Мне искренне жаль, мистер Кэллоуэй. Банк, знаете ли, не принимает обещаний. Я тоже больше не могу."),
-			DialogueLineDef.make(FINN, "Поле больше не наше. Предлагаю не задерживаться."),
+			DialogueLineDef.make(REGGIE, "Поле больше не наше. Предлагаю не задерживаться."),
 		]
 	var due := "следующий платёж %s через %s" % [money(rent.amount()), real_duration(rent.due_in(sim.clock.elapsed_game_seconds), sim)]
 	if rent.missed > 0:
 		return [
 			DialogueLineDef.make(LORD, "Мистер Кэллоуэй, платёж так и не пришёл. Я не привык напоминать о деньгах. Это неловко для нас обоих."),
 			DialogueLineDef.make(JACK, "Будет, милорд."),
-			DialogueLineDef.make(FINN, "Пропущено %d из %d — после этого поле уйдёт. Аренда: %s." % [rent.missed, rent.max_missed(), due]),
+			DialogueLineDef.make(REGGIE, "Пропущено %d из %d — после этого поле уйдёт. Аренда: %s." % [rent.missed, rent.max_missed(), due]),
 		]
 	return [
 		DialogueLineDef.make(LORD, "Мистер Кэллоуэй. Дом всё ещё мой — полагаю, вашими стараниями. Что бы вы там ни сеяли."),
-		DialogueLineDef.make(FINN, "Аренда: %s. Лорд ценит пунктуальность больше, чем показывает." % due),
+		DialogueLineDef.make(REGGIE, "Аренда: %s. Лорд ценит пунктуальность больше, чем показывает." % due),
 	]
 
 

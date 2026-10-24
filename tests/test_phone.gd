@@ -180,7 +180,7 @@ func test_badges_count_calls_and_the_waiting_parcel() -> void:
 	assert_gt(_labels(phone, "у двери контейнера").size(), 0, "the stock app says where the parcel is")
 
 
-func test_finn_badge_counts_unread_news_until_the_app_is_opened() -> void:
+func test_reggie_badge_counts_unread_news_until_the_app_is_opened() -> void:
 	var level := await _open()
 	var phone := level.hud.phone
 	phone.open()

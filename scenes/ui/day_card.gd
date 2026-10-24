@@ -80,6 +80,9 @@ func watch(sim: SimState) -> void:
 		_day = day
 		return
 	_day = day
+	# Jack went to bed during that day: the bedtime summary already told it.
+	if sim.day.slept_at >= float(day - 1) * SimClock.GAME_SECONDS_PER_DAY:
+		return
 	show_for(sim, day - 1)
 
 

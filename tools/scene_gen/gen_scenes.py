@@ -13,6 +13,21 @@ PAL = {
     'hay': (0.725, 0.643, 0.416), 'pot_black': (0.149, 0.153, 0.165), 'police_blue': (0.184, 0.365, 0.620),
     'lamp_warm': (0.949, 0.769, 0.420), 'soil': (0.227, 0.173, 0.133), 'light_grey': (0.710, 0.710, 0.690),
     'gravel': (0.549, 0.529, 0.486), 'path_dirt': (0.490, 0.400, 0.314),
+    'plaster': (0.847, 0.812, 0.745),
+    'brick': (0.541, 0.29, 0.227),
+    'brick_dark': (0.416, 0.216, 0.173),
+    'door_green': (0.18, 0.29, 0.243),
+    'tie_burgundy': (0.431, 0.169, 0.2),
+    'wheat': (0.824, 0.745, 0.518),
+    'hair_fair': (0.722, 0.584, 0.369),
+    'shirt_cream': (0.914, 0.886, 0.816),
+    'steel': (0.604, 0.627, 0.651),
+    'steel_dark': (0.298, 0.318, 0.341),
+    'container_green': (0.247, 0.357, 0.29),
+    'window_frame': (0.902, 0.878, 0.824),
+    'skin_2': (0.878, 0.69, 0.549),
+    'charcoal': (0.227, 0.227, 0.239),
+    'tweed_brown': (0.42, 0.337, 0.251),
 }
 
 
@@ -348,6 +363,7 @@ sc.node('Rain', 'GPUParticles3D', 'CameraRig', position=v3(0, 18, 0), amount=250
         process_material=rain_process, draw_pass_1=rain_mesh)
 sc.node('SpawnPoints', 'Node3D', '.')
 for node_name, pos in [('start', (MANOR_X + 3.5, 0, -25)), ('from_elevator', (CONTAINER_X, 0, 7.6)),
+                       ('car_container', (CONTAINER_X + 3.5, 0, 12.0)), ('car_manor', (-40.5, 0, -19.5)),
                        ('road_west', (-ROAD_END, 0, ROAD_Z)), ('road_east', (ROAD_END, 0, ROAD_Z))]:
     sc.node(node_name, 'Marker3D', 'SpawnPoints', position=v3(*pos))
 sc.node('Hud', None, '.', instance=sc.scene('res://scenes/ui/hud.tscn'))
@@ -390,26 +406,18 @@ sc.node('Monitor', 'MeshInstance3D', desk, position=v3(-0.1, 1.15, 0), mesh=moni
 sc.node('Glow', 'MeshInstance3D', desk, position=v3(-0.03, 1.15, 0), mesh=screen, **{'surface_material_override/0': sc.material('police_blue', emission=True)})
 label(sc, desk, 'Компьютер', 2.0)
 sc.node('Approach', 'Marker3D', desk, position=v3(1.5, 0, 0))
-bench = static_box(sc, 'Bench', NR, (-8.9, 0, -3.8), desk_size, layer=2, mesh_mat='timber', script=sc.script('res://scenes/plantation/packing_bench.gd'),
-                   node_paths=['pile', 'progress_label', 'approach'], extra={'pile': 'NodePath("Pile")', 'progress_label': 'NodePath("Label")', 'approach': 'NodePath("Approach")'})
-heap = sc.scene('res://assets/models/plantation/harvest_pile.glb')
-sc.node('Pile', 'Node3D', bench, visible='false', position=v3(0, 0.85, 0))
-for i, (x, z, yaw) in enumerate([(0.05, 0.0, 0), (-0.1, -0.45, 70), (0.1, 0.45, 140)]):
-    sc.node(f'Heap{i}', None, f'{bench}/Pile', instance=heap, **xform(1.0 if i == 0 else 0.8, yaw, (x, 0, z)))
-label(sc, bench, 'Стол фасовки', 2.0)
-sc.node('Approach', 'Marker3D', bench, position=v3(1.5, 0, 0))
-shelf = static_box(sc, 'Shelf', NR, (-8.2, 0, -6.4), (2.0, 2.1, 0.6))
-frame = sc.sub_res('BoxMesh', 'mesh_shelf_frame', size=v3(2.0, 2.1, 0.08))
-plank = sc.sub_res('BoxMesh', 'mesh_shelf_plank', size=v3(1.9, 0.05, 0.45))
-sc.node('Back', 'MeshInstance3D', shelf, position=v3(0, 1.05, -0.25), mesh=frame, **{'surface_material_override/0': sc.material('oak')})
-for i, y in enumerate([0.05, 0.67, 1.29]):
-    sc.node(f'Plank{i}', 'MeshInstance3D', shelf, position=v3(0, y, 0), mesh=plank, **{'surface_material_override/0': sc.material('oak')})
-sc.node('Stock', 'Node3D', shelf, node_paths=['label'], script=sc.script('res://scenes/plantation/stock_shelf.gd'),
-        box_scene=sc.scene('res://assets/models/field/stash_crate.glb'), box_scale=0.55, label='NodePath("Label")')
-label(sc, f'{shelf}/Stock', 'Склад', 2.5)
+# Harvest leaves the farm in crates: the stack waits by the lift for Reggie or Jack to drive it to the stash.
+crates = static_box(sc, 'Crates', NR, (-8.9, 0, -3.8), (1.4, 1.0, 1.8), layer=2, script=sc.script('res://scenes/plantation/crate_stack.gd'),
+                    node_paths=['stack', 'count_label', 'approach'], extra={'stack': 'NodePath("Stack")', 'count_label': 'NodePath("Label")', 'approach': 'NodePath("Approach")'})
+sc.node('Stack', 'Node3D', crates)
+crate_model = sc.scene('res://assets/models/field/stash_crate.glb')
+for i, (x, y, z) in enumerate([(0.0, 0, -0.45), (0.0, 0, 0.45), (0.0, 0.62, 0.0), (0.0, 0, 1.3), (0.0, 0.62, 0.9), (0.0, 0, -1.3)]):
+    sc.node(f'Crate{i}', None, f'{crates}/Stack', instance=crate_model, visible='false', **xform(0.75, 15 * i, (x, y, z)))
+label(sc, crates, 'Ящики', 2.0)
+sc.node('Approach', 'Marker3D', crates, position=v3(1.5, 0, 0))
 sc.node('PlotsGrid', 'Node3D', NR, position=v3(1.5, 0, 0), script=sc.script('res://scenes/plantation/plots_grid.gd'), plot_scene=sc.scene('res://scenes/plantation/plot_view.tscn'))
 sc.node('ElevatorLight', 'OmniLight3D', '.', position=v3(-6.5, 2.6, 0), light_color='Color(0.949, 0.769, 0.42, 1)', light_energy=1.2, omni_range=6.0)
-for node_name, z in [('DeskLight', 4.0), ('BenchLight', -4.8)]:
+for node_name, z in [('DeskLight', 4.0), ('CratesLight', -4.8)]:
     sc.node(node_name, 'OmniLight3D', '.', position=v3(-7.6, 2.6, z), light_color='Color(0.949, 0.769, 0.42, 1)', light_energy=1.0, omni_range=5.0)
 sc.node('Jack', None, '.', instance=sc.scene('res://scenes/actors/jack.tscn'))
 sc.node('Worker', None, '.', instance=sc.scene('res://scenes/actors/worker.tscn'), node_paths=['plots_grid', 'idle_spot', 'arrival_spot'],
@@ -422,4 +430,163 @@ for node_name, pos in [('from_elevator', (-6.2, 0, 0.8)), ('worker_idle', (-6, 0
     sc.node(node_name, 'Marker3D', 'SpawnPoints', position=v3(*pos))
 sc.node('Hud', None, '.', instance=sc.scene('res://scenes/ui/hud.tscn'))
 sc.write('scenes/plantation/plantation.tscn')
+
+# ======================================================================== interiors off the farm
+def room(sc, root_name, place, env_color, ambient, size, wall_mat, floor_mat, camera_bounds):
+    """An interior seen from the iso camera: floor, two back walls and low front curbs, like the bunker."""
+    env = sc.sub_res('Environment', f'env_{place}', background_mode=1, background_color=env_color, ambient_light_source=2,
+                     ambient_light_color=ambient, ambient_light_energy=1.3, tonemap_mode=4, glow_enabled='true', glow_intensity=0.5)
+    navmesh = sc.sub_res('NavigationMesh', f'navmesh_{place}', geometry_parsed_geometry_type=1, agent_radius=0.5, agent_height=1.5, agent_max_climb=0.25,
+                         geometry_collision_mask=3)
+    sc.node(root_name, 'Node3D', node_paths=['nav_region', 'jack', 'camera_rig', 'hud', 'spawn_points'], script=sc.script('res://scenes/common/level.gd'),
+            nav_region='NodePath("NavRegion")', jack='NodePath("Jack")', camera_rig='NodePath("CameraRig")', hud='NodePath("Hud")',
+            spawn_points='NodePath("SpawnPoints")', default_spawn='"from_car"', place=f'"{place}"')
+    sc.node('WorldEnvironment', 'WorldEnvironment', '.', environment=env)
+    sc.node('NavRegion', 'NavigationRegion3D', '.', navigation_mesh=navmesh)
+    w, d = size
+    static_box(sc, 'Floor', NR, (0, -0.5, 0), (w, 1, d), mesh_mat=floor_mat)
+    static_box(sc, 'WallNorth', NR, (0, 1.5, -d / 2 - 0.25), (w + 1, 3, 0.5), mesh_mat=wall_mat)
+    static_box(sc, 'WallWest', NR, (-w / 2 - 0.25, 1.5, 0), (0.5, 3, d), mesh_mat=wall_mat)
+    static_box(sc, 'CurbSouth', NR, (0, 0.25, d / 2 + 0.25), (w + 1, 0.5, 0.5), mesh_mat=wall_mat)
+    sc.node('Jack', None, '.', instance=sc.scene('res://scenes/actors/jack.tscn'))
+    sc.node('CameraRig', 'Node3D', '.', node_paths=['camera'], rotation=v3(0, 0.785398, 0), script=sc.script('res://scenes/common/iso_camera_rig.gd'),
+            camera='NodePath("Camera")', distance=26.0, zoom_min=12.0, zoom_max=44.0, bounds=camera_bounds)
+    sc.node('Camera', 'Camera3D', 'CameraRig')
+    sc.node('SpawnPoints', 'Node3D', '.')
+
+
+def furniture(sc, name, parent, pos, size, mat):
+    """A solid primitive the navmesh walks around."""
+    return static_box(sc, name, parent, pos, size, mesh_mat=mat)
+
+
+def deco(sc, name, parent, pos, size, mat, emission=False):
+    mesh = sc.sub_res('BoxMesh', f'mesh_{parent.replace("/", "_")}_{name}', size=v3(*size))
+    sc.node(name, 'MeshInstance3D', parent, position=v3(*pos), mesh=mesh, **{'surface_material_override/0': sc.material(mat, emission=emission)})
+
+
+def travel_car(sc, pos):
+    """The Land Rover at the door: Reggie drives Jack to the farm or the other place in the village."""
+    car = static_box(sc, 'Car', NR, pos, (2.0, 2.0, 4.4), layer=2, script=sc.script('res://scenes/common/travel_car.gd'), node_paths=['approach'],
+                     extra={'approach': 'NodePath("Approach")'})
+    sc.node('Model', None, car, instance=sc.scene('res://assets/models/field/land_rover.glb'))
+    label(sc, car, 'Лендровер', 2.6, size=34)
+    sc.node('Approach', 'Marker3D', car, position=v3(-1.9, 0, 0.4))
+
+
+def yard(sc, name, mat):
+    """The strip outside the door where the car stands; the east side of the room is open to it."""
+    ground = sc.sub_res('BoxMesh', f'mesh_{name}', size=v3(6.0, 0.02, 12.0))
+    sc.node(name, 'MeshInstance3D', '.', position=v3(11.0, -0.02, 0.0), mesh=ground, **{'surface_material_override/0': sc.material(mat)})
+    static_box(sc, f'{name}Ground', NR, (11.0, -0.5, 0.0), (6.0, 1, 12.0))
+    static_box(sc, 'WallEastNorth', NR, (8.25, 0.25, -3.5), (0.5, 0.5, 5.0), mesh_mat='timber')
+    static_box(sc, 'WallEastSouth', NR, (8.25, 0.25, 4.0), (0.5, 0.5, 4.0), mesh_mat='timber')
+
+
+# ------------------------------------------------------------------ Jack and Vivienne's house
+# A country house kitchen-cum-bedroom: the bed in the far corner, the hearth on the west wall, the car outside the door.
+sc = Scene()
+room(sc, 'Home', 'home', 'Color(0.09, 0.08, 0.08, 1)', 'Color(0.43, 0.37, 0.31, 1)', (16, 12), 'plaster', 'oak', 'Rect2(-8, -6, 22, 12)')
+bed = static_box(sc, 'Bed', NR, (-5.5, 0, -4.2), (2.4, 0.8, 3.0), layer=2, script=sc.script('res://scenes/home/bed.gd'), node_paths=['approach'],
+                 extra={'approach': 'NodePath("Approach")'})
+deco(sc, 'Frame', bed, (0, 0.25, 0), (2.4, 0.5, 3.0), 'timber')
+deco(sc, 'Mattress', bed, (0, 0.62, 0.1), (2.2, 0.26, 2.6), 'shirt_cream')
+deco(sc, 'Blanket', bed, (0, 0.77, 0.5), (2.26, 0.06, 1.7), 'tie_burgundy')
+deco(sc, 'Pillow', bed, (0, 0.82, -1.0), (1.6, 0.16, 0.5), 'window_frame')
+deco(sc, 'Headboard', bed, (0, 0.75, -1.45), (2.4, 1.5, 0.12), 'timber')
+label(sc, bed, 'Кровать', 1.9)
+sc.node('Approach', 'Marker3D', bed, position=v3(1.9, 0, 0.6))
+furniture(sc, 'Nightstand', NR, (-3.6, 0, -5.3), (0.6, 0.6, 0.6), 'oak')
+sc.node('BedsideLamp', 'OmniLight3D', '.', position=v3(-3.6, 1.2, -5.3), light_color='Color(0.949, 0.769, 0.42, 1)', light_energy=0.8, omni_range=4.0)
+hearth = furniture(sc, 'Hearth', NR, (-7.6, 0, 1.0), (0.8, 1.6, 2.4), 'brick')
+deco(sc, 'Fire', hearth, (0.35, 0.45, 0), (0.12, 0.5, 1.2), 'lamp_warm', emission=True)
+deco(sc, 'Mantel', hearth, (0.1, 1.65, 0), (1.0, 0.12, 2.8), 'oak')
+sc.node('FireLight', 'OmniLight3D', '.', position=v3(-6.6, 1.0, 1.0), light_color='Color(0.949, 0.6, 0.3, 1)', light_energy=1.6, omni_range=6.0)
+table = furniture(sc, 'Table', NR, (0.5, 0, 0.5), (2.6, 0.8, 1.4), 'oak')
+deco(sc, 'Teapot', table, (0.3, 0.9, 0.1), (0.25, 0.22, 0.25), 'window_frame')
+deco(sc, 'Papers', table, (-0.6, 0.82, -0.2), (0.5, 0.03, 0.35), 'shirt_cream')
+for i, (x, z) in enumerate([(0.5, -0.8), (0.5, 1.8), (-1.6, 0.5)]):
+    furniture(sc, f'Chair{i}', NR, (x, 0, z), (0.6, 0.5, 0.6), 'timber')
+furniture(sc, 'Dresser', NR, (3.5, 0, -5.4), (2.6, 1.4, 0.7), 'oak')
+furniture(sc, 'Sofa', NR, (-3.8, 0, 3.6), (2.6, 0.7, 1.0), 'door_green')
+rug = sc.sub_res('BoxMesh', 'mesh_rug', size=v3(4.0, 0.02, 2.8))
+sc.node('Rug', 'MeshInstance3D', NR, position=v3(-4.6, 0.012, 1.2), mesh=rug, **{'surface_material_override/0': sc.material('tie_burgundy')})
+for i, x in enumerate([-1.5, 3.0]):
+    deco(sc, f'Window{i}', 'NavRegion/WallNorth', (x, 0.3, 0.27), (1.6, 1.1, 0.04), 'lamp_warm', emission=True)
+# Vivienne: a burgundy coat and fair hair, as STYLE.md wants her read from afar.
+viv = f'{NR}/Vivienne'
+sc.node('Vivienne', 'StaticBody3D', NR, node_paths=['approach'], position=v3(2.6, 0, -2.6), collision_layer=2, collision_mask=0,
+        script=sc.script('res://scenes/home/vivienne.gd'), approach='NodePath("Approach")')
+sc.node('Shape', 'CollisionShape3D', viv, position=v3(0, 0.9, 0), shape=sc.sub_res('CapsuleShape3D', 'shape_vivienne', radius=0.35, height=1.8))
+coat = sc.sub_res('CapsuleMesh', 'mesh_viv_coat', radius=0.3, height=1.5)
+sc.node('Coat', 'MeshInstance3D', viv, position=v3(0, 0.75, 0), mesh=coat, **{'surface_material_override/0': sc.material('tie_burgundy')})
+head = sc.sub_res('SphereMesh', 'mesh_viv_head', radius=0.18, height=0.36)
+sc.node('Head', 'MeshInstance3D', viv, position=v3(0, 1.65, 0), mesh=head, **{'surface_material_override/0': sc.material('skin_2')})
+hair = sc.sub_res('SphereMesh', 'mesh_viv_hair', radius=0.2, height=0.3)
+sc.node('Hair', 'MeshInstance3D', viv, position=v3(0, 1.74, -0.04), mesh=hair, **{'surface_material_override/0': sc.material('hair_fair')})
+label(sc, viv, 'Вивьен', 2.3, color='Color(0.96, 0.84, 0.45, 1)')
+sc.node('Approach', 'Marker3D', viv, position=v3(0, 0, 1.4))
+yard(sc, 'Drive', 'gravel')
+travel_car(sc, (11.0, 0, 1.0))
+sc.node('CeilingLight', 'OmniLight3D', '.', position=v3(1.0, 3.2, 0.0), light_color='Color(0.949, 0.769, 0.42, 1)', light_energy=1.1, omni_range=11.0)
+sc.node('PorchLight', 'OmniLight3D', '.', position=v3(9.5, 2.6, 1.0), light_color='Color(0.949, 0.769, 0.42, 1)', light_energy=1.0, omni_range=6.0)
+for node_name, pos in [('from_car', (7.0, 0, 0.6)), ('bed', (-3.6, 0, -3.6))]:
+    sc.node(node_name, 'Marker3D', 'SpawnPoints', position=v3(*pos))
+sc.node('Hud', None, '.', instance=sc.scene('res://scenes/ui/hud.tscn'))
+sc.write('scenes/home/home.tscn')
+
+
+# ------------------------------------------------------------------ the stash: the back room of the village bakery
+# Flour sacks drown the smell; the bench and the shelf moved here from the bunker; the back door opens on the yard.
+sc = Scene()
+room(sc, 'Stash', 'stash', 'Color(0.08, 0.07, 0.06, 1)', 'Color(0.36, 0.32, 0.27, 1)', (16, 12), 'brick', 'concrete', 'Rect2(-8, -6, 22, 12)')
+desk_size = (1.2, 0.85, 1.6)
+bench = static_box(sc, 'Bench', NR, (-7.0, 0, -2.4), desk_size, layer=2, mesh_mat='timber', script=sc.script('res://scenes/plantation/packing_bench.gd'),
+                   node_paths=['pile', 'progress_label', 'approach'], extra={'pile': 'NodePath("Pile")', 'progress_label': 'NodePath("Label")', 'approach': 'NodePath("Approach")'})
+heap = sc.scene('res://assets/models/plantation/harvest_pile.glb')
+sc.node('Pile', 'Node3D', bench, visible='false', position=v3(0, 0.85, 0))
+for i, (x, z, yaw) in enumerate([(0.05, 0.0, 0), (-0.1, -0.45, 70), (0.1, 0.45, 140)]):
+    sc.node(f'Heap{i}', None, f'{bench}/Pile', instance=heap, **xform(1.0 if i == 0 else 0.8, yaw, (x, 0, z)))
+label(sc, bench, 'Стол фасовки', 2.0)
+sc.node('Approach', 'Marker3D', bench, position=v3(1.5, 0, 0))
+shelf = static_box(sc, 'Shelf', NR, (-5.0, 0, -5.4), (2.0, 2.1, 0.6))
+frame = sc.sub_res('BoxMesh', 'mesh_shelf_frame', size=v3(2.0, 2.1, 0.08))
+plank = sc.sub_res('BoxMesh', 'mesh_shelf_plank', size=v3(1.9, 0.05, 0.45))
+sc.node('Back', 'MeshInstance3D', shelf, position=v3(0, 1.05, -0.25), mesh=frame, **{'surface_material_override/0': sc.material('oak')})
+for i, y in enumerate([0.05, 0.67, 1.29]):
+    sc.node(f'Plank{i}', 'MeshInstance3D', shelf, position=v3(0, y, 0), mesh=plank, **{'surface_material_override/0': sc.material('oak')})
+sc.node('Stock', 'Node3D', shelf, node_paths=['label'], script=sc.script('res://scenes/plantation/stock_shelf.gd'),
+        box_scene=sc.scene('res://assets/models/field/stash_crate.glb'), box_scale=0.55, label='NodePath("Label")')
+label(sc, f'{shelf}/Stock', 'Склад', 2.5)
+desk = static_box(sc, 'Computer', NR, (-7.0, 0, 2.6), desk_size, layer=2, mesh_mat='oak', script=sc.script('res://scenes/plantation/computer_desk.gd'),
+                  node_paths=['screen_glow', 'approach'], extra={'screen_glow': 'NodePath("Glow")', 'approach': 'NodePath("Approach")'})
+monitor = sc.sub_res('BoxMesh', 'mesh_monitor', size=v3(0.12, 0.55, 0.8))
+screen = sc.sub_res('BoxMesh', 'mesh_screen', size=v3(0.02, 0.45, 0.7))
+sc.node('Monitor', 'MeshInstance3D', desk, position=v3(-0.1, 1.15, 0), mesh=monitor, **{'surface_material_override/0': sc.material('pot_black')})
+sc.node('Glow', 'MeshInstance3D', desk, position=v3(-0.03, 1.15, 0), mesh=screen, **{'surface_material_override/0': sc.material('police_blue', emission=True)})
+label(sc, desk, 'Компьютер', 2.0)
+sc.node('Approach', 'Marker3D', desk, position=v3(1.5, 0, 0))
+# The bakery side: flour sacks, bread racks and the oven's back wall.
+for i, (x, z) in enumerate([(1.0, -5.3), (1.9, -5.3), (2.8, -5.3), (1.4, -4.5), (2.4, -4.5)]):
+    furniture(sc, f'Sack{i}', NR, (x, 0, z), (0.8, 0.7, 0.6), 'plaster' if i % 2 == 0 else 'wheat')
+oven = furniture(sc, 'Oven', NR, (5.6, 0, -5.2), (3.0, 2.2, 1.2), 'brick_dark')
+deco(sc, 'OvenDoor', oven, (0, 0.9, 0.62), (1.2, 0.7, 0.05), 'lamp_warm', emission=True)
+for i, x in enumerate([2.2, 4.2]):
+    rack = furniture(sc, f'Rack{i}', NR, (x, 0, 3.4), (1.4, 1.8, 0.6), 'steel_dark')
+    for j, y in enumerate([0.5, 1.0, 1.5]):
+        deco(sc, f'Loaves{j}', rack, (0, y, 0), (1.2, 0.14, 0.45), 'hay')
+furniture(sc, 'FlourBin', NR, (-2.0, 0, -5.3), (1.0, 1.0, 0.8), 'steel')
+yard(sc, 'Yard', 'concrete_dark')
+travel_car(sc, (11.0, 0, 1.0))
+sc.node('Packer', None, '.', instance=sc.scene('res://scenes/actors/worker.tscn'), node_paths=['idle_spot', 'arrival_spot'],
+        idle_spot='NodePath("../SpawnPoints/packer_idle")', arrival_spot='NodePath("../SpawnPoints/from_car")', role='"packer"')
+for node_name, z in [('BenchLight', -2.4), ('DeskLight', 2.6)]:
+    sc.node(node_name, 'OmniLight3D', '.', position=v3(-5.8, 2.6, z), light_color='Color(0.949, 0.769, 0.42, 1)', light_energy=1.2, omni_range=6.0)
+sc.node('OvenLight', 'OmniLight3D', '.', position=v3(5.6, 1.2, -4.0), light_color='Color(0.949, 0.6, 0.3, 1)', light_energy=1.0, omni_range=5.0)
+sc.node('CeilingLight', 'OmniLight3D', '.', position=v3(0.5, 3.2, 0.0), light_color='Color(0.949, 0.769, 0.42, 1)', light_energy=0.9, omni_range=11.0)
+sc.node('YardLight', 'OmniLight3D', '.', position=v3(9.5, 2.6, 1.0), light_color='Color(0.949, 0.769, 0.42, 1)', light_energy=0.8, omni_range=6.0)
+for node_name, pos in [('from_car', (7.0, 0, 0.6)), ('packer_idle', (-5.0, 0, -1.0))]:
+    sc.node(node_name, 'Marker3D', 'SpawnPoints', position=v3(*pos))
+sc.node('Hud', None, '.', instance=sc.scene('res://scenes/ui/hud.tscn'))
+sc.write('scenes/stash/stash.tscn')
 print('ok')

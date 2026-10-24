@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="StashDef" format=3]
+
+[ext_resource type="Script" path="res://content/defs/stash_def.gd" id="1_stash"]
+
+[resource]
+script = ExtResource("1_stash")
+haul_hours = 0.5
+base_risk = 0.04
+suspicion_risk_factor = 0.03
+jack_risk_factor = 1.0
+per_haul_suspicion = 1.0
+stopped_suspicion = 10.0

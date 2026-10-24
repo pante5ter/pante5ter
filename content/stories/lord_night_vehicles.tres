@@ -16,7 +16,7 @@ text = "Мистер Кэллоуэй, простите, что зазвал в�
 
 [sub_resource type="Resource" id="Line_3"]
 script = ExtResource("3_line")
-speaker = "Финн"
+speaker = "Реджи"
 text = "Ответ подберите аккуратно. Лорд не хочет знать правду — он хочет повод её не знать."
 
 [sub_resource type="Resource" id="Line_4"]
@@ -31,7 +31,7 @@ text = "Браконьеры… на фургонах? По расписанию
 
 [sub_resource type="Resource" id="Line_6"]
 script = ExtResource("3_line")
-speaker = "Финн"
+speaker = "Реджи"
 text = "Поверил на две трети. Оставшаяся треть пойдёт гулять по деревне."
 
 [sub_resource type="Resource" id="Choice_1"]
@@ -53,7 +53,7 @@ text = "Органика. Как современно. Леди Эшкомб о�
 
 [sub_resource type="Resource" id="Line_8"]
 script = ExtResource("3_line")
-speaker = "Финн"
+speaker = "Реджи"
 text = "Изящно. Немного навозно, но изящно."
 
 [sub_resource type="Resource" id="Choice_2"]

@@ -21,6 +21,8 @@ func _config() -> BalanceConfig:
 	config.suspicion = _balance.suspicion.duplicate() as SuspicionDef
 	config.suspicion.inspection_threshold = 1000.0
 	config.director = null
+	config.stash = _balance.stash.duplicate() as StashDef
+	config.stash.base_risk = 0.0
 	return config
 
 
@@ -65,9 +67,9 @@ func test_content_wires_the_script() -> void:
 	assert_almost_eq(def.call_after_real_seconds, 60.0, 15.0, "the first call comes about a minute after planting")
 	assert_lt(def.lord_hour, 24.0, "the lord calls on the first evening")
 	assert_gt(def.trouble_hour, 24.0, "trouble waits for day two")
-	for line: String in [def.plant_field_line, def.plant_bunker_line, def.call_line, def.answer_line, def.harvest_line, def.pack_line, def.send_line, def.paid_line, def.evening_line, def.morning_line, def.trouble_line]:
-		assert_false(line.is_empty(), "every step has a line for Finn")
-	assert_false(def.plant_bunker_line.contains("контейнер"), "in the bunker Finn does not send Jack down the container")
+	for line: String in [def.plant_field_line, def.plant_bunker_line, def.call_line, def.answer_line, def.harvest_line, def.haul_line, def.pack_line, def.send_line, def.paid_line, def.evening_line, def.morning_line, def.trouble_line]:
+		assert_false(line.is_empty(), "every step has a line for Reggie")
+	assert_false(def.plant_bunker_line.contains("контейнер"), "in the bunker Reggie does not send Jack down the container")
 
 
 func test_regular_callers_wait_for_the_scripted_call() -> void:
@@ -100,9 +102,12 @@ func test_full_first_day_walks_through_every_step() -> void:
 	assert_eq(_step(state), FirstDay.Step.HARVEST)
 	_tend_until(state, 0, Plot.Stage.READY, 8.0)
 	assert_true(state.apply(HarvestCommand.new(0)).ok)
+	assert_eq(_step(state), FirstDay.Step.HAUL)
+	assert_true(state.apply(HaulCommand.new(Helper.ACTOR)).ok)
+	_advance(state, state.config.stash.haul_hours + STEP_HOURS)
 	assert_eq(_step(state), FirstDay.Step.PACK)
 	assert_true(state.apply(PackCommand.new()).ok)
-	_advance(state, 0.5)
+	_advance(state, 0.75)
 	assert_eq(_step(state), FirstDay.Step.SEND)
 	assert_true(state.apply(DispatchCommand.new(order.id, Helper.ACTOR)).ok)
 	assert_eq(_step(state), FirstDay.Step.PAID)

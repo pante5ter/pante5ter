@@ -26,6 +26,19 @@ func take(product_id: int) -> Product:
 	return product
 
 
+## A crate back from the road keeps its id.
+func put(product: Product) -> void:
+	_products.append(product)
+
+
+func farm_crates() -> Array[Product]:
+	return _products.filter(func(product: Product) -> bool: return product.on_farm())
+
+
+func at_stash() -> Array[Product]:
+	return _products.filter(func(product: Product) -> bool: return not product.on_farm())
+
+
 func count() -> int:
 	return _products.size()
 

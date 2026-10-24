@@ -6,9 +6,9 @@ extends Resource
 @export var display_name: String = ""
 ## When he is one of Jack's hired couriers, a proven rat loses the job.
 @export var courier_id: String = ""
-## Finn's finding that clears him when he is innocent.
+## Reggie's finding that clears him when he is innocent.
 @export_multiline var alibi_clue: String = ""
-## Finn's findings against him when he is the rat.
+## Reggie's findings against him when he is the rat.
 @export var guilty_clues: PackedStringArray = PackedStringArray()
 @export var accuse_label: String = ""
 @export var guilty_reply: Array[DialogueLineDef] = []

@@ -27,11 +27,17 @@ static func helper_status(sim: SimState) -> String:
 				if order.courier_id == Helper.ACTOR:
 					return "%s везёт заказ #%d — вернётся через %s" % [name, order.id, left]
 			return "%s возвращается с доставки — будет через %s" % [name, left]
+		Helper.AWAY_HAUL:
+			if sim.stash.on_the_road() and sim.stash.driver == Helper.ACTOR:
+				return "%s везёт ящики в тайник — вернётся через %s" % [name, left]
+			if sim.packing.busy():
+				return "%s фасует ящики в тайнике — вернётся через %s" % [name, left]
+			return "%s возвращается из тайника — будет через %s" % [name, left]
 		Helper.AWAY_TRAINING:
 			var skill := sim.config.find_skill(helper.training_skill_id)
 			return "%s на курсах «%s» — вернётся через %s" % [name, skill.display_name if skill != null else "?", left]
 	if helper.task == Workers.Task.NONE:
-		return "%s: присматривает за фермой" % name
+		return "%s: на подхвате — возит, решает проблемы" % name
 	if helper.task_plot_id < 0:
 		return "%s: %s" % [name, UiText.TASK_VERBS.get(helper.task, "работает")]
 	return "%s: %s, грядка %d" % [name, UiText.TASK_VERBS.get(helper.task, "работает"), UiText.plot_number(helper.task_plot_id)]

@@ -149,7 +149,7 @@ func test_a_thief_is_never_hired_again() -> void:
 	assert_eq(state.apply(HireCourierCommand.new("pete")).error, CommandResult.COURIER_BANNED)
 
 
-func test_finn_calls_about_the_thief_and_jack_decides() -> void:
+func test_reggie_calls_about_the_thief_and_jack_decides() -> void:
 	var state := SimState.new(_config(1.0), 3)
 	assert_true(state.apply(HireCourierCommand.new("pete")).ok)
 	_send_pete(state)
@@ -157,7 +157,7 @@ func test_finn_calls_about_the_thief_and_jack_decides() -> void:
 	assert_eq(state.stories.pending_id, _theft_story_id())
 	var story := state.stories.pending()
 	assert_eq(story.choices.size(), 2, "have a word, or let it go")
-	assert_gt(story.choices[CourierThefts.HAVE_A_WORD].cost(), 0, "Finn's word costs money")
+	assert_gt(story.choices[CourierThefts.HAVE_A_WORD].cost(), 0, "Reggie's word costs money")
 	assert_gt(story.choices[CourierThefts.LET_GO].suspicion, 0.0, "a thief left alone talks")
 	for line: DialogueLineDef in story.lines:
 		assert_false(line.text.contains("%s"), "the thief's name is filled in")
@@ -181,7 +181,7 @@ func test_letting_a_thief_go_raises_suspicion_and_having_a_word_does_not() -> vo
 			assert_gt(state.suspicion.level, suspicion)
 
 
-func test_finn_waits_for_the_story_on_screen() -> void:
+func test_reggie_waits_for_the_story_on_screen() -> void:
 	var state := SimState.new(_config(1.0), 3)
 	assert_true(state.apply(HireCourierCommand.new("pete")).ok)
 	_send_pete(state)

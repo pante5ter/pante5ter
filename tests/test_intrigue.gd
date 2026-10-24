@@ -67,7 +67,7 @@ func test_the_first_raid_opens_the_question() -> void:
 	assert_eq(state.intrigue.phase, Intrigue.Phase.WAITING)
 	_raid(state)
 	assert_eq(state.intrigue.phase, Intrigue.Phase.OPENING)
-	assert_eq(state.stories.pending_id, _opening_id(state), "Finn shows the dropped phone")
+	assert_eq(state.stories.pending_id, _opening_id(state), "Reggie shows the dropped phone")
 	assert_not_null(state.intrigue.rat_suspect())
 	assert_eq(state.event_log.of_type(EventLog.INTRIGUE_STARTED).size(), 1)
 

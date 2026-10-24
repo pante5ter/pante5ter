@@ -65,7 +65,7 @@ static func _add_item(box: VBoxContainer, title: String, effect: String, item: S
 		PhoneKit.secondary("Купить 5", phone.buy.bind(item, 5), sim.economy.money >= price * 5),
 		PhoneKit.secondary(("Авто: %d" % keep) if keep > 0 else "Авто: выкл", phone.set_auto_reorder.bind(item, next_auto_step(keep))),
 	]
-	buttons[2].tooltip_text = "Финн сам докупает, чтобы на складе было столько штук"
+	buttons[2].tooltip_text = "Реджи сам докупает, чтобы на складе было столько штук"
 	PhoneKit.row(card, buttons)
 
 

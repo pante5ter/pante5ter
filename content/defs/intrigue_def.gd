@@ -14,7 +14,7 @@ const RETALIATE: int = 2
 @export_group("Accusation")
 @export var accuse_lines: Array[DialogueLineDef] = []
 ## Speaker of the clue recap lines.
-@export var finn_speaker: String = "Финн"
+@export var crew_speaker: String = "Реджи"
 ## The gang's boss names the rat; %s is the name.
 @export var boss_speaker: String = "Гаффер"
 @export var boss_name_line: String = ""

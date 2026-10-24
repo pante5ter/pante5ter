@@ -7,16 +7,14 @@
 [ext_resource type="Script" path="res://scenes/common/elevator.gd" id="5_elevator"]
 [ext_resource type="PackedScene" path="res://assets/models/plantation/lift_cage.glb" id="6_lift_cage"]
 [ext_resource type="Script" path="res://scenes/plantation/computer_desk.gd" id="7_computer_desk"]
-[ext_resource type="Script" path="res://scenes/plantation/packing_bench.gd" id="8_packing_bench"]
-[ext_resource type="PackedScene" path="res://assets/models/plantation/harvest_pile.glb" id="9_harvest_pile"]
-[ext_resource type="Script" path="res://scenes/plantation/stock_shelf.gd" id="10_stock_shelf"]
-[ext_resource type="PackedScene" path="res://assets/models/field/stash_crate.glb" id="11_stash_crate"]
-[ext_resource type="Script" path="res://scenes/plantation/plots_grid.gd" id="12_plots_grid"]
-[ext_resource type="PackedScene" path="res://scenes/plantation/plot_view.tscn" id="13_plot_view"]
-[ext_resource type="PackedScene" path="res://scenes/actors/jack.tscn" id="14_jack"]
-[ext_resource type="PackedScene" path="res://scenes/actors/worker.tscn" id="15_worker"]
-[ext_resource type="Script" path="res://scenes/common/iso_camera_rig.gd" id="16_iso_camera_rig"]
-[ext_resource type="PackedScene" path="res://scenes/ui/hud.tscn" id="17_hud"]
+[ext_resource type="Script" path="res://scenes/plantation/crate_stack.gd" id="8_crate_stack"]
+[ext_resource type="PackedScene" path="res://assets/models/field/stash_crate.glb" id="9_stash_crate"]
+[ext_resource type="Script" path="res://scenes/plantation/plots_grid.gd" id="10_plots_grid"]
+[ext_resource type="PackedScene" path="res://scenes/plantation/plot_view.tscn" id="11_plot_view"]
+[ext_resource type="PackedScene" path="res://scenes/actors/jack.tscn" id="12_jack"]
+[ext_resource type="PackedScene" path="res://scenes/actors/worker.tscn" id="13_worker"]
+[ext_resource type="Script" path="res://scenes/common/iso_camera_rig.gd" id="14_iso_camera_rig"]
+[ext_resource type="PackedScene" path="res://scenes/ui/hud.tscn" id="15_hud"]
 
 [sub_resource type="Environment" id="env_bunker"]
 background_mode = 1
@@ -101,40 +99,8 @@ emission_enabled = true
 emission = Color(0.184, 0.365, 0.62, 1)
 emission_energy_multiplier = 2.0
 
-[sub_resource type="BoxShape3D" id="shape_Bench"]
-size = Vector3(1.2, 0.85, 1.6)
-
-[sub_resource type="BoxMesh" id="mesh_Bench"]
-size = Vector3(1.2, 0.85, 1.6)
-
-[sub_resource type="StandardMaterial3D" id="mat_timber"]
-albedo_color = Color(0.29, 0.227, 0.173, 1)
-roughness = 0.9
-
-[sub_resource type="BoxShape3D" id="shape_Shelf"]
-size = Vector3(2.0, 2.1, 0.6)
-
-[sub_resource type="BoxMesh" id="mesh_shelf_frame"]
-size = Vector3(2.0, 2.1, 0.08)
-
-[sub_resource type="BoxMesh" id="mesh_shelf_plank"]
-size = Vector3(1.9, 0.05, 0.45)
-
-[sub_resource type="StandardMaterial3D" id="mat_oak"]
-albedo_color = Color(0.478, 0.353, 0.227, 1)
-roughness = 0.9
-
-[sub_resource type="StandardMaterial3D" id="mat_oak"]
-albedo_color = Color(0.478, 0.353, 0.227, 1)
-roughness = 0.9
-
-[sub_resource type="StandardMaterial3D" id="mat_oak"]
-albedo_color = Color(0.478, 0.353, 0.227, 1)
-roughness = 0.9
-
-[sub_resource type="StandardMaterial3D" id="mat_oak"]
-albedo_color = Color(0.478, 0.353, 0.227, 1)
-roughness = 0.9
+[sub_resource type="BoxShape3D" id="shape_Crates"]
+size = Vector3(1.4, 1.0, 1.8)
 
 [node name="Plantation" type="Node3D" node_paths=PackedStringArray("nav_region", "jack", "camera_rig", "hud", "spawn_points")]
 script = ExtResource("1_level")
@@ -308,101 +274,72 @@ outline_size = 10
 [node name="Approach" type="Marker3D" parent="NavRegion/Computer"]
 position = Vector3(1.5, 0, 0)
 
-[node name="Bench" type="StaticBody3D" parent="NavRegion" node_paths=PackedStringArray("pile", "progress_label", "approach")]
+[node name="Crates" type="StaticBody3D" parent="NavRegion" node_paths=PackedStringArray("stack", "count_label", "approach")]
 position = Vector3(-8.9, 0, -3.8)
 collision_layer = 2
 collision_mask = 0
-script = ExtResource("8_packing_bench")
-pile = NodePath("Pile")
-progress_label = NodePath("Label")
+script = ExtResource("8_crate_stack")
+stack = NodePath("Stack")
+count_label = NodePath("Label")
 approach = NodePath("Approach")
 
-[node name="Shape" type="CollisionShape3D" parent="NavRegion/Bench"]
-position = Vector3(0, 0.425, 0)
-shape = SubResource("shape_Bench")
+[node name="Shape" type="CollisionShape3D" parent="NavRegion/Crates"]
+position = Vector3(0, 0.5, 0)
+shape = SubResource("shape_Crates")
 
-[node name="Mesh" type="MeshInstance3D" parent="NavRegion/Bench"]
-position = Vector3(0, 0.425, 0)
-mesh = SubResource("mesh_Bench")
-surface_material_override/0 = SubResource("mat_timber")
+[node name="Stack" type="Node3D" parent="NavRegion/Crates"]
 
-[node name="Pile" type="Node3D" parent="NavRegion/Bench"]
+[node name="Crate0" parent="NavRegion/Crates/Stack" instance=ExtResource("9_stash_crate")]
 visible = false
-position = Vector3(0, 0.85, 0)
+position = Vector3(0.0, 0, -0.45)
+scale = Vector3(0.75, 0.75, 0.75)
 
-[node name="Heap0" parent="NavRegion/Bench/Pile" instance=ExtResource("9_harvest_pile")]
-position = Vector3(0.05, 0, 0.0)
+[node name="Crate1" parent="NavRegion/Crates/Stack" instance=ExtResource("9_stash_crate")]
+visible = false
+position = Vector3(0.0, 0, 0.45)
+rotation = Vector3(0, 0.261799, 0)
+scale = Vector3(0.75, 0.75, 0.75)
 
-[node name="Heap1" parent="NavRegion/Bench/Pile" instance=ExtResource("9_harvest_pile")]
-position = Vector3(-0.1, 0, -0.45)
-rotation = Vector3(0, 1.22173, 0)
-scale = Vector3(0.8, 0.8, 0.8)
+[node name="Crate2" parent="NavRegion/Crates/Stack" instance=ExtResource("9_stash_crate")]
+visible = false
+position = Vector3(0.0, 0.62, 0.0)
+rotation = Vector3(0, 0.523599, 0)
+scale = Vector3(0.75, 0.75, 0.75)
 
-[node name="Heap2" parent="NavRegion/Bench/Pile" instance=ExtResource("9_harvest_pile")]
-position = Vector3(0.1, 0, 0.45)
-rotation = Vector3(0, 2.443461, 0)
-scale = Vector3(0.8, 0.8, 0.8)
+[node name="Crate3" parent="NavRegion/Crates/Stack" instance=ExtResource("9_stash_crate")]
+visible = false
+position = Vector3(0.0, 0, 1.3)
+rotation = Vector3(0, 0.785398, 0)
+scale = Vector3(0.75, 0.75, 0.75)
 
-[node name="Label" type="Label3D" parent="NavRegion/Bench"]
+[node name="Crate4" parent="NavRegion/Crates/Stack" instance=ExtResource("9_stash_crate")]
+visible = false
+position = Vector3(0.0, 0.62, 0.9)
+rotation = Vector3(0, 1.047198, 0)
+scale = Vector3(0.75, 0.75, 0.75)
+
+[node name="Crate5" parent="NavRegion/Crates/Stack" instance=ExtResource("9_stash_crate")]
+visible = false
+position = Vector3(0.0, 0, -1.3)
+rotation = Vector3(0, 1.308997, 0)
+scale = Vector3(0.75, 0.75, 0.75)
+
+[node name="Label" type="Label3D" parent="NavRegion/Crates"]
 position = Vector3(0, 2.0, 0)
 pixel_size = 0.008
 billboard = 1
 no_depth_test = true
-text = "Стол фасовки"
+text = "Ящики"
 font_size = 36
 outline_size = 10
 
-[node name="Approach" type="Marker3D" parent="NavRegion/Bench"]
+[node name="Approach" type="Marker3D" parent="NavRegion/Crates"]
 position = Vector3(1.5, 0, 0)
-
-[node name="Shelf" type="StaticBody3D" parent="NavRegion"]
-position = Vector3(-8.2, 0, -6.4)
-collision_layer = 1
-collision_mask = 0
-
-[node name="Shape" type="CollisionShape3D" parent="NavRegion/Shelf"]
-position = Vector3(0, 1.05, 0)
-shape = SubResource("shape_Shelf")
-
-[node name="Back" type="MeshInstance3D" parent="NavRegion/Shelf"]
-position = Vector3(0, 1.05, -0.25)
-mesh = SubResource("mesh_shelf_frame")
-surface_material_override/0 = SubResource("mat_oak")
-
-[node name="Plank0" type="MeshInstance3D" parent="NavRegion/Shelf"]
-position = Vector3(0, 0.05, 0)
-mesh = SubResource("mesh_shelf_plank")
-surface_material_override/0 = SubResource("mat_oak")
-
-[node name="Plank1" type="MeshInstance3D" parent="NavRegion/Shelf"]
-position = Vector3(0, 0.67, 0)
-mesh = SubResource("mesh_shelf_plank")
-surface_material_override/0 = SubResource("mat_oak")
-
-[node name="Plank2" type="MeshInstance3D" parent="NavRegion/Shelf"]
-position = Vector3(0, 1.29, 0)
-mesh = SubResource("mesh_shelf_plank")
-surface_material_override/0 = SubResource("mat_oak")
-
-[node name="Stock" type="Node3D" parent="NavRegion/Shelf" node_paths=PackedStringArray("label")]
-script = ExtResource("10_stock_shelf")
-box_scene = ExtResource("11_stash_crate")
-box_scale = 0.55
-label = NodePath("Label")
-
-[node name="Label" type="Label3D" parent="NavRegion/Shelf/Stock"]
-position = Vector3(0, 2.5, 0)
-pixel_size = 0.008
-billboard = 1
-no_depth_test = true
-text = "Склад"
-font_size = 36
-outline_size = 10
 
 [node name="PlotsGrid" type="Node3D" parent="NavRegion"]
 position = Vector3(1.5, 0, 0)
-script = ExtResource("12_plots_grid")
-plot_scene = ExtResource("13_plot_view")
+script = ExtResource("10_plots_grid")
+plot_scene = ExtResource("11_plot_view")
 
 [node name="ElevatorLight" type="OmniLight3D" parent="."]
 position = Vector3(-6.5, 2.6, 0)
@@ -416,22 +353,22 @@ light_color = Color(0.949, 0.769, 0.42, 1)
 light_energy = 1.0
 omni_range = 5.0
 
-[node name="BenchLight" type="OmniLight3D" parent="."]
+[node name="CratesLight" type="OmniLight3D" parent="."]
 position = Vector3(-7.6, 2.6, -4.8)
 light_color = Color(0.949, 0.769, 0.42, 1)
 light_energy = 1.0
 omni_range = 5.0
 
-[node name="Jack" parent="." instance=ExtResource("14_jack")]
+[node name="Jack" parent="." instance=ExtResource("12_jack")]
 
-[node name="Worker" parent="." node_paths=PackedStringArray("plots_grid", "idle_spot", "arrival_spot") instance=ExtResource("15_worker")]
+[node name="Worker" parent="." node_paths=PackedStringArray("plots_grid", "idle_spot", "arrival_spot") instance=ExtResource("13_worker")]
 plots_grid = NodePath("../NavRegion/PlotsGrid")
 idle_spot = NodePath("../SpawnPoints/worker_idle")
 arrival_spot = NodePath("../SpawnPoints/from_elevator")
 
 [node name="CameraRig" type="Node3D" parent="." node_paths=PackedStringArray("camera")]
 rotation = Vector3(0, 0.785398, 0)
-script = ExtResource("16_iso_camera_rig")
+script = ExtResource("14_iso_camera_rig")
 camera = NodePath("Camera")
 distance = 30.0
 zoom_min = 14.0
@@ -448,4 +385,4 @@ position = Vector3(-6.2, 0, 0.8)
 [node name="worker_idle" type="Marker3D" parent="SpawnPoints"]
 position = Vector3(-6, 0, -3.5)
 
-[node name="Hud" parent="." instance=ExtResource("17_hud")]
+[node name="Hud" parent="." instance=ExtResource("15_hud")]

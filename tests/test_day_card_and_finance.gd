@@ -78,7 +78,7 @@ func test_the_card_fades_away_by_itself() -> void:
 func test_a_dialogue_at_midnight_holds_the_card_until_it_closes() -> void:
 	var level := await _open()
 	_past_midnight()
-	var lines: Array[DialogueLineDef] = [DialogueLineDef.make(UiText.FINN, "Босс, полночь.")]
+	var lines: Array[DialogueLineDef] = [DialogueLineDef.make(UiText.REGGIE, "Босс, полночь.")]
 	level.hud.play_dialogue(lines)
 	await wait_seconds(DayCard.SHOW_SECONDS + 0.3)
 	assert_false(level.hud.day_card.visible, "hidden under the dialogue")

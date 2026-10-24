@@ -24,6 +24,8 @@ func _calm(balance: BalanceConfig) -> BalanceConfig:
 	# The first-day script holds regular calls and the director adds its own; these tests check the bare systems.
 	calm.first_day = null
 	calm.director = null
+	# Jack never goes home here; his nights out are tested in test_day_cycle.
+	calm.day = null
 	return calm
 
 
@@ -212,6 +214,7 @@ func test_thirty_days_with_a_worker_stay_profitable_and_bounded() -> void:
 		lowest_money = mini(lowest_money, state.economy.money)
 		for order: Order in state.orders.with_status(Order.Status.OFFERED):
 			state.apply(AnswerOrderCommand.new(order.id, Orders.ACCEPT))
+		state.apply(HaulCommand.new(Helper.ACTOR))
 		state.apply(PackCommand.new())
 		for order: Order in state.orders.with_status(Order.Status.ACCEPTED):
 			if state.orders.can_fill(order):

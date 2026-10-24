@@ -8,6 +8,8 @@ extends Resource
 @export var extra_strains: Array[StrainDef] = []
 @export var worker: WorkerDef
 @export var worker_candidates: Array[WorkerDef] = []
+## Gardeners hired at the same time.
+@export var max_gardeners: int = 3
 ## Hired from the first minute; null plays the farm without him.
 @export var helper: WorkerDef
 @export var skills: Array[SkillDef] = []
@@ -25,10 +27,14 @@ extends Resource
 @export var director: DirectorDef
 ## null plays without the rat hunt after the first raid.
 @export var intrigue: IntrigueDef
-## Finn's call after a courier steals; %s in the texts is the thief's name. Null: no call.
+## Reggie's call after a courier steals; %s in the texts is the thief's name. Null: no call.
 @export var courier_theft_story: StoryDef
 ## Temperature, humidity and ventilation in the bunker. Null: mold is a plain random problem.
 @export var climate: ClimateDef
+## Evening call, nights out and sleep. Null: no day rhythm, travel takes no time.
+@export var day: DayDef
+## The drive from the farm to the stash.
+@export var stash: StashDef
 
 @export_group("Care")
 @export var fertilizer_price: int = 0
@@ -47,6 +53,8 @@ extends Resource
 @export_group("Helper")
 ## He dims the lights himself this many game hours before an inspection.
 @export var helper_lights_out_hours: float = 0.5
+## Courses he no longer takes now that the gardeners work the beds: id -> price refunded to old saves.
+@export var retired_skills: Dictionary[String, int] = {}
 
 
 func strains() -> Array[StrainDef]:

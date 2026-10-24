@@ -39,7 +39,7 @@ func _open(path: String) -> Level:
 func _lines(count: int) -> Array[DialogueLineDef]:
 	var lines: Array[DialogueLineDef] = []
 	for index: int in count:
-		lines.append(DialogueLineDef.make("Финн", "Строка %d." % index))
+		lines.append(DialogueLineDef.make("Реджи", "Строка %d." % index))
 	return lines
 
 
@@ -155,9 +155,9 @@ func test_prologue_has_a_short_scene_with_jacks_offer() -> void:
 		assert_false(line.text.strip_edges().is_empty())
 		speakers.append(line.speaker)
 	assert_true(speakers.has("Джек"))
-	assert_true(speakers.has("Финн"))
+	assert_true(speakers.has("Реджи"))
 	assert_true(speakers.has("Лорд Эшкомб"))
-	assert_eq(lines[lines.size() - 1].speaker, "Финн")
+	assert_eq(lines[lines.size() - 1].speaker, "Реджи")
 	assert_true(lines.any(func(line: DialogueLineDef) -> bool: return line.text.contains("Мне нужно только поле")))
 
 

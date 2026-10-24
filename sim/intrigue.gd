@@ -2,10 +2,10 @@ class_name Intrigue
 extends RefCounted
 
 ## After the first raid: somebody told the gang about the container. The rat is drawn when the
-## arc starts and every clue Finn brings is true, so the right answer can be worked out.
+## arc starts and every clue Reggie brings is true, so the right answer can be worked out.
 enum Phase { WAITING, OPENING, INVESTIGATING, ACCUSING, DONE }
 
-const ACTOR: String = "finn"
+const ACTOR: String = "reggie"
 const ACCUSE_STORY_ID: String = "intrigue_accuse"
 const ALIBI: String = "alibi"
 const GUILTY: String = "guilty"
@@ -16,7 +16,7 @@ const RETALIATION_FAILED: String = "retaliation_failed"
 
 var phase: Phase = Phase.DONE
 var rat: int = -1
-## Planned clues as "suspect_id:kind:index", in the order Finn brings them.
+## Planned clues as "suspect_id:kind:index", in the order Reggie brings them.
 var schedule: Array[String] = []
 var clues_given: int = 0
 var next_clue_at: float = INF
@@ -199,7 +199,7 @@ func accusation() -> StoryDef:
 	var lines: Array[DialogueLineDef] = []
 	lines.append_array(_def.accuse_lines)
 	for key: String in given_clues():
-		lines.append(DialogueLineDef.make(_def.finn_speaker, clue_text(key)))
+		lines.append(DialogueLineDef.make(_def.crew_speaker, clue_text(key)))
 	if boss_named:
 		lines.append(DialogueLineDef.make(_def.boss_speaker, _def.boss_name_line % rat_suspect().display_name))
 	story.lines = lines

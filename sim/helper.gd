@@ -5,6 +5,7 @@ extends RefCounted
 const ACTOR: String = "helper"
 const AWAY_DELIVERY: String = "delivery"
 const AWAY_TRAINING: String = "training"
+const AWAY_HAUL: String = "haul"
 const SAVED_LIGHTS: String = "lights"
 const SAVED_RAID: String = "raid"
 
@@ -20,9 +21,8 @@ var away_until: float = 0.0
 var training_skill_id: String = ""
 ## He dimmed the farm for an inspection and turns it back on afterwards.
 var dimmed_lights: bool = false
-## Set by SimState: the farmhand's plot is left to him.
+## Set by SimState: the gardeners' beds are left to them.
 var farmhand: Workers = null
-var packer: Packer = null
 
 var _def: WorkerDef
 var _config: BalanceConfig
@@ -89,6 +89,10 @@ func leave_for_delivery(now: float, back_at: float) -> void:
 	_leave(AWAY_DELIVERY, now, back_at)
 
 
+func leave_for_haul(now: float, back_at: float) -> void:
+	_leave(AWAY_HAUL, now, back_at)
+
+
 func extend_away(back_at: float) -> void:
 	if away_reason.is_empty():
 		return
@@ -117,6 +121,28 @@ func learn(skill_id: String, now: float, actor: String) -> CommandResult:
 		"back_at": away_until,
 	})
 	return CommandResult.success(skill.price)
+
+
+## Old saves: the courses for bed work are gone, and what was paid for them comes back.
+func retire_skills(now: float) -> void:
+	var refunded: Array[String] = []
+	var refund := 0
+	for skill_id: String in _config.retired_skills:
+		if not skills.has(skill_id) and training_skill_id != skill_id:
+			continue
+		skills.erase(skill_id)
+		if training_skill_id == skill_id:
+			training_skill_id = ""
+		refunded.append(skill_id)
+		refund += _config.retired_skills[skill_id]
+	if refund == 0:
+		return
+	_economy.earn(refund)
+	_event_log.record(EventLog.HELPER_SKILLS_REFUNDED, now, PackedStringArray([ACTOR]), {
+		"skill_ids": refunded,
+		"refund": refund,
+		"money": _economy.money,
+	})
 
 
 func _leave(reason: String, now: float, back_at: float) -> void:
@@ -220,41 +246,18 @@ func _lights_back_on(now: float) -> void:
 		_suspicion.lie_low(false, now, ACTOR)
 
 
+## He is Jack's right hand, not a gardener: on the farm he only deals with trouble on a bed.
 func _start_next_task(now: float) -> void:
-	var busy_plot := farmhand.task_plot_id if farmhand != null and farmhand.hired else -1
-	for kind: Workers.Task in _task_order():
-		if kind == Workers.Task.PACK:
-			if _wants_to_pack():
-				_start(Workers.Task.PACK, -1, now)
-				return
-			continue
-		var target := Workers.pick_plot(_grow, kind, _def.water_below_hours, busy_plot, _can_do)
-		if target != null:
-			_start(kind, target.id, now)
-			return
+	var taken: Array[int] = farmhand.busy_plot_ids() if farmhand != null else []
+	var target := Workers.pick_plot(_grow, Workers.Task.TREAT, _def.water_below_hours, taken, _can_do)
+	if target != null:
+		_start(Workers.Task.TREAT, target.id, now)
+		return
 	next_check_at = now + _def.idle_check_minutes * 60.0
 
 
-func _task_order() -> Array[Workers.Task]:
-	var order: Array[Workers.Task] = [Workers.Task.TREAT]
-	if knows(SkillDef.CARE):
-		order.append_array(Workers.CARE_ORDER)
-	if knows(SkillDef.FERTILIZE):
-		order.append(Workers.Task.FERTILIZE)
-	if knows(SkillDef.PRUNE):
-		order.append(Workers.Task.PRUNE)
-	if knows(SkillDef.PACK):
-		order.append(Workers.Task.PACK)
-	return order
-
-
-func _can_do(kind: Workers.Task, target: Plot) -> bool:
-	match kind:
-		Workers.Task.TREAT:
-			return _can_treat(target)
-		Workers.Task.FERTILIZE:
-			return _supplies.fertilizer > 0
-	return true
+func _can_do(_kind: Workers.Task, target: Plot) -> bool:
+	return _can_treat(target)
 
 
 ## A burned lamp needs the electrics course and a spare lamp on the shelf.
@@ -265,19 +268,10 @@ func _can_treat(target: Plot) -> bool:
 	return cure.is_empty() or _supplies.count(cure) > 0
 
 
-func _wants_to_pack() -> bool:
-	if packer != null and packer.hired:
-		return false
-	return not _packing.busy() and _packing.unpacked_count() > 0
-
-
 func _start(kind: Workers.Task, plot_id: int, now: float) -> void:
 	task = kind
 	task_plot_id = plot_id
 	task_ends_at = now + _def.task_seconds()
-	if kind == Workers.Task.PACK:
-		_packing.start(now, ACTOR, _def.competence)
-		task_ends_at = _packing.ends_at
 	var actors := PackedStringArray([ACTOR])
 	if plot_id >= 0:
 		actors.append("plot:%d" % plot_id)
@@ -285,19 +279,8 @@ func _start(kind: Workers.Task, plot_id: int, now: float) -> void:
 
 
 func _finish_task(now: float) -> void:
-	match task:
-		Workers.Task.PLANT:
-			_grow.plant(task_plot_id, now, ACTOR, _grow.replant_strain(_grow.plot(task_plot_id)))
-		Workers.Task.WATER:
-			_grow.water(task_plot_id, now, ACTOR)
-		Workers.Task.HARVEST:
-			_grow.harvest(task_plot_id, now, ACTOR)
-		Workers.Task.PRUNE:
-			_grow.prune(task_plot_id, now, ACTOR)
-		Workers.Task.FERTILIZE:
-			_grow.fertilize(task_plot_id, now, ACTOR)
-		Workers.Task.TREAT:
-			_treat(now)
+	if task == Workers.Task.TREAT:
+		_treat(now)
 	_clear_task()
 	next_check_at = now
 

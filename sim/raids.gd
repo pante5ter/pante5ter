@@ -9,7 +9,7 @@ const CHASE: String = "chase"
 var pending: bool = false
 var deadline: float = 0.0
 var next_roll_at: float = 0.0
-## Finn heard they are coming tonight: the next night roll skips the dice.
+## Reggie heard they are coming tonight: the next night roll skips the dice.
 var expected: bool = false
 ## Nights before this game time stay quiet: the gang was paid, scared off or lost its informer.
 var calm_until: float = 0.0
@@ -99,8 +99,9 @@ func _roll(at: float) -> void:
 	_event_log.record(EventLog.RAID_STARTED, at, PackedStringArray([RAIDER_ACTOR]), {"bribe": _def.bribe})
 
 
+## The gang knows the container, not the stash: only crates still on the farm are at risk.
 func _has_loot() -> bool:
-	return _inventory.count() > 0
+	return not _inventory.farm_crates().is_empty()
 
 
 func respond(choice: String, now: float, actor: String) -> CommandResult:
@@ -112,7 +113,7 @@ func respond(choice: String, now: float, actor: String) -> CommandResult:
 				return CommandResult.failure(CommandResult.NOT_ENOUGH_MONEY)
 			_resolve(now, actor, "paid", {"paid": _def.bribe})
 		GIVE:
-			var products := _inventory.products()
+			var products := _inventory.farm_crates()
 			var taken := ceili(float(products.size()) / 2.0)
 			for index: int in taken:
 				_inventory.take(products[index].id)
@@ -141,9 +142,10 @@ func _unanswered(now: float) -> void:
 
 
 func _rob(now: float, outcome: String) -> void:
-	var taken := _inventory.count()
-	for product: Product in _inventory.products():
+	var crates := _inventory.farm_crates()
+	for product: Product in crates:
 		_inventory.take(product.id)
+	var taken := crates.size()
 	_resolve(now, RAIDER_ACTOR, outcome, {"taken": taken})
 
 

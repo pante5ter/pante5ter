@@ -11,7 +11,7 @@ text = "Мистер Кэллоуэй, в субботу у меня ужин. �
 
 [sub_resource type="Resource" id="Line_2"]
 script = ExtResource("3_line")
-speaker = "Финн"
+speaker = "Реджи"
 text = "Ужин с констеблем. Либо лучшая маскировка, либо худший вечер в вашей жизни."
 
 [sub_resource type="Resource" id="Line_3"]
@@ -26,7 +26,7 @@ text = "Дэвенпорт весь вечер спрашивал, чем вы �
 
 [sub_resource type="Resource" id="Line_5"]
 script = ExtResource("3_line")
-speaker = "Финн"
+speaker = "Реджи"
 text = "Трижды. Запишем как урок."
 
 [sub_resource type="Resource" id="Choice_1"]
