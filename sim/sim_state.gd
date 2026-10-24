@@ -181,7 +181,7 @@ func _next_event_time() -> float:
 	next = minf(next, rent.next_event_time())
 	next = minf(next, minf(helper.next_event_time(), packer.next_event_time()))
 	next = minf(next, minf(first_day.next_event_time(), director.next_event_time()))
-	next = minf(next, intrigue.next_event_time())
+	next = minf(next, minf(intrigue.next_event_time(), stories.next_event_time()))
 	return minf(next, raids.next_event_time())
 
 
@@ -197,7 +197,8 @@ func _process_events(now: float) -> void:
 	helper.process(now)
 	packer.process(now)
 	rent.process(now)
-	# Last, so both see everything the others did at this instant.
+	# Last, so they see everything the others did at this instant.
+	stories.process(now)
 	first_day.update(now)
 	intrigue.update(now)
 	director.process(now)

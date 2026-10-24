@@ -23,6 +23,8 @@ const CHOICE_HINT_TEXT: String = "Выберите ответ: клик или �
 var _lines: Array[DialogueLineDef] = []
 var _index: int = -1
 var _choices: PackedStringArray = PackedStringArray()
+## Empty means every choice is available.
+var _enabled: Array[bool] = []
 var _choice_row: HBoxContainer
 var _hint: Label
 
@@ -41,6 +43,7 @@ func _ready() -> void:
 func play(lines: Array[DialogueLineDef], choices: PackedStringArray = PackedStringArray()) -> void:
 	_lines = lines.duplicate()
 	_choices = choices.duplicate()
+	_enabled = []
 	_index = 0
 	if _lines.is_empty():
 		_finish()
@@ -75,8 +78,18 @@ func choice_buttons() -> Array[Button]:
 	return buttons
 
 
+## Greys out choices, e.g. the ones Jack cannot pay for; the next play() makes all available again.
+func set_choices_enabled(flags: Array[bool]) -> void:
+	_enabled = flags.duplicate()
+	_refresh_choices()
+
+
+func is_choice_enabled(index: int) -> bool:
+	return index >= _enabled.size() or _enabled[index]
+
+
 func choose(index: int) -> void:
-	if not is_choosing() or index < 0 or index >= _choices.size():
+	if not is_choosing() or index < 0 or index >= _choices.size() or not is_choice_enabled(index):
 		return
 	chosen.emit(index)
 
@@ -123,7 +136,7 @@ func _refresh_choices() -> void:
 	if not choosing:
 		return
 	for index: int in _choices.size():
-		var button := UiStyle.button("%d. %s" % [index + 1, _choices[index]], choose.bind(index))
+		var button := UiStyle.button("%d. %s" % [index + 1, _choices[index]], choose.bind(index), is_choice_enabled(index))
 		button.add_theme_font_size_override("font_size", 20)
 		_choice_row.add_child(button)
 

@@ -127,14 +127,20 @@ func harvest(plot_id: int, now: float, actor: String) -> CommandResult:
 		return CommandResult.failure(CommandResult.INVALID_PLOT)
 	if target.stage != Plot.Stage.READY:
 		return CommandResult.failure(CommandResult.PLOT_NOT_READY)
-	var product := _inventory.create(strain_of(target).id, _roll_quality(target))
+	var strain := strain_of(target)
+	var quality := _roll_quality(target)
+	var product_ids: Array[int] = []
+	for unit: int in strain.yield_for(target.fertilized, target.pruned):
+		product_ids.append(_inventory.create(strain.id, quality).id)
 	_event_log.record(EventLog.PLOT_HARVESTED, now, _actors(actor, target), {
 		"plot_id": plot_id,
-		"product_id": product.id,
-		"quality": product.quality,
+		"product_id": product_ids[0],
+		"product_ids": product_ids,
+		"quantity": product_ids.size(),
+		"quality": quality,
 	})
 	target.reset()
-	return CommandResult.success(product.id)
+	return CommandResult.success(product_ids[0])
 
 
 func advance(start_time: float, game_seconds: float) -> void:

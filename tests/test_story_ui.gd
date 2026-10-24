@@ -107,13 +107,17 @@ func test_a_refused_choice_keeps_the_question_open() -> void:
 	var level := await _open(FIELD_SCENE)
 	Game.sim.economy.money = 0
 	Game.sim.stories.start(Game.sim.stories.find("lord_advance"), 0.0, Director.ACTOR)
-	await wait_process_frames(3)
+	# The lord's stories open when Jack walks up to him at the manor.
+	(level.get_node("NavRegion/Lord") as LordAshcombe).interact(level)
 	var box := level.hud.dialogue_box
 	box.skip()
 	box.choice_buttons()[0].pressed.emit()
 	assert_true(Game.sim.stories.is_pending())
-	assert_true(box.is_choosing(), "Finn explains and the options stay")
-	assert_string_contains(box.current_line().text, "£500")
+	assert_true(box.is_choosing(), "the options stay")
+	assert_eq(Game.sim.economy.money, 0)
+	# Playtest: an option Jack cannot pay for is greyed out instead of refused after the click.
+	assert_true(box.choice_buttons()[0].disabled)
+	assert_string_contains(box.choice_buttons()[0].text, "£500")
 
 
 func test_hud_shows_the_crew_and_finn_knows_where_jack_is() -> void:

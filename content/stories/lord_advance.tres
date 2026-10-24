@@ -59,5 +59,6 @@ reply = Array[ExtResource("3_line")]([SubResource("Line_6"), SubResource("Line_7
 script = ExtResource("1_story")
 id = "lord_advance"
 kind = "lord"
+place = "manor"
 lines = Array[ExtResource("3_line")]([SubResource("Line_1"), SubResource("Line_2"), SubResource("Line_3")])
 choices = Array[ExtResource("2_choice")]([SubResource("Choice_1"), SubResource("Choice_2")])

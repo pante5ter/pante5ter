@@ -114,8 +114,10 @@ func _harvest(level: Level) -> void:
 	if not result.ok:
 		level.show_message(UiText.error(result.error))
 		return
+	var harvested := Game.sim.event_log.last()
 	var quality := Game.sim.inventory.find(result.value).quality
-	level.show_message("Собран урожай, качество %d. Заказы — в телефоне (Tab)." % quality)
+	var units := int(harvested.data.get("quantity", 1)) if harvested != null and harvested.type == EventLog.PLOT_HARVESTED else 1
+	level.show_message("Собрано %d шт., качество %d. Заказы — в телефоне (Tab)." % [units, quality])
 
 
 func _run(level: Level, command: SimCommand, success_text: String) -> void:

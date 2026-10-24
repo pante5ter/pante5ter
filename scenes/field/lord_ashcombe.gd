@@ -7,4 +7,5 @@ func hover_text() -> String:
 
 
 func interact(level: Level) -> void:
-	level.hud.play_dialogue(UiText.lord_lines(Game.sim))
+	if not level.hud.story_presenter.present_at_manor():
+		level.hud.play_dialogue(UiText.lord_lines(Game.sim))

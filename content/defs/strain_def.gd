@@ -17,6 +17,11 @@ extends Resource
 @export_range(0, 100) var quality_variance: int = 0
 @export var dry_penalty_per_hour: float = 0.0
 
+@export_group("Yield (units per harvest)")
+@export var base_yield: int = 1
+@export var fertilizer_yield: int = 0
+@export var prune_yield: int = 0
+
 @export_group("Price")
 @export var base_price: int = 1
 @export var price_mult_at_q0: float = 1.0
@@ -25,6 +30,10 @@ extends Resource
 
 func growth_hours() -> float:
 	return seed_hours + sprout_hours + bush_hours
+
+
+func yield_for(fertilized: bool, pruned: bool) -> int:
+	return maxi(base_yield + (fertilizer_yield if fertilized else 0) + (prune_yield if pruned else 0), 1)
 
 
 func needs_seeds() -> bool:
