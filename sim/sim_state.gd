@@ -14,7 +14,7 @@ const V7_SAVE_KEYS: Array[String] = ["save_version", "clock", "rng", "economy", 
 const V8_SAVE_KEYS: Array[String] = ["helper", "packer"]
 const V9_SAVE_KEYS: Array[String] = ["first_day", "director", "stories"]
 const V10_SAVE_KEYS: Array[String] = ["intrigue"]
-const V11_SAVE_KEYS: Array[String] = ["thefts"]
+const V11_SAVE_KEYS: Array[String] = ["thefts", "climate"]
 
 var config: BalanceConfig
 var clock: SimClock
@@ -40,6 +40,7 @@ var first_day: FirstDay
 var director: Director
 var intrigue: Intrigue
 var thefts: CourierThefts
+var climate: Climate
 
 
 func _init(balance: BalanceConfig, seed_value: int) -> void:
@@ -62,6 +63,8 @@ func _init(balance: BalanceConfig, seed_value: int) -> void:
 	couriers = Couriers.new(balance, orders, economy, suspicion, rng, event_log)
 	packing = Packing.new(balance.orders, inventory, event_log)
 	problems = Problems.new(balance.problems, grow, supplies, rng, event_log)
+	climate = Climate.new(balance.climate, grow, suspicion, economy, event_log)
+	problems.attach_climate(climate)
 	raids = Raids.new(balance.raids, rng, inventory, economy, orders, workers, suspicion, event_log, empire_value)
 	rent = Rent.new(balance.rent, economy, suspicion, event_log)
 	packer = Packer.new(balance, packing, economy, suspicion, event_log)
@@ -159,6 +162,10 @@ func _apply(command: SimCommand) -> CommandResult:
 	if command is BuyCommand:
 		var buy := command as BuyCommand
 		return supplies.buy(buy.item, buy.quantity, now, command.actor)
+	if command is BuySensorCommand:
+		return climate.buy_sensor(now, command.actor)
+	if command is SetVentilationCommand:
+		return climate.set_ventilation((command as SetVentilationCommand).level, now, command.actor)
 	if command is BuyPlotCommand:
 		return _buy_plot(now, command.actor)
 	if command is ChooseCommand:
@@ -185,7 +192,7 @@ func _next_event_time() -> float:
 	var next := minf(workers.next_event_time(), minf(supplies.next_event_time(), orders.next_event_time()))
 	next = minf(next, minf(problems.next_event_time(), suspicion.next_event_time()))
 	next = minf(next, minf(couriers.next_event_time(), packing.next_event_time()))
-	next = minf(next, rent.next_event_time())
+	next = minf(next, minf(rent.next_event_time(), climate.next_event_time()))
 	next = minf(next, minf(helper.next_event_time(), packer.next_event_time()))
 	next = minf(next, minf(first_day.next_event_time(), director.next_event_time()))
 	next = minf(next, minf(intrigue.next_event_time(), stories.next_event_time()))
@@ -194,6 +201,7 @@ func _next_event_time() -> float:
 
 func _process_events(now: float) -> void:
 	supplies.process(now)
+	climate.process(now)
 	problems.process(now)
 	orders.process(now)
 	couriers.process(now)
@@ -263,6 +271,7 @@ func to_dict() -> Dictionary:
 		"director": director.to_dict(),
 		"intrigue": intrigue.to_dict(),
 		"thefts": thefts.to_dict(),
+		"climate": climate.to_dict(),
 		"event_log": event_log.to_array(),
 	}
 
@@ -300,6 +309,7 @@ static func from_json(text: String, balance: BalanceConfig) -> SimState:
 		state.intrigue.seen_events = state.event_log.size()
 	if version < SAVE_VERSION:
 		state.thefts.seen_events = state.event_log.size()
+		state.climate.start_at(state.clock.elapsed_game_seconds)
 	if is_nan(state.clock.elapsed_game_seconds):
 		return null
 	return state
@@ -336,3 +346,5 @@ func _load_dict(data: Dictionary) -> void:
 		intrigue.load_dict(data["intrigue"] as Dictionary)
 	if data.has("thefts"):
 		thefts.load_dict(data["thefts"] as Dictionary)
+	if data.has("climate"):
+		climate.load_dict(data["climate"] as Dictionary)

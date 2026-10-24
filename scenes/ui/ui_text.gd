@@ -121,6 +121,25 @@ static func suspicion(sim: SimState) -> String:
 	return text
 
 
+## The sensor's readings per bunker room, or what Jack needs to see them.
+static func climate_report(sim: SimState) -> String:
+	if not sim.climate.exists():
+		return ""
+	var def := sim.climate.definition()
+	if not sim.climate.sensor_installed:
+		return "Влажность и температуру в бункере не видно — нужен датчик (%s). Без него плесень замечают, когда уже поздно." % money(def.sensor_price)
+	var lines := PackedStringArray()
+	for room: RoomDef in def.rooms:
+		var line := "%s: %d°C, влажность %d%%" % [room.display_name, roundi(sim.climate.temperature(room)), roundi(sim.climate.humidity(room))]
+		if room.has_beds:
+			line += " — риск плесени" if sim.climate.mold_factor() > 0.0 else " — плесени не грозит"
+		lines.append(line)
+	var air := sim.climate.running()
+	var cost := "бесплатно" if air.power_per_hour <= 0 else "%s/ч" % money(air.power_per_hour)
+	lines.append("Вентиляция: %s (%s)%s" % [air.display_name, cost, " — ферма затихла" if sim.suspicion.quiet else ""])
+	return "\n".join(lines)
+
+
 static func stock(sim: SimState) -> String:
 	var packed := 0
 	for product: Product in sim.inventory.products():
@@ -314,9 +333,17 @@ static func announcement(event: SimEvent, sim: SimState) -> String:
 			var reached := sim.config.milestones[int(event.data["index"])]
 			return "Новый уровень — «%s». Неплохо, мистер Кэллоуэй. %s" % [reached.title, reached.description]
 		EventLog.PLOT_PROBLEM:
+			if String(event.data["problem"]) == Problems.MOLD and sim.climate.exists():
+				return "Грядка %d: плесень. В бункере сыро — уберите плесень и прибавьте вентиляцию, иначе вернётся." % plot_number(int(event.data["plot_id"]))
 			if String(event.data["problem"]) == Problems.PESTS:
 				return "Грядка %d: вредители. Пока их не вытравить, они едят будущий урожай." % plot_number(int(event.data["plot_id"]))
 			return "Грядка %d: %s. Лучше заняться сейчас, чем объяснять потом." % [plot_number(int(event.data["plot_id"])), problem(String(event.data["problem"]))]
+		EventLog.SENSOR_INSTALLED:
+			return "Датчик температуры и влажности стоит в бункере. Показания — в телефоне."
+		EventLog.POWER_BILLED:
+			return "Счёт за электричество для вентиляции: %s." % money(int(event.data["amount"]))
+		EventLog.POWER_CUT:
+			return "Счёт за электричество (%s) оплатить нечем — усиленную вентиляцию отключили. В бункере снова сыро." % money(int(event.data["amount"]))
 		EventLog.PLOT_CROP_EATEN:
 			return "Грядка %d: вредители съели весь урожай. Собирать нечего — грядка свободна под новую посадку." % plot_number(int(event.data["plot_id"]))
 		EventLog.WORKER_STOLE:

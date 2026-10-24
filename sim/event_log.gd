@@ -63,6 +63,10 @@ const INTRIGUE_STARTED: String = "intrigue_started"
 const INTRIGUE_STEP: String = "intrigue_step"
 const INTRIGUE_CLUE: String = "intrigue_clue"
 const INTRIGUE_RESOLVED: String = "intrigue_resolved"
+const SENSOR_INSTALLED: String = "sensor_installed"
+const VENTILATION_SET: String = "ventilation_set"
+const POWER_BILLED: String = "power_billed"
+const POWER_CUT: String = "power_cut"
 
 var _entries: Array[SimEvent] = []
 

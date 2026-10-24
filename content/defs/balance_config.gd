@@ -27,6 +27,8 @@ extends Resource
 @export var intrigue: IntrigueDef
 ## Finn's call after a courier steals; %s in the texts is the thief's name. Null: no call.
 @export var courier_theft_story: StoryDef
+## Temperature, humidity and ventilation in the bunker. Null: mold is a plain random problem.
+@export var climate: ClimateDef
 
 @export_group("Care")
 @export var fertilizer_price: int = 0
