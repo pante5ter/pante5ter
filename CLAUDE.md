@@ -69,6 +69,7 @@ res://
 - Вся случайность — только через `sim/rng.gd` с зерном. Никаких `randi()` / `randf()` напрямую.
 - Числа баланса (время роста, цены, зарплаты) — в `content/`, не в коде.
 - Сохранение = сериализация `SimState` + `event_log` в JSON.
+- Secrecy rule: only Jack's crew knows where a farm is — the lord, couriers and clients never come to the container or the bunker.
 
 ## Стиль кода
 - Строгие типы везде: `var x: int`, `func f(a: float) -> void`.
