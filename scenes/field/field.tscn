@@ -19,20 +19,21 @@
 [ext_resource type="PackedScene" path="res://assets/models/field/container_shelf.glb" id="17_container_shelf"]
 [ext_resource type="Script" path="res://scenes/field/parcel_box.gd" id="18_parcel_box"]
 [ext_resource type="PackedScene" path="res://assets/models/field/stash_crate.glb" id="19_stash_crate"]
-[ext_resource type="Script" path="res://scenes/field/parking_spot.gd" id="20_parking_spot"]
-[ext_resource type="Script" path="res://scenes/field/land_rover.gd" id="21_land_rover"]
-[ext_resource type="PackedScene" path="res://assets/models/field/land_rover.glb" id="22_land_rover"]
-[ext_resource type="Script" path="res://scenes/field/lord_ashcombe.gd" id="23_lord_ashcombe"]
-[ext_resource type="Script" path="res://scenes/common/character_model.gd" id="24_character_model"]
-[ext_resource type="PackedScene" path="res://assets/models/characters/inspector.glb" id="25_inspector"]
-[ext_resource type="Script" path="res://scenes/field/raider_gang.gd" id="26_raider_gang"]
-[ext_resource type="PackedScene" path="res://assets/models/characters/courier.glb" id="27_courier"]
-[ext_resource type="Script" path="res://scenes/common/road_route.gd" id="28_road_route"]
-[ext_resource type="Script" path="res://scenes/field/inspector_view.gd" id="29_inspector_view"]
-[ext_resource type="Script" path="res://scenes/field/courier_view.gd" id="30_courier_view"]
-[ext_resource type="PackedScene" path="res://scenes/actors/jack.tscn" id="31_jack"]
-[ext_resource type="Script" path="res://scenes/common/iso_camera_rig.gd" id="32_iso_camera_rig"]
-[ext_resource type="PackedScene" path="res://scenes/ui/hud.tscn" id="33_hud"]
+[ext_resource type="Script" path="res://scenes/common/alert_target.gd" id="20_alert_target"]
+[ext_resource type="Script" path="res://scenes/field/parking_spot.gd" id="21_parking_spot"]
+[ext_resource type="Script" path="res://scenes/field/land_rover.gd" id="22_land_rover"]
+[ext_resource type="PackedScene" path="res://assets/models/field/land_rover.glb" id="23_land_rover"]
+[ext_resource type="Script" path="res://scenes/field/lord_ashcombe.gd" id="24_lord_ashcombe"]
+[ext_resource type="Script" path="res://scenes/common/character_model.gd" id="25_character_model"]
+[ext_resource type="PackedScene" path="res://assets/models/characters/inspector.glb" id="26_inspector"]
+[ext_resource type="Script" path="res://scenes/field/raider_gang.gd" id="27_raider_gang"]
+[ext_resource type="PackedScene" path="res://assets/models/characters/courier.glb" id="28_courier"]
+[ext_resource type="Script" path="res://scenes/common/road_route.gd" id="29_road_route"]
+[ext_resource type="Script" path="res://scenes/field/inspector_view.gd" id="30_inspector_view"]
+[ext_resource type="Script" path="res://scenes/field/courier_view.gd" id="31_courier_view"]
+[ext_resource type="PackedScene" path="res://scenes/actors/jack.tscn" id="32_jack"]
+[ext_resource type="Script" path="res://scenes/common/iso_camera_rig.gd" id="33_iso_camera_rig"]
+[ext_resource type="PackedScene" path="res://scenes/ui/hud.tscn" id="34_hud"]
 
 [sub_resource type="Environment" id="env_field"]
 background_mode = 1
@@ -176,6 +177,27 @@ size = Vector3(2.0, 2.0, 4.4)
 [sub_resource type="CapsuleShape3D" id="shape_person"]
 radius = 0.35
 height = 1.8
+
+[sub_resource type="BoxMesh" id="mesh_stop_post"]
+size = Vector3(0.16, 2.2, 0.16)
+
+[sub_resource type="StandardMaterial3D" id="mat_timber"]
+albedo_color = Color(0.29, 0.227, 0.173, 1)
+roughness = 0.9
+
+[sub_resource type="BoxMesh" id="mesh_stop_board"]
+size = Vector3(1.6, 0.7, 0.08)
+
+[sub_resource type="StandardMaterial3D" id="mat_oak"]
+albedo_color = Color(0.478, 0.353, 0.227, 1)
+roughness = 0.9
+
+[sub_resource type="BoxMesh" id="mesh_stop_bench"]
+size = Vector3(2.6, 0.5, 0.6)
+
+[sub_resource type="StandardMaterial3D" id="mat_oak"]
+albedo_color = Color(0.478, 0.353, 0.227, 1)
+roughness = 0.9
 
 [node name="Field" type="Node3D" node_paths=PackedStringArray("nav_region", "jack", "camera_rig", "hud", "spawn_points")]
 script = ExtResource("1_level")
@@ -697,6 +719,10 @@ modulate = Color(0.96, 0.84, 0.45, 1)
 [node name="Approach" type="Marker3D" parent="NavRegion/Parcel"]
 position = Vector3(-0.6, 0, 1.3)
 
+[node name="AlertTarget" type="Marker3D" parent="NavRegion/Parcel"]
+script = ExtResource("20_alert_target")
+topic = "parcel"
+
 [node name="Parking" type="Node3D" parent="."]
 
 [node name="ManorLaneEnd" type="Marker3D" parent="Parking"]
@@ -706,7 +732,7 @@ position = Vector3(-51, 0, -20)
 position = Vector3(-51, 0, 44)
 
 [node name="Manor" type="Marker3D" parent="Parking" node_paths=PackedStringArray("lane_end", "junction")]
-script = ExtResource("20_parking_spot")
+script = ExtResource("21_parking_spot")
 title = "к усадьбе"
 lane_end = NodePath("../ManorLaneEnd")
 junction = NodePath("../ManorJunction")
@@ -720,7 +746,7 @@ position = Vector3(61, 0, 10)
 position = Vector3(61, 0, 44)
 
 [node name="Container" type="Marker3D" parent="Parking" node_paths=PackedStringArray("lane_end", "junction")]
-script = ExtResource("20_parking_spot")
+script = ExtResource("21_parking_spot")
 title = "к контейнеру"
 lane_end = NodePath("../ContainerLaneEnd")
 junction = NodePath("../ContainerJunction")
@@ -734,7 +760,7 @@ position = Vector3(5, 0, 42.2)
 position = Vector3(8, 0, 44)
 
 [node name="Road" type="Marker3D" parent="Parking" node_paths=PackedStringArray("lane_end", "junction")]
-script = ExtResource("20_parking_spot")
+script = ExtResource("21_parking_spot")
 title = "на дорогу"
 lane_end = NodePath("../RoadLaneEnd")
 junction = NodePath("../RoadJunction")
@@ -746,7 +772,7 @@ rotation = Vector3(0, -1.570796, 0)
 position = Vector3(0, 0, 0)
 collision_layer = 4
 collision_mask = 0
-script = ExtResource("21_land_rover")
+script = ExtResource("22_land_rover")
 parking = NodePath("../../Parking")
 spot = NodePath("../../Parking/Manor")
 approach = NodePath("Approach")
@@ -755,7 +781,7 @@ approach = NodePath("Approach")
 position = Vector3(0, 1.0, 0)
 shape = SubResource("shape_RoverManor")
 
-[node name="Model" parent="NavRegion/RoverManor" instance=ExtResource("22_land_rover")]
+[node name="Model" parent="NavRegion/RoverManor" instance=ExtResource("23_land_rover")]
 
 [node name="Approach" type="Marker3D" parent="NavRegion/RoverManor"]
 position = Vector3(-1.9, 0, 0.4)
@@ -764,7 +790,7 @@ position = Vector3(-1.9, 0, 0.4)
 position = Vector3(0, 0, 0)
 collision_layer = 4
 collision_mask = 0
-script = ExtResource("21_land_rover")
+script = ExtResource("22_land_rover")
 parking = NodePath("../../Parking")
 spot = NodePath("../../Parking/Container")
 approach = NodePath("Approach")
@@ -773,7 +799,7 @@ approach = NodePath("Approach")
 position = Vector3(0, 1.0, 0)
 shape = SubResource("shape_RoverContainer")
 
-[node name="Model" parent="NavRegion/RoverContainer" instance=ExtResource("22_land_rover")]
+[node name="Model" parent="NavRegion/RoverContainer" instance=ExtResource("23_land_rover")]
 
 [node name="Approach" type="Marker3D" parent="NavRegion/RoverContainer"]
 position = Vector3(-1.9, 0, 0.4)
@@ -782,7 +808,7 @@ position = Vector3(-1.9, 0, 0.4)
 position = Vector3(-49, 0, -27.0)
 collision_layer = 2
 collision_mask = 0
-script = ExtResource("23_lord_ashcombe")
+script = ExtResource("24_lord_ashcombe")
 approach = NodePath("Approach")
 
 [node name="Shape" type="CollisionShape3D" parent="NavRegion/Lord"]
@@ -790,9 +816,9 @@ position = Vector3(0, 0.9, 0)
 shape = SubResource("shape_person")
 
 [node name="Model" type="Node3D" parent="NavRegion/Lord"]
-script = ExtResource("24_character_model")
+script = ExtResource("25_character_model")
 
-[node name="Mesh" parent="NavRegion/Lord/Model" instance=ExtResource("25_inspector")]
+[node name="Mesh" parent="NavRegion/Lord/Model" instance=ExtResource("26_inspector")]
 
 [node name="Label" type="Label3D" parent="NavRegion/Lord"]
 position = Vector3(0, 2.3, 0)
@@ -817,7 +843,7 @@ omni_range = 7.0
 position = Vector3(64.5, 0, 13)
 collision_layer = 0
 collision_mask = 0
-script = ExtResource("26_raider_gang")
+script = ExtResource("27_raider_gang")
 visual = NodePath("Visual")
 approach = NodePath("Approach")
 
@@ -831,16 +857,16 @@ visible = false
 [node name="Model0" type="Node3D" parent="NavRegion/Raiders/Visual"]
 position = Vector3(-0.5, 0, 0)
 rotation = Vector3(0, 3.490659, 0)
-script = ExtResource("24_character_model")
+script = ExtResource("25_character_model")
 
-[node name="Mesh" parent="NavRegion/Raiders/Visual/Model0" instance=ExtResource("27_courier")]
+[node name="Mesh" parent="NavRegion/Raiders/Visual/Model0" instance=ExtResource("28_courier")]
 
 [node name="Model1" type="Node3D" parent="NavRegion/Raiders/Visual"]
 position = Vector3(0.6, 0, 0)
 rotation = Vector3(0, 2.792527, 0)
-script = ExtResource("24_character_model")
+script = ExtResource("25_character_model")
 
-[node name="Mesh" parent="NavRegion/Raiders/Visual/Model1" instance=ExtResource("27_courier")]
+[node name="Mesh" parent="NavRegion/Raiders/Visual/Model1" instance=ExtResource("28_courier")]
 
 [node name="Label" type="Label3D" parent="NavRegion/Raiders/Visual"]
 position = Vector3(0, 2.3, 0)
@@ -855,10 +881,14 @@ modulate = Color(1, 0.55, 0.45, 1)
 [node name="Approach" type="Marker3D" parent="NavRegion/Raiders"]
 position = Vector3(-1.4, 0, 1.4)
 
+[node name="AlertTarget" type="Marker3D" parent="NavRegion/Raiders"]
+script = ExtResource("20_alert_target")
+topic = "raid"
+
 [node name="Routes" type="Node3D" parent="."]
 
 [node name="InspectorWay" type="Node3D" parent="Routes"]
-script = ExtResource("28_road_route")
+script = ExtResource("29_road_route")
 
 [node name="P0" type="Marker3D" parent="Routes/InspectorWay"]
 position = Vector3(84, 0, 44)
@@ -870,38 +900,67 @@ position = Vector3(61, 0, 44)
 position = Vector3(61, 0, 6.6)
 
 [node name="CourierWay" type="Node3D" parent="Routes"]
-script = ExtResource("28_road_route")
+script = ExtResource("29_road_route")
 
 [node name="P0" type="Marker3D" parent="Routes/CourierWay"]
-position = Vector3(59.4, 0, 7.0)
+position = Vector3(-72, 0, 47.6)
 
 [node name="P1" type="Marker3D" parent="Routes/CourierWay"]
-position = Vector3(61, 0, 10)
+position = Vector3(-72, 0, 44)
 
 [node name="P2" type="Marker3D" parent="Routes/CourierWay"]
-position = Vector3(61, 0, 44)
-
-[node name="P3" type="Marker3D" parent="Routes/CourierWay"]
 position = Vector3(-84, 0, 44)
 
 [node name="CourierIdle" type="Marker3D" parent="Routes"]
-position = Vector3(58.4, 0, 6.6)
-rotation = Vector3(0, 1.570796, 0)
+position = Vector3(-72, 0, 47.6)
+rotation = Vector3(0, 3.141593, 0)
+
+[node name="DropPoint" type="Node3D" parent="."]
+position = Vector3(-69.6, 0, 48.0)
+
+[node name="Post" type="MeshInstance3D" parent="DropPoint"]
+position = Vector3(0, 1.1, 0)
+mesh = SubResource("mesh_stop_post")
+surface_material_override/0 = SubResource("mat_timber")
+
+[node name="Board" type="MeshInstance3D" parent="DropPoint"]
+position = Vector3(0, 2.0, 0.1)
+mesh = SubResource("mesh_stop_board")
+surface_material_override/0 = SubResource("mat_oak")
+
+[node name="Bench" type="MeshInstance3D" parent="DropPoint"]
+position = Vector3(-2.4, 0.25, 0.9)
+mesh = SubResource("mesh_stop_bench")
+surface_material_override/0 = SubResource("mat_oak")
+
+[node name="Label" type="Label3D" parent="DropPoint"]
+position = Vector3(0, 3.0, 0)
+pixel_size = 0.008
+billboard = 1
+no_depth_test = true
+text = "Точка передачи"
+font_size = 34
+outline_size = 10
+modulate = Color(0.96, 0.84, 0.45, 1)
 
 [node name="Inspector" type="Node3D" parent="." node_paths=PackedStringArray("route", "model")]
 visible = false
-script = ExtResource("29_inspector_view")
+script = ExtResource("30_inspector_view")
 route = NodePath("../Routes/InspectorWay")
 model = NodePath("Model")
 
 [node name="Model" type="Node3D" parent="Inspector"]
-script = ExtResource("24_character_model")
+script = ExtResource("25_character_model")
 
-[node name="Mesh" parent="Inspector/Model" instance=ExtResource("25_inspector")]
+[node name="Mesh" parent="Inspector/Model" instance=ExtResource("26_inspector")]
+
+[node name="AlertTarget" type="Marker3D" parent="Inspector"]
+script = ExtResource("20_alert_target")
+topic = "inspection"
 
 [node name="CourierA" type="Node3D" parent="." node_paths=PackedStringArray("depot_point", "route", "model", "name_label")]
 visible = false
-script = ExtResource("30_courier_view")
+script = ExtResource("31_courier_view")
 slot = 0
 depot_point = NodePath("../Routes/CourierIdle")
 route = NodePath("../Routes/CourierWay")
@@ -909,9 +968,9 @@ model = NodePath("Model")
 name_label = NodePath("Label")
 
 [node name="Model" type="Node3D" parent="CourierA"]
-script = ExtResource("24_character_model")
+script = ExtResource("25_character_model")
 
-[node name="Mesh" parent="CourierA/Model" instance=ExtResource("27_courier")]
+[node name="Mesh" parent="CourierA/Model" instance=ExtResource("28_courier")]
 
 [node name="Label" type="Label3D" parent="CourierA"]
 position = Vector3(0, 2.3, 0)
@@ -923,7 +982,7 @@ outline_size = 10
 
 [node name="CourierB" type="Node3D" parent="." node_paths=PackedStringArray("depot_point", "route", "model", "name_label")]
 visible = false
-script = ExtResource("30_courier_view")
+script = ExtResource("31_courier_view")
 slot = 1
 depot_point = NodePath("../Routes/CourierIdle")
 route = NodePath("../Routes/CourierWay")
@@ -931,9 +990,9 @@ model = NodePath("Model")
 name_label = NodePath("Label")
 
 [node name="Model" type="Node3D" parent="CourierB"]
-script = ExtResource("24_character_model")
+script = ExtResource("25_character_model")
 
-[node name="Mesh" parent="CourierB/Model" instance=ExtResource("27_courier")]
+[node name="Mesh" parent="CourierB/Model" instance=ExtResource("28_courier")]
 
 [node name="Label" type="Label3D" parent="CourierB"]
 position = Vector3(0, 2.3, 0)
@@ -943,11 +1002,11 @@ no_depth_test = true
 font_size = 32
 outline_size = 10
 
-[node name="Jack" parent="." instance=ExtResource("31_jack")]
+[node name="Jack" parent="." instance=ExtResource("32_jack")]
 
 [node name="CameraRig" type="Node3D" parent="." node_paths=PackedStringArray("camera")]
 rotation = Vector3(0, 0.785398, 0)
-script = ExtResource("32_iso_camera_rig")
+script = ExtResource("33_iso_camera_rig")
 camera = NodePath("Camera")
 distance = 36.0
 bounds = Rect2(-80, -52, 160, 110)
@@ -976,4 +1035,4 @@ position = Vector3(-83, 0, 44)
 [node name="road_east" type="Marker3D" parent="SpawnPoints"]
 position = Vector3(83, 0, 44)
 
-[node name="Hud" parent="." instance=ExtResource("33_hud")]
+[node name="Hud" parent="." instance=ExtResource("34_hud")]

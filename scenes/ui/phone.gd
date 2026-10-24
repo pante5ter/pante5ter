@@ -1,76 +1,97 @@
 class_name Phone
-extends PanelContainer
+extends Panel
 
-const REFRESH_SECONDS: float = 0.5
-const PHONE_SIZE: Vector2 = Vector2(380.0, 640.0)
-const TAB_CALLS: int = 0
-const TAB_SHOP: int = 1
-const TAB_STOCK: int = 2
-const TAB_PEOPLE: int = 3
-const TAB_EMPIRE: int = 4
+## Jack's phone: a home screen of apps; each app fills the screen and scrolls inside it.
+## A Panel (not a container) on purpose: long app content can never stretch the phone.
 
 signal message(text: String)
 
-var _tabs: TabContainer
-var _status: Label
-var _notice: Label
-var _calls: VBoxContainer
-var _shop: VBoxContainer
-var _stock: VBoxContainer
-var _people: VBoxContainer
-var _empire: VBoxContainer
+const REFRESH_SECONDS: float = 0.5
+const PHONE_SIZE: Vector2 = Vector2(380.0, 640.0)
+const SCREEN_INSET: Vector4 = Vector4(12.0, 18.0, 12.0, 16.0)
+
+const HOME: int = -1
+const APP_CALLS: int = 0
+const APP_MESSAGES: int = 1
+const APP_SHOP: int = 2
+const APP_STOCK: int = 3
+const APP_PEOPLE: int = 4
+const APP_EMPIRE: int = 5
+const APP_MAP: int = 6
+const APP_TITLES: PackedStringArray = ["Звонки", "Финн", "Магазин", "Склад", "Люди", "Империя", "Карта"]
+const APP_GLYPHS: PackedStringArray = [PhoneGlyphs.CALLS, PhoneGlyphs.MESSAGES, PhoneGlyphs.SHOP, PhoneGlyphs.STOCK, PhoneGlyphs.PEOPLE, PhoneGlyphs.EMPIRE, PhoneGlyphs.MAP]
+## plant_mid, brass, container_red, oak, camel_coat, hazard_yellow, grass_light
+const APP_COLORS: PackedColorArray = [Color("5A8A45"), Color("B08D4A"), Color("A14A35"), Color("7A5A3A"), Color("A88A62"), Color("C9A23A"), Color("7A8F5C")]
+
+## Set by the HUD: Finn phrases directions from where Jack stands.
+var underground: bool = false
+
+var _app: int = HOME
+var _home: PhoneHome
+var _app_view: PhoneAppView
+var _status: PhoneStatusBar
 var _refresh_left: float = 0.0
+var _news: PhoneNews = PhoneNews.new()
+var _ringer: PhoneRinger
 
 
 func _ready() -> void:
 	visible = false
 	mouse_filter = Control.MOUSE_FILTER_STOP
-	var body := StyleBoxFlat.new()
-	body.bg_color = Color(0.09, 0.09, 0.1, 0.98)
-	body.border_color = Color(0.02, 0.02, 0.02)
-	body.set_border_width_all(10)
-	body.set_corner_radius_all(34)
-	body.content_margin_left = 22.0
-	body.content_margin_right = 22.0
-	body.content_margin_top = 18.0
-	body.content_margin_bottom = 26.0
-	add_theme_stylebox_override("panel", body)
 	custom_minimum_size = PHONE_SIZE
-	var rows := VBoxContainer.new()
-	rows.add_theme_constant_override("separation", 8)
-	add_child(rows)
+	size = PHONE_SIZE
+	var body := PhoneKit.rounded(PhoneKit.BEZEL, 36, 0.0)
+	body.border_color = PhoneKit.CARD
+	body.set_border_width_all(2)
+	add_theme_stylebox_override("panel", body)
 	var speaker := ColorRect.new()
-	speaker.color = Color(0.25, 0.25, 0.27)
-	speaker.custom_minimum_size = Vector2(60.0, 6.0)
-	speaker.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	rows.add_child(speaker)
-	_status = UiStyle.label("", 13, UiStyle.MUTED)
+	speaker.color = PhoneKit.CARD
+	speaker.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	speaker.position = Vector2((PHONE_SIZE.x - 56.0) / 2.0, 7.0)
+	speaker.size = Vector2(56.0, 5.0)
+	add_child(speaker)
+	var screen := Panel.new()
+	screen.name = "Screen"
+	screen.clip_contents = true
+	screen.mouse_filter = Control.MOUSE_FILTER_PASS
+	screen.add_theme_stylebox_override("panel", PhoneKit.rounded(PhoneKit.SCREEN, 26, 0.0))
+	screen.position = Vector2(SCREEN_INSET.x, SCREEN_INSET.y)
+	screen.size = PHONE_SIZE - Vector2(SCREEN_INSET.x + SCREEN_INSET.z, SCREEN_INSET.y + SCREEN_INSET.w)
+	add_child(screen)
+	var rows := VBoxContainer.new()
+	rows.mouse_filter = Control.MOUSE_FILTER_PASS
+	rows.position = Vector2(12.0, 8.0)
+	rows.size = screen.size - Vector2(24.0, 14.0)
+	rows.add_theme_constant_override("separation", 6)
+	screen.add_child(rows)
+	_status = PhoneStatusBar.new()
 	rows.add_child(_status)
-	_notice = UiStyle.label("", 14, UiStyle.ACCENT)
-	rows.add_child(_notice)
-	_tabs = TabContainer.new()
-	_tabs.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	_tabs.get_tab_bar().focus_mode = Control.FOCUS_NONE
-	rows.add_child(_tabs)
-	_calls = _add_tab("Звонки")
-	_shop = _add_tab("Магазин")
-	_stock = _add_tab("Склад")
-	_people = _add_tab("Люди")
-	_empire = _add_tab("Империя")
-	var home := UiStyle.button("Убрать телефон  [Tab]", close)
-	rows.add_child(home)
-
-
-func _add_tab(title: String) -> VBoxContainer:
-	var scroll := ScrollContainer.new()
-	scroll.name = title
-	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	var content := VBoxContainer.new()
-	content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	content.add_theme_constant_override("separation", 8)
-	scroll.add_child(content)
-	_tabs.add_child(scroll)
-	return content
+	var stage := Control.new()
+	stage.mouse_filter = Control.MOUSE_FILTER_PASS
+	stage.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	stage.clip_contents = true
+	rows.add_child(stage)
+	_home = PhoneHome.new()
+	_home.app_chosen.connect(open_app)
+	_home.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	stage.add_child(_home)
+	_app_view = PhoneAppView.new()
+	_app_view.home_requested.connect(go_home)
+	_app_view.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	stage.add_child(_app_view)
+	var home_bar := Button.new()
+	home_bar.name = "HomeBar"
+	home_bar.focus_mode = Control.FOCUS_NONE
+	home_bar.custom_minimum_size = Vector2(120.0, 16.0)
+	home_bar.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	home_bar.tooltip_text = "Домой (Esc), убрать телефон (Tab)"
+	home_bar.add_theme_stylebox_override("normal", PhoneKit.rounded(PhoneKit.MUTED, 3, 0.0))
+	home_bar.add_theme_stylebox_override("hover", PhoneKit.rounded(PhoneKit.TEXT, 3, 0.0))
+	home_bar.pressed.connect(back)
+	rows.add_child(home_bar)
+	_ringer = PhoneRinger.new()
+	add_child(_ringer)
+	_show(HOME)
 
 
 func toggle() -> void:
@@ -80,23 +101,68 @@ func toggle() -> void:
 		open()
 
 
-func open(tab: int = -1) -> void:
+## Opens on the home screen, or straight on the calls while a client is ringing.
+func open(app: int = HOME) -> void:
 	visible = true
-	if tab >= 0:
-		_tabs.current_tab = tab
-	elif not Game.sim.orders.with_status(Order.Status.OFFERED).is_empty():
-		_tabs.current_tab = TAB_CALLS
-	refresh()
+	if app == HOME and not Game.sim.orders.with_status(Order.Status.OFFERED).is_empty():
+		app = APP_CALLS
+	_show(app)
 	var screen := get_viewport_rect().size
 	position = Vector2(screen.x - PHONE_SIZE.x - 24.0, maxf((screen.y - PHONE_SIZE.y) / 2.0, 12.0))
 
 
+## A client is calling: the phone comes up on the calls by itself, buzzes and rings.
+## An app the player is busy in stays open; the badge and the shake say enough.
+func ring() -> void:
+	if not visible:
+		open(APP_CALLS)
+	elif _app == HOME:
+		open_app(APP_CALLS)
+	_ringer.ring(self)
+
+
+func is_ringing() -> bool:
+	return _ringer.is_ringing()
+
+
+func open_app(app: int) -> void:
+	_show(app)
+
+
+func go_home() -> void:
+	_show(HOME)
+
+
+## Esc and the home bar: an app goes back home, the home screen puts the phone away.
+func back() -> void:
+	if _app == HOME:
+		close()
+	else:
+		go_home()
+
+
 func close() -> void:
 	visible = false
+	_ringer.silence(self)
 
 
-func current_tab() -> int:
-	return _tabs.current_tab
+func current_app() -> int:
+	return _app
+
+
+func app_icon(app: int) -> PhoneAppIcon:
+	return _home.icon(app)
+
+
+func _show(app: int) -> void:
+	_app = app
+	_home.visible = app == HOME
+	_app_view.visible = app != HOME
+	if app != HOME:
+		_app_view.show_app(APP_TITLES[app], APP_COLORS[app])
+	if app == APP_MESSAGES:
+		_news.mark_read()
+	refresh()
 
 
 func _process(delta: float) -> void:
@@ -110,15 +176,29 @@ func _process(delta: float) -> void:
 func refresh() -> void:
 	_refresh_left = REFRESH_SECONDS
 	var sim := Game.sim
-	_status.text = "%s     %s" % [UiText.clock(sim.clock), UiText.money(sim.economy.money)]
-	var calls := sim.orders.with_status(Order.Status.OFFERED).size()
-	_notice.text = ("Звонит клиент! Звонков: %d — вкладка «Звонки»." % calls) if calls > 0 else ""
-	_notice.visible = calls > 0
-	_fill_calls(sim)
-	PhoneShop.fill(_shop, sim, self)
-	_fill_stock(sim)
-	PhonePeople.fill(_people, sim, self)
-	_fill_empire(sim)
+	_news.scan(sim)
+	_status.refresh(sim)
+	if _app == HOME:
+		_home.refresh(sim, underground, _news.unread)
+		return
+	var fresh := VBoxContainer.new()
+	match _app:
+		APP_CALLS:
+			PhoneCalls.fill(fresh, sim, self)
+		APP_MESSAGES:
+			_news.mark_read()
+			_news.fill(fresh, sim, underground)
+		APP_SHOP:
+			PhoneShop.fill(fresh, sim, self)
+		APP_STOCK:
+			PhoneStock.fill(fresh, sim)
+		APP_PEOPLE:
+			PhonePeople.fill(fresh, sim, self)
+		APP_EMPIRE:
+			PhoneStock.fill_empire(fresh, sim)
+		APP_MAP:
+			PhoneMap.fill(fresh, sim)
+	_app_view.fill(fresh)
 
 
 func answer(order_id: int, choice: String) -> void:
@@ -133,7 +213,7 @@ func answer(order_id: int, choice: String) -> void:
 func buy(item: String, quantity: int) -> void:
 	var result := Game.sim.apply(BuyCommand.new(item, quantity))
 	if result.ok:
-		message.emit("Заказано за %s. Доставка в ящик у контейнера через %s." % [UiText.money(result.value), _delivery_time()])
+		message.emit("Заказано за %s. Доставка в ящик у двери контейнера через %s." % [UiText.money(result.value), _delivery_time()])
 	else:
 		message.emit(UiText.error(result.error))
 	refresh()
@@ -142,7 +222,7 @@ func buy(item: String, quantity: int) -> void:
 func restock() -> void:
 	var result := Game.sim.apply(RestockCommand.new())
 	if result.ok:
-		message.emit("Запас пополнен на %s. Посылка у контейнера через %s." % [UiText.money(result.value), _delivery_time()])
+		message.emit("Запас пополнен на %s. Посылка будет у двери контейнера через %s." % [UiText.money(result.value), _delivery_time()])
 	else:
 		message.emit(UiText.error(result.error))
 	refresh()
@@ -201,71 +281,3 @@ func _find_person(worker_id: String) -> WorkerDef:
 
 func _delivery_time() -> String:
 	return UiText.real_duration(Game.sim.config.delivery_hours * SimClock.GAME_SECONDS_PER_HOUR, Game.sim)
-
-
-static func clear(box: VBoxContainer) -> void:
-	for child: Node in box.get_children():
-		box.remove_child(child)
-		child.queue_free()
-
-
-func _fill_calls(sim: SimState) -> void:
-	clear(_calls)
-	var now := sim.clock.elapsed_game_seconds
-	var calls := sim.orders.with_status(Order.Status.OFFERED)
-	if calls.is_empty():
-		_calls.add_child(UiStyle.label("Тихо. Клиенты звонят сами — телефон пискнет.", 15, UiStyle.MUTED))
-	for order: Order in calls:
-		var row := VBoxContainer.new()
-		row.add_child(UiStyle.label("Клиенту нужно %d шт., качество от %d. Платит %s.\nПовесит трубку через %s." % [order.quantity, order.min_quality, UiText.money(order.reward), UiText.real_duration(order.answer_by - now, sim)]))
-		var buttons := HBoxContainer.new()
-		buttons.add_child(UiStyle.button("Принять", answer.bind(order.id, Orders.ACCEPT)))
-		buttons.add_child(UiStyle.button("Торг +%d%% (%d%%)" % [roundi(sim.config.orders.haggle_bonus * 100.0), roundi(sim.config.orders.haggle_success * 100.0)], answer.bind(order.id, Orders.HAGGLE), not order.haggled))
-		buttons.add_child(UiStyle.button("Отказать", answer.bind(order.id, Orders.DECLINE)))
-		row.add_child(buttons)
-		_calls.add_child(row)
-	var accepted := sim.orders.with_status(Order.Status.ACCEPTED).size()
-	if accepted > 0:
-		_calls.add_child(UiStyle.label("Принятых заказов: %d — отправляются с компьютера на плантации." % accepted, 13, UiStyle.MUTED))
-
-
-func _fill_stock(sim: SimState) -> void:
-	clear(_stock)
-	var products := sim.inventory.products()
-	var qualities := PackedStringArray()
-	for product: Product in products:
-		qualities.append(str(product.quality))
-	_stock.add_child(UiStyle.label("Урожай: %d шт.%s" % [products.size(), (" (качество: %s)" % ", ".join(qualities)) if not products.is_empty() else ""]))
-	_stock.add_child(UiStyle.label(UiText.stock(sim), 14, UiStyle.MUTED))
-	for strain: StrainDef in sim.config.extra_strains:
-		_stock.add_child(UiStyle.label("Семена «%s»: %d" % [strain.display_name, sim.supplies.seeds(strain.id)]))
-	_stock.add_child(UiStyle.label("«%s»: без ограничений" % sim.config.strain.display_name, 15, UiStyle.MUTED))
-	_stock.add_child(UiStyle.label("Удобрение: %d" % sim.supplies.fertilizer))
-	for tool: String in Supplies.TOOLS:
-		_stock.add_child(UiStyle.label("%s: %d" % [UiText.capitalized(UiText.item_name(tool, sim)), sim.supplies.count(tool)]))
-
-
-func _fill_empire(sim: SimState) -> void:
-	clear(_empire)
-	_empire.add_child(UiStyle.label("Оценка империи: %s" % UiText.money(sim.empire_value()), 18, UiStyle.ACCENT))
-	_empire.add_child(UiStyle.label("Деньги, грядки, товар на руках и в тайнике.", 13, UiStyle.MUTED))
-	for index: int in sim.config.milestones.size():
-		var milestone := sim.config.milestones[index]
-		var mark := "[готово]" if index < sim.progress.reached else "[цель]"
-		_empire.add_child(UiStyle.label("%s %s — «%s»\n%s" % [mark, UiText.money(milestone.value), milestone.title, milestone.description], 14, Color.WHITE if index < sim.progress.reached else UiStyle.MUTED))
-	_add_rent(sim)
-	_empire.add_child(UiStyle.label(UiText.suspicion(sim)))
-	_empire.add_child(UiStyle.label("Подозрение растёт от заказов, болтливых работников и большой фермы. Проверку переживёшь, если вовремя замаскируешь вход.", 13, UiStyle.MUTED))
-
-
-func _add_rent(sim: SimState) -> void:
-	var rent := sim.rent
-	if rent.amount() <= 0:
-		return
-	if rent.evicted:
-		_empire.add_child(UiStyle.label("Лорд Эшкомб расторг аренду: поле больше не твоё.", 15, UiStyle.ACCENT))
-		return
-	var text := "Аренда лорду Эшкомбу: %s, следующий платёж через %s." % [UiText.money(rent.amount()), UiText.real_duration(rent.due_in(sim.clock.elapsed_game_seconds), sim)]
-	if rent.missed > 0:
-		text += "\nПропущено платежей подряд: %d из %d." % [rent.missed, rent.max_missed()]
-	_empire.add_child(UiStyle.label(text, 15, UiStyle.ACCENT if rent.missed > 0 else Color.WHITE))

@@ -25,6 +25,8 @@ var pause_menu: PauseMenu
 var computer: ComputerScreen
 var dialogue_box: DialogueBox
 var story_presenter: StoryPresenter
+var alert_banner: AlertBanner
+var edge_markers: EdgeMarkers
 ## Set by the level: Finn phrases directions from where Jack stands.
 var underground: bool = false
 var speed_buttons: Array[Button] = []
@@ -41,6 +43,11 @@ func _ready() -> void:
 	hover_label.visible = false
 	_add_corner_button("Телефон  [Tab]", toggle_phone, Vector2(1.0, 1.0), Rect2(-190.0, -60.0, 176.0, 44.0))
 	_add_corner_button("Меню  [Esc]", toggle_pause, Vector2(1.0, 0.0), Rect2(-150.0, 12.0, 136.0, 36.0))
+	edge_markers = EdgeMarkers.new()
+	add_child(edge_markers)
+	alert_banner = AlertBanner.new()
+	alert_banner.action_requested.connect(_on_alert_action)
+	add_child(alert_banner)
 	phone = Phone.new()
 	phone.message.connect(show_message)
 	add_child(phone)
@@ -97,6 +104,7 @@ func _process(delta: float) -> void:
 	empire_label.text = UiText.empire(sim)
 	suspicion_label.text = UiText.suspicion(sim)
 	suspicion_label.modulate = Color(1.0, 0.55, 0.45) if sim.suspicion.inspection_pending() or sim.raids.pending else Color.WHITE
+	phone.underground = underground
 	_announce_new_events(sim)
 	for index: int in speed_buttons.size():
 		speed_buttons[index].set_pressed_no_signal(is_equal_approx(Game.time_scale, Game.SPEEDS[index]))
@@ -110,9 +118,17 @@ func _announce_new_events(sim: SimState) -> void:
 	if sim != _watched_sim:
 		_watched_sim = sim
 		_seen_events = sim.event_log.size()
+		alert_banner.clear()
 		return
 	var news := PackedStringArray()
 	for event: SimEvent in sim.event_log.since(_seen_events):
+		var alert := Alert.from_event(event, sim)
+		if alert != null:
+			alert_banner.push(alert)
+			if alert.topic == Alert.CALL and not (dialogue_box.is_open() or computer.visible or pause_menu.visible):
+				action_menu.close()
+				phone.ring()
+			continue
 		var text := UiText.announcement(event, sim)
 		if not text.is_empty() and not news.has(text):
 			news.append(text)
@@ -214,6 +230,19 @@ func _choice_input(event: InputEvent) -> void:
 	get_viewport().set_input_as_handled()
 
 
+## A call opens the phone on it; anything with a place on the map swings the camera there.
+func _on_alert_action(topic: String) -> void:
+	if topic == Alert.CALL:
+		action_menu.close()
+		phone.open(Phone.APP_CALLS)
+		return
+	var target := AlertTarget.find_live(get_tree(), topic)
+	var camera := get_viewport().get_camera_3d()
+	var rig := camera.get_parent() as IsoCameraRig if camera != null else null
+	if target != null and rig != null:
+		rig.focus(target.global_position)
+
+
 func open_computer() -> void:
 	action_menu.close()
 	phone.close()
@@ -251,7 +280,7 @@ func _input(event: InputEvent) -> void:
 			elif computer.visible:
 				computer.close()
 			elif phone.visible:
-				phone.close()
+				phone.back()
 			else:
 				toggle_pause()
 		KEY_1, KEY_2, KEY_3:

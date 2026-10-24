@@ -351,12 +351,14 @@ func test_news_from_the_same_moment_are_all_shown() -> void:
 	assert_string_contains(level.hud.message_label.text, "вредители")
 
 
-func test_tab_closes_the_phone_even_after_clicking_its_tabs() -> void:
+func test_tab_closes_the_phone_even_after_clicking_its_apps() -> void:
 	var level := await _open(FIELD_SCENE)
 	level.hud.toggle_phone()
-	var tab_bar := level.hud.phone.find_children("*", "TabBar", true, false)[0] as TabBar
-	tab_bar.focus_mode = Control.FOCUS_ALL
-	tab_bar.grab_focus()
+	level.hud.phone.app_icon(Phone.APP_SHOP).pressed.emit()
+	assert_eq(level.hud.phone.current_app(), Phone.APP_SHOP)
+	var back := level.hud.phone.find_child("Back", true, false) as Button
+	back.focus_mode = Control.FOCUS_ALL
+	back.grab_focus()
 	var key := InputEventKey.new()
 	key.keycode = KEY_TAB
 	key.physical_keycode = KEY_TAB

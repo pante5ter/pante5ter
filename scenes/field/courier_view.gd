@@ -1,7 +1,7 @@
 class_name CourierView
 extends Node3D
-## One hired courier, by slot in name order. Idle couriers wait by the container;
-## on a trip they walk the route out to the main road and back.
+## One hired courier, by slot in name order. Couriers must not know where the farm is: idle ones wait
+## at the drop point, a lay-by at the village end of the road, and leave from there with the boxes.
 
 const IDLE_STEP: Vector3 = Vector3(-1.2, 0.0, 0.0)
 
@@ -24,11 +24,11 @@ func _process(_delta: float) -> void:
 		return
 	var courier_id := couriers[slot]
 	var now := sim.clock.elapsed_game_seconds
-	var courier_name := UiText.courier_name(courier_id, sim)
+	var courier_name := "Курьер " + UiText.courier_name(courier_id, sim)
 	if sim.couriers.is_free(courier_id, now):
 		global_position = depot_point.global_position + IDLE_STEP * float(slot)
 		rotation.y = depot_point.global_rotation.y
-		name_label.text = courier_name + " ждёт заказ"
+		name_label.text = courier_name + " · ждёт товар у дороги"
 		model.play_idle()
 		return
 	var trip := sim.couriers.trip_seconds(courier_id)
