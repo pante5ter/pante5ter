@@ -4,6 +4,7 @@ extends RefCounted
 const LORD: String = "lord"
 const VILLAGE: String = "village"
 const CREW: String = "crew"
+const BEAT_TYPES: Array[String] = [EventLog.STORY_STARTED, EventLog.INTRIGUE_CLUE, EventLog.DIRECTOR_EVENT]
 
 ## The story waiting for Jack's choice; empty when none.
 var pending_id: String = ""
@@ -43,6 +44,11 @@ func all() -> Array[StoryDef]:
 		found.append(_config.intrigue.opening_story)
 	found.append_array(_built.values())
 	return found
+
+
+## Story news the player must not miss: the game drops to normal speed when one arrives.
+static func is_beat(event: SimEvent) -> bool:
+	return BEAT_TYPES.has(event.type)
 
 
 func register(story: StoryDef) -> void:

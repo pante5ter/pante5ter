@@ -11,4 +11,4 @@ hire_fee = 80
 cut = 0.1
 speed = 1.2
 reliability = 0.5
-greed = 0.15
+greed = 0.03

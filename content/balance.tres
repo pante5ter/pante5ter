@@ -30,6 +30,9 @@
 [ext_resource type="Resource" path="res://content/first_day.tres" id="28_first_day"]
 [ext_resource type="Resource" path="res://content/director.tres" id="29_director"]
 [ext_resource type="Resource" path="res://content/intrigue.tres" id="30_intrigue"]
+[ext_resource type="Resource" path="res://content/skills/electrics.tres" id="31_electrics"]
+[ext_resource type="Resource" path="res://content/stories/courier_theft.tres" id="32_courier_theft"]
+[ext_resource type="Resource" path="res://content/climate.tres" id="33_climate"]
 
 [sub_resource type="Resource" id="Resource_milestone_1"]
 script = ExtResource("14_milestone_def")
@@ -64,7 +67,7 @@ worker = ExtResource("3_worker")
 worker_candidates = Array[ExtResource("8_worker_def")]([ExtResource("3_worker"), ExtResource("9_dave"), ExtResource("10_barry")])
 courier_candidates = Array[ExtResource("15_courier_def")]([ExtResource("16_harry"), ExtResource("17_frank"), ExtResource("18_pete")])
 helper = ExtResource("20_reggie")
-skills = Array[ExtResource("22_skill_def")]([ExtResource("23_care"), ExtResource("24_prune"), ExtResource("25_fertilize"), ExtResource("26_pack"), ExtResource("27_driving")])
+skills = Array[ExtResource("22_skill_def")]([ExtResource("23_care"), ExtResource("24_prune"), ExtResource("25_fertilize"), ExtResource("26_pack"), ExtResource("27_driving"), ExtResource("31_electrics")])
 packer_candidates = Array[ExtResource("8_worker_def")]([ExtResource("21_gladys")])
 max_couriers = 2
 orders = ExtResource("6_orders")
@@ -76,6 +79,8 @@ milestones = Array[ExtResource("14_milestone_def")]([SubResource("Resource_miles
 first_day = ExtResource("28_first_day")
 director = ExtResource("29_director")
 intrigue = ExtResource("30_intrigue")
+courier_theft_story = ExtResource("32_courier_theft")
+climate = ExtResource("33_climate")
 fertilizer_price = 15
 fertilizer_bonus = 12
 prune_bonus = 8

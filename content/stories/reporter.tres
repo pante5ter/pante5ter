@@ -7,7 +7,7 @@
 [sub_resource type="Resource" id="Line_1"]
 script = ExtResource("3_line")
 speaker = ""
-text = "У контейнера тормозит старенький «Мини». Из него выходит молодой человек с блокнотом."
+text = "Звонок с незнакомого номера. Молодой голос, на фоне стучит клавиатура."
 
 [sub_resource type="Resource" id="Line_2"]
 script = ExtResource("3_line")
@@ -32,7 +32,7 @@ text = "Скучнее заголовка не придумать. Ровно т
 [sub_resource type="Resource" id="Line_6"]
 script = ExtResource("3_line")
 speaker = "Репортёр"
-text = "Грибы. В контейнере. С вентиляцией на полполя. Пожалуй, напишу «Расследование продолжается»."
+text = "Грибы. Которые возят по ночам фургонами. Пожалуй, напишу «Расследование продолжается»."
 
 [sub_resource type="Resource" id="Line_7"]
 script = ExtResource("3_line")

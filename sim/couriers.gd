@@ -3,10 +3,14 @@ extends RefCounted
 
 ## Jack no longer drives; the id stays for saves with him on the road.
 const JACK: String = "jack"
+const REASON_RAT: String = "rat"
+const REASON_INSULTED: String = "insulted"
 
 var hired: Array[String] = []
 ## courier id -> game time when he is back and free.
 var busy_until: Dictionary[String, float] = {}
+## Thieves and proven rats: never hired again.
+var banned: Array[String] = []
 
 var _config: BalanceConfig
 var _orders: Orders
@@ -32,6 +36,10 @@ func attach_helper(helper: Helper) -> void:
 
 func is_helper(courier_id: String) -> bool:
 	return courier_id == Helper.ACTOR and _helper != null and _helper.exists()
+
+
+func is_banned(courier_id: String) -> bool:
+	return banned.has(courier_id)
 
 
 func is_free(courier_id: String, now: float) -> bool:
@@ -63,6 +71,8 @@ func hire(courier_id: String, now: float, actor: String) -> CommandResult:
 	var def := _config.find_courier(courier_id)
 	if def == null:
 		return CommandResult.failure(CommandResult.UNKNOWN_WORKER)
+	if is_banned(courier_id):
+		return CommandResult.failure(CommandResult.COURIER_BANNED)
 	if hired.has(courier_id):
 		return CommandResult.failure(CommandResult.WORKER_ALREADY_HIRED)
 	if hired.size() >= _config.max_couriers:
@@ -83,6 +93,17 @@ func fire(courier_id: String, now: float, actor: String) -> CommandResult:
 	busy_until.erase(courier_id)
 	_event_log.record(EventLog.COURIER_FIRED, now, PackedStringArray([actor, courier_id]), {"courier_id": courier_id})
 	return CommandResult.success()
+
+
+## Off the books at once, even mid-delivery: the parcel on the road still arrives.
+func dismiss(courier_id: String, now: float, actor: String, reason: String, ban: bool) -> void:
+	if ban and not banned.has(courier_id):
+		banned.append(courier_id)
+	if not hired.has(courier_id):
+		return
+	hired.erase(courier_id)
+	var type := EventLog.COURIER_QUIT if reason == REASON_INSULTED else EventLog.COURIER_FIRED
+	_event_log.record(type, now, PackedStringArray([actor, courier_id]), {"courier_id": courier_id, "reason": reason})
 
 
 func trip_seconds(courier_id: String) -> float:
@@ -168,6 +189,8 @@ func _arrive(order: Order, now: float) -> void:
 	if def != null and _rng.randf() < def.greed:
 		hired.erase(order.courier_id)
 		busy_until.erase(order.courier_id)
+		if not banned.has(order.courier_id):
+			banned.append(order.courier_id)
 		_event_log.record(EventLog.COURIER_STOLE, now, actors, {"order_id": order.id, "courier_id": order.courier_id})
 		return
 	var fee := roundi(float(order.reward) * (def.cut if def != null else 0.0))
@@ -185,13 +208,16 @@ func to_dict() -> Dictionary:
 	var busy: Dictionary = {}
 	for courier_id: String in busy_until:
 		busy[courier_id] = ExactFloat.encode(busy_until[courier_id])
-	return {"hired": hired.duplicate(), "busy_until": busy}
+	return {"hired": hired.duplicate(), "busy_until": busy, "banned": banned.duplicate()}
 
 
 func load_dict(data: Dictionary) -> void:
 	hired.clear()
 	for courier_id: Variant in data["hired"] as Array:
 		hired.append(String(courier_id))
+	banned.clear()
+	for courier_id: Variant in data.get("banned", []) as Array:
+		banned.append(String(courier_id))
 	busy_until.clear()
 	var busy := data["busy_until"] as Dictionary
 	for courier_id: Variant in busy:

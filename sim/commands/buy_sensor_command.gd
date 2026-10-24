@@ -1,0 +1,2 @@
+class_name BuySensorCommand
+extends SimCommand

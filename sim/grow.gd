@@ -129,8 +129,14 @@ func harvest(plot_id: int, now: float, actor: String) -> CommandResult:
 		return CommandResult.failure(CommandResult.PLOT_NOT_READY)
 	var strain := strain_of(target)
 	var quality := _roll_quality(target)
+	var grown := strain.yield_for(target.fertilized, target.pruned)
+	var eaten := mini(eaten_units(target), grown)
+	if eaten >= grown:
+		_event_log.record(EventLog.PLOT_CROP_EATEN, now, _actors(actor, target), {"plot_id": plot_id, "eaten": eaten})
+		target.reset()
+		return CommandResult.failure(CommandResult.CROP_EATEN)
 	var product_ids: Array[int] = []
-	for unit: int in strain.yield_for(target.fertilized, target.pruned):
+	for unit: int in grown - eaten:
 		product_ids.append(_inventory.create(strain.id, quality).id)
 	_event_log.record(EventLog.PLOT_HARVESTED, now, _actors(actor, target), {
 		"plot_id": plot_id,
@@ -138,9 +144,17 @@ func harvest(plot_id: int, now: float, actor: String) -> CommandResult:
 		"product_ids": product_ids,
 		"quantity": product_ids.size(),
 		"quality": quality,
+		"eaten": eaten,
 	})
 	target.reset()
 	return CommandResult.success(product_ids[0])
+
+
+## Units the pests have already eaten off this bed's coming harvest.
+func eaten_units(target: Plot) -> int:
+	if _config == null or _config.problems == null or _config.problems.pest_hours_per_lost_unit <= 0.0:
+		return 0
+	return floori(target.pest_seconds / _hours(_config.problems.pest_hours_per_lost_unit))
 
 
 func advance(start_time: float, game_seconds: float) -> void:
@@ -154,6 +168,8 @@ func _advance_plot(target: Plot, start_time: float, game_seconds: float) -> void
 	while remaining > 0.0 and target.is_growing():
 		if target.water_seconds <= 0.0 or not target.problem.is_empty():
 			target.dry_seconds += remaining
+			if target.problem == Problems.PESTS:
+				target.pest_seconds += remaining
 			return
 		var to_next_stage := _stage_duration(target) - target.progress_seconds
 		var step := minf(remaining, minf(target.water_seconds, to_next_stage))

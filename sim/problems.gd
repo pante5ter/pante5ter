@@ -5,6 +5,8 @@ const PESTS: String = "pests"
 const MOLD: String = "mold"
 const LAMP: String = "lamp"
 const KINDS: Array[String] = [PESTS, MOLD, LAMP]
+## Trouble that does not care about the air.
+const DRY_KINDS: Array[String] = [PESTS, LAMP]
 
 var next_roll_at: float = 0.0
 
@@ -13,6 +15,7 @@ var _grow: Grow
 var _supplies: Supplies
 var _rng: SimRng
 var _event_log: EventLog
+var _climate: Climate = null
 
 
 func _init(def: ProblemsDef, grow: Grow, supplies: Supplies, rng: SimRng, event_log: EventLog) -> void:
@@ -22,6 +25,10 @@ func _init(def: ProblemsDef, grow: Grow, supplies: Supplies, rng: SimRng, event_
 	_rng = rng
 	_event_log = event_log
 	next_roll_at = def.start_hours * SimClock.GAME_SECONDS_PER_HOUR
+
+
+func attach_climate(climate: Climate) -> void:
+	_climate = climate if climate != null and climate.exists() else null
 
 
 static func cure_item(problem: String) -> String:
@@ -47,13 +54,31 @@ func _roll(at: float) -> void:
 	for target: Plot in _grow.plots():
 		if not target.is_growing() or not target.problem.is_empty():
 			continue
-		if _rng.randf() >= _def.chance_per_hour:
+		var kind := _roll_kind()
+		if kind.is_empty():
 			continue
-		target.problem = KINDS[_rng.randi_range(0, KINDS.size() - 1)]
+		target.problem = kind
 		_event_log.record(EventLog.PLOT_PROBLEM, at, PackedStringArray(["plot:%d" % target.id]), {
 			"plot_id": target.id,
 			"problem": target.problem,
 		})
+
+
+## One draw per bed, as before the climate: with it, mold comes from damp air instead of the plain roll.
+func _roll_kind() -> String:
+	var roll := _rng.randf()
+	if _climate == null:
+		return KINDS[_rng.randi_range(0, KINDS.size() - 1)] if roll < _def.chance_per_hour else ""
+	if roll < _def.chance_per_hour:
+		return DRY_KINDS[_rng.randi_range(0, DRY_KINDS.size() - 1)]
+	if roll < _def.chance_per_hour + mold_chance():
+		return MOLD
+	return ""
+
+
+## Hourly chance a healthy growing bed catches mold from damp air.
+func mold_chance() -> float:
+	return _def.chance_per_hour * _climate.mold_factor() if _climate != null else 0.0
 
 
 func healthy_growing() -> Array[Plot]:

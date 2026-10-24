@@ -1,0 +1,50 @@
+[gd_resource type="Resource" script_class="ClimateDef" format=3]
+
+[ext_resource type="Script" path="res://content/defs/climate_def.gd" id="1_climate"]
+[ext_resource type="Script" path="res://content/defs/room_def.gd" id="2_room"]
+[ext_resource type="Script" path="res://content/defs/ventilation_def.gd" id="3_vent"]
+
+[sub_resource type="Resource" id="Room_grow"]
+script = ExtResource("2_room")
+id = "grow"
+display_name = "Гроу-комната"
+has_beds = true
+base_temperature = 21.0
+base_humidity = 50.0
+humidity_per_bed = 2.5
+heat_per_bed = 0.6
+
+[sub_resource type="Resource" id="Room_packing"]
+script = ExtResource("2_room")
+id = "packing"
+display_name = "Фасовочная"
+base_temperature = 18.0
+base_humidity = 45.0
+
+[sub_resource type="Resource" id="Vent_0"]
+script = ExtResource("3_vent")
+display_name = "Обычная вытяжка"
+
+[sub_resource type="Resource" id="Vent_1"]
+script = ExtResource("3_vent")
+display_name = "Усиленная вентиляция"
+humidity_drop = 8.0
+cooling = 1.5
+power_per_hour = 2
+
+[sub_resource type="Resource" id="Vent_2"]
+script = ExtResource("3_vent")
+display_name = "Осушитель и вентиляция на полную"
+humidity_drop = 18.0
+cooling = 2.5
+power_per_hour = 5
+
+[resource]
+script = ExtResource("1_climate")
+sensor_price = 120
+rooms = Array[ExtResource("2_room")]([SubResource("Room_grow"), SubResource("Room_packing")])
+ventilation = Array[ExtResource("3_vent")]([SubResource("Vent_0"), SubResource("Vent_1"), SubResource("Vent_2")])
+bill_every_hours = 24
+mold_safe_humidity = 60.0
+mold_factor_per_point = 0.1
+mold_factor_max = 3.0

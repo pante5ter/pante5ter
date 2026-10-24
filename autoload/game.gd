@@ -12,6 +12,7 @@ var ui_settings_path: String = DEFAULT_UI_SETTINGS_PATH
 var time_scale: float = 1.0
 var _balance: BalanceConfig
 var _fresh_start: bool = false
+var _seen_events: int = 0
 
 
 func _ready() -> void:
@@ -21,6 +22,18 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	if is_running and sim != null:
 		sim.apply(AdvanceTimeCommand.new(delta * time_scale))
+		_slow_down_for_story()
+
+
+## At x2/x4 story beats came faster than they could be read; each one brings the game back to x1.
+## The sim knows nothing of real time, so the pacing lives here rather than in a real-time gap.
+func _slow_down_for_story() -> void:
+	var beat := false
+	for event: SimEvent in sim.event_log.since(_seen_events):
+		beat = beat or Stories.is_beat(event)
+	_seen_events = sim.event_log.size()
+	if beat:
+		set_speed(0)
 
 
 func set_speed(index: int) -> void:
@@ -29,6 +42,7 @@ func set_speed(index: int) -> void:
 
 func new_game(seed_value: int, fresh_start: bool = false) -> void:
 	sim = SimState.new(_get_balance(), seed_value)
+	_seen_events = sim.event_log.size()
 	_fresh_start = fresh_start
 
 
@@ -63,6 +77,7 @@ func load_game(path: String = "") -> Error:
 	if loaded == null:
 		return ERR_PARSE_ERROR
 	sim = loaded
+	_seen_events = sim.event_log.size()
 	_fresh_start = false
 	return OK
 

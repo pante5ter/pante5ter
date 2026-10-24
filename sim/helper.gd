@@ -251,11 +251,18 @@ func _task_order() -> Array[Workers.Task]:
 func _can_do(kind: Workers.Task, target: Plot) -> bool:
 	match kind:
 		Workers.Task.TREAT:
-			var cure := Problems.cure_item(target.problem)
-			return cure.is_empty() or _supplies.count(cure) > 0
+			return _can_treat(target)
 		Workers.Task.FERTILIZE:
 			return _supplies.fertilizer > 0
 	return true
+
+
+## A burned lamp needs the electrics course and a spare lamp on the shelf.
+func _can_treat(target: Plot) -> bool:
+	if target.problem == Problems.LAMP and not knows(SkillDef.ELECTRICS):
+		return false
+	var cure := Problems.cure_item(target.problem)
+	return cure.is_empty() or _supplies.count(cure) > 0
 
 
 func _wants_to_pack() -> bool:
@@ -297,7 +304,7 @@ func _finish_task(now: float) -> void:
 
 func _treat(now: float) -> void:
 	var target := _grow.plot(task_plot_id)
-	if target == null or target.problem.is_empty():
+	if target == null or target.problem.is_empty() or not _can_treat(target):
 		return
 	var cure := Problems.cure_item(target.problem)
 	if not cure.is_empty() and not _supplies.take_item(cure):
