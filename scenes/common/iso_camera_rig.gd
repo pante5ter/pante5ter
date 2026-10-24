@@ -1,6 +1,8 @@
 class_name IsoCameraRig
 extends Node3D
 
+const GLIDE_DONE_DISTANCE: float = 0.02
+
 @export var camera: Camera3D
 @export var pitch_degrees: float = 45.0
 @export var fov_degrees: float = 28.0
@@ -14,9 +16,15 @@ extends Node3D
 @export var zoom_step: float = 4.0
 @export var smoothing: float = 10.0
 @export var bounds: Rect2 = Rect2(-30.0, -30.0, 60.0, 60.0)
+## How fast a glide to a point closes in; the camera eases out like a map recentring on you.
+@export var glide_speed: float = 6.0
 
 var _target_yaw: float = 0.0
 var _target_zoom: float = 36.0
+var _gliding: bool = false
+var _glide_target: Vector3 = Vector3.ZERO
+## While set the camera keeps Jack (or whoever) in the middle until the player pans away.
+var _followed: Node3D = null
 
 
 func _ready() -> void:
@@ -48,12 +56,38 @@ func focus(point: Vector3) -> void:
 	position = _clamped(Vector3(point.x, 0.0, point.z))
 
 
+func glide_to(point: Vector3) -> void:
+	_followed = null
+	_glide_target = _clamped(Vector3(point.x, 0.0, point.z))
+	_gliding = true
+
+
+func follow(target: Node3D) -> void:
+	_followed = target
+	_glide_target = _clamped(Vector3(target.global_position.x, 0.0, target.global_position.z))
+	_gliding = true
+
+
+func is_gliding() -> bool:
+	return _gliding
+
+
+func is_following() -> bool:
+	return _followed != null
+
+
+func stop_gliding() -> void:
+	_gliding = false
+	_followed = null
+
+
 func drag(screen_delta: Vector2) -> void:
 	var world_per_pixel := _view_height() / maxf(get_viewport().get_visible_rect().size.y, 1.0)
 	var forward := Vector3(-sin(rotation.y), 0.0, -cos(rotation.y))
 	var right := Vector3(cos(rotation.y), 0.0, -sin(rotation.y))
 	var pitch := deg_to_rad(pitch_degrees)
 	var move := -right * screen_delta.x * world_per_pixel + forward * screen_delta.y * world_per_pixel / maxf(sin(pitch), 0.1)
+	stop_gliding()
 	position = _clamped(position + move)
 
 
@@ -80,10 +114,26 @@ func _process(delta: float) -> void:
 	_place_camera()
 	var input := _pan_input()
 	if input != Vector2.ZERO:
+		stop_gliding()
 		var forward := Vector3(-sin(rotation.y), 0.0, -cos(rotation.y))
 		var right := Vector3(cos(rotation.y), 0.0, -sin(rotation.y))
 		var speed := pan_speed * _view_height() / 16.0
 		position = _clamped(position + (right * input.x + forward * input.y) * speed * delta)
+	_glide(delta)
+
+
+func _glide(delta: float) -> void:
+	if not _gliding:
+		return
+	if _followed != null:
+		if not is_instance_valid(_followed):
+			stop_gliding()
+			return
+		_glide_target = _clamped(Vector3(_followed.global_position.x, 0.0, _followed.global_position.z))
+	position = position.lerp(_glide_target, 1.0 - exp(-glide_speed * delta))
+	if _followed == null and position.distance_to(_glide_target) < GLIDE_DONE_DISTANCE:
+		position = _glide_target
+		_gliding = false
 
 
 func _pan_input() -> Vector2:

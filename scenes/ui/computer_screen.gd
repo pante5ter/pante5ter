@@ -158,10 +158,17 @@ func _order_row(order: Order, sim: SimState, now: float) -> VBoxContainer:
 	var can_ship := sim.orders.can_fill(order)
 	var shortage := "" if can_ship else "\nПодходящих коробок %d из %d — нужен фасованный товар качества %d+." % [matching, order.quantity, order.min_quality]
 	row.add_child(UiStyle.label("Заказ #%d: %d шт., качество %d+, %s. Срок через %s.%s" % [order.id, order.quantity, order.min_quality, UiText.money(order.reward), UiText.real_duration(order.deadline - now, sim), shortage]))
-	var buttons := HBoxContainer.new()
+	var buttons := VBoxContainer.new()
 	var free := sim.couriers.available_for(order, now)
 	for courier_id: String in sim.couriers.drivers():
-		buttons.add_child(_button("Отправить: %s" % UiText.courier_name(courier_id, sim), dispatch.bind(order.id, courier_id), free.has(courier_id)))
+		var label := "Отправить: %s" % UiText.courier_name(courier_id, sim)
+		var reason := "" if free.has(courier_id) else DispatchText.blocked_reason(order, courier_id, sim)
+		if not reason.is_empty():
+			label += " — " + reason
+		var button := _button(label, dispatch.bind(order.id, courier_id), free.has(courier_id))
+		button.tooltip_text = reason
+		button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		buttons.add_child(button)
 	if buttons.get_child_count() == 0:
 		row.add_child(UiStyle.label("Везти некому — наймите курьера.", 13, UiStyle.MUTED))
 	row.add_child(buttons)

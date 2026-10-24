@@ -18,10 +18,11 @@ const APP_STOCK: int = 3
 const APP_PEOPLE: int = 4
 const APP_EMPIRE: int = 5
 const APP_MAP: int = 6
-const APP_TITLES: PackedStringArray = ["Звонки", "Финн", "Магазин", "Склад", "Люди", "Империя", "Карта"]
-const APP_GLYPHS: PackedStringArray = [PhoneGlyphs.CALLS, PhoneGlyphs.MESSAGES, PhoneGlyphs.SHOP, PhoneGlyphs.STOCK, PhoneGlyphs.PEOPLE, PhoneGlyphs.EMPIRE, PhoneGlyphs.MAP]
-## plant_mid, brass, container_red, oak, camel_coat, hazard_yellow, grass_light
-const APP_COLORS: PackedColorArray = [Color("5A8A45"), Color("B08D4A"), Color("A14A35"), Color("7A5A3A"), Color("A88A62"), Color("C9A23A"), Color("7A8F5C")]
+const APP_FINANCE: int = 7
+const APP_TITLES: PackedStringArray = ["Звонки", "Финн", "Магазин", "Склад", "Люди", "Империя", "Карта", "Финансы"]
+const APP_GLYPHS: PackedStringArray = [PhoneGlyphs.CALLS, PhoneGlyphs.MESSAGES, PhoneGlyphs.SHOP, PhoneGlyphs.STOCK, PhoneGlyphs.PEOPLE, PhoneGlyphs.EMPIRE, PhoneGlyphs.MAP, PhoneGlyphs.MONEY]
+## plant_mid, brass, container_red, oak, camel_coat, hazard_yellow, grass_light, money_green
+const APP_COLORS: PackedColorArray = [Color("5A8A45"), Color("B08D4A"), Color("A14A35"), Color("7A5A3A"), Color("A88A62"), Color("C9A23A"), Color("7A8F5C"), Color("6E8F5E")]
 
 ## Set by the HUD: Finn phrases directions from where Jack stands.
 var underground: bool = false
@@ -198,6 +199,8 @@ func refresh() -> void:
 			PhoneStock.fill_empire(fresh, sim)
 		APP_MAP:
 			PhoneMap.fill(fresh, sim)
+		APP_FINANCE:
+			PhoneFinance.fill(fresh, sim)
 	_app_view.fill(fresh)
 
 

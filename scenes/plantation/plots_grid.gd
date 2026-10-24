@@ -28,16 +28,29 @@ func _sync_beds() -> void:
 	while _views.size() < count:
 		var view := plot_scene.instantiate() as PlotView
 		view.plot_id = _views.size()
+		view.position = slot_position(view.plot_id, maxi(Game.sim.config.max_plots, count))
 		add_child(view)
 		_views.append(view)
-	var rows := ceili(float(count) / float(columns))
-	for view: PlotView in _views:
-		var column := view.plot_id % columns
-		var row := floori(float(view.plot_id) / float(columns))
-		view.position = Vector3(
-			(float(column) - float(columns - 1) / 2.0) * spacing.x,
-			0.0,
-			(float(row) - float(rows - 1) / 2.0) * spacing.y)
+
+
+## Every bed has a fixed slot in a grid sized for the most beds the farm can hold, so buying one
+## never moves the others. Rows fill from the middle of the room outwards.
+func slot_position(plot_id: int, capacity: int) -> Vector3:
+	var rows := ceili(float(capacity) / float(columns))
+	var row_order: Array[int] = []
+	for row: int in rows:
+		row_order.append(row)
+	var middle := float(rows - 1) / 2.0
+	row_order.sort_custom(func(a: int, b: int) -> bool:
+		var a_off := absf(float(a) - middle)
+		var b_off := absf(float(b) - middle)
+		return a_off < b_off or (is_equal_approx(a_off, b_off) and a < b))
+	var column := plot_id % columns
+	var row := row_order[mini(floori(float(plot_id) / float(columns)), rows - 1)]
+	return Vector3(
+		(float(column) - float(columns - 1) / 2.0) * spacing.x,
+		0.0,
+		(float(row) - middle) * spacing.y)
 
 
 func view_for(plot_id: int) -> PlotView:

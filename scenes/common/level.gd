@@ -19,6 +19,7 @@ var _navigation_ready: bool = false
 var _pressing: bool = false
 var _dragging: bool = false
 var _press_position: Vector2 = Vector2.ZERO
+var _hovered: Interactable = null
 
 
 func _ready() -> void:
@@ -26,6 +27,7 @@ func _ready() -> void:
 	var spawn := _spawn_position(SceneRouter.take_spawn())
 	jack.global_position = spawn
 	camera_rig.focus(spawn)
+	hud.jack_focus_requested.connect(centre_on_jack)
 	Game.is_running = true
 	hud.underground = not _is_opening_level()
 	if _is_opening_level() and Game.take_fresh_start():
@@ -46,6 +48,13 @@ func _refresh_navigation_ready() -> void:
 	if NavigationServer3D.map_get_iteration_id(map) == 0:
 		return
 	_navigation_ready = NavigationServer3D.map_get_closest_point_owner(map, jack.global_position) == nav_region.get_rid()
+
+
+func centre_on_jack(follow: bool = false) -> void:
+	if follow:
+		camera_rig.follow(jack)
+	else:
+		camera_rig.glide_to(jack.global_position)
 
 
 func show_message(text: String) -> void:
@@ -113,7 +122,20 @@ func _physics_process(_delta: float) -> void:
 	var interactable: Interactable = null
 	if not hit.is_empty():
 		interactable = hit["collider"] as Interactable
+	if get_viewport().gui_get_hovered_control() != null:
+		interactable = null
+	_set_hovered(interactable)
 	hud.set_hover(interactable.hover_text() if interactable != null else "")
+
+
+func _set_hovered(interactable: Interactable) -> void:
+	if interactable == _hovered:
+		return
+	if is_instance_valid(_hovered):
+		_hovered.hovered = false
+	_hovered = interactable
+	if interactable != null:
+		interactable.hovered = true
 
 
 func _pick(screen_position: Vector2) -> Dictionary:

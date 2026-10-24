@@ -6,6 +6,13 @@ const DRY_SOIL: Color = Color(0.49, 0.4, 0.314)
 const WET_SOIL: Color = Color(0.227, 0.173, 0.133)
 const DRY_LABEL: Color = Color(1.0, 0.5, 0.4)
 const READY_LABEL: Color = Color(0.7, 1.0, 0.6)
+## Out of the mouse's way a bed shows only a faint name; the details come up under the cursor.
+const FULL_FONT: int = 34
+const COMPACT_FONT: int = 20
+const COMPACT_ALPHA: float = 0.4
+const TROUBLE_ALPHA: float = 0.75
+const BADGE_HEIGHT: float = 2.6
+const BADGE_PIXEL: float = 0.009
 
 @export var plot_id: int = 0
 @export var soil: MeshInstance3D
@@ -20,12 +27,23 @@ const READY_LABEL: Color = Color(0.7, 1.0, 0.6)
 var _soil_material: StandardMaterial3D
 var _stage_holders: Array[Node3D] = []
 var _last_water: float = 0.0
+## The pictogram over a bed that needs a hand; it stays up when the label is faint.
+var badge: Sprite3D
 
 
 func _ready() -> void:
 	_soil_material = StandardMaterial3D.new()
 	_soil_material.roughness = 1.0
 	soil.material_override = _soil_material
+	badge = Sprite3D.new()
+	badge.name = "Badge"
+	badge.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	badge.no_depth_test = true
+	badge.render_priority = 1
+	badge.pixel_size = BADGE_PIXEL
+	badge.position = Vector3(0.0, BADGE_HEIGHT, 0.0)
+	badge.visible = false
+	add_child(badge)
 	for stage_model: PackedScene in stage_models:
 		var holder := Node3D.new()
 		holder.visible = false
@@ -52,9 +70,28 @@ func _process(_delta: float) -> void:
 	for index: int in _stage_holders.size():
 		_stage_holders[index].visible = index == visible_holder
 	plant.scale = Vector3.ONE * plant_scale * _growth_scale(plot)
-	label.text = _label_text(plot)
+	label.text = _label_text(plot) if hovered else _compact_text(plot)
+	label.font_size = FULL_FONT if hovered else COMPACT_FONT
 	var troubled := _is_dry(plot) or not plot.problem.is_empty()
-	label.modulate = DRY_LABEL if troubled else (READY_LABEL if plot.stage == Plot.Stage.READY else Color.WHITE)
+	var tint := DRY_LABEL if troubled else (READY_LABEL if plot.stage == Plot.Stage.READY else Color.WHITE)
+	tint.a = 1.0 if hovered else (TROUBLE_ALPHA if not badge_kind(plot).is_empty() else COMPACT_ALPHA)
+	label.modulate = tint
+	label.outline_modulate.a = tint.a
+	var kind := badge_kind(plot)
+	badge.visible = not kind.is_empty() and not hovered
+	if badge.visible:
+		badge.texture = BedBadge.texture(kind)
+
+
+## Which pictogram the bed wears; a problem outranks dry soil, as on the full label.
+func badge_kind(plot: Plot) -> String:
+	if not plot.problem.is_empty():
+		return BedBadge.PROBLEM
+	if _is_dry(plot):
+		return BedBadge.DRY
+	if plot.stage == Plot.Stage.READY:
+		return BedBadge.READY
+	return ""
 
 
 func title() -> String:
@@ -145,6 +182,17 @@ func _time_to_harvest(plot: Plot) -> float:
 	elif plot.stage == Plot.Stage.SPROUT:
 		remaining += strain.bush_hours * SimClock.GAME_SECONDS_PER_HOUR
 	return remaining
+
+
+## The faint label keeps one word for a bed that needs a hand, so it reads without hovering.
+func _compact_text(plot: Plot) -> String:
+	if not plot.problem.is_empty():
+		return "%s · %s" % [title(), UiText.capitalized(UiText.problem(plot.problem))]
+	if _is_dry(plot):
+		return "%s · СУХО" % title()
+	if plot.stage == Plot.Stage.READY:
+		return "%s · созрела" % title()
+	return title()
 
 
 func _label_text(plot: Plot) -> String:

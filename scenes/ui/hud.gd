@@ -2,12 +2,16 @@ class_name Hud
 extends CanvasLayer
 
 signal dialogue_finished
+## The player wants the camera back on Jack; with follow it stays on him until they pan away.
+signal jack_focus_requested(follow: bool)
 
 const DIALOGUE_BOX_SCENE: PackedScene = preload("res://scenes/ui/dialogue_box.tscn")
 const MESSAGE_SECONDS: float = 4.0
 const MESSAGE_FADE_SECONDS: float = 0.6
 const HOVER_OFFSET: Vector2 = Vector2(18.0, 14.0)
 const MAX_NEWS_LINES: int = 3
+## Bottom left, just above the speed buttons: where a map keeps its «back to me» button.
+const JACK_BUTTON_RECT: Rect2 = Rect2(12.0, -128.0, 60.0, 60.0)
 
 @export var money_label: Label
 @export var time_label: Label
@@ -27,6 +31,8 @@ var dialogue_box: DialogueBox
 var story_presenter: StoryPresenter
 var alert_banner: AlertBanner
 var edge_markers: EdgeMarkers
+var jack_button: JackButton
+var day_card: DayCard
 ## Set by the level: Finn phrases directions from where Jack stands.
 var underground: bool = false
 var speed_buttons: Array[Button] = []
@@ -43,6 +49,19 @@ func _ready() -> void:
 	hover_label.visible = false
 	_add_corner_button("Телефон  [Tab]", toggle_phone, Vector2(1.0, 1.0), Rect2(-190.0, -60.0, 176.0, 44.0))
 	_add_corner_button("Меню  [Esc]", toggle_pause, Vector2(1.0, 0.0), Rect2(-150.0, 12.0, 136.0, 36.0))
+	jack_button = JackButton.new()
+	jack_button.anchor_top = 1.0
+	jack_button.anchor_bottom = 1.0
+	jack_button.offset_left = JACK_BUTTON_RECT.position.x
+	jack_button.offset_top = JACK_BUTTON_RECT.position.y
+	jack_button.offset_right = JACK_BUTTON_RECT.end.x
+	jack_button.offset_bottom = JACK_BUTTON_RECT.end.y
+	jack_button.centre_requested.connect(jack_focus_requested.emit.bind(false))
+	jack_button.follow_requested.connect(jack_focus_requested.emit.bind(true))
+	add_child(jack_button)
+	day_card = DayCard.new()
+	day_card.hud = self
+	add_child(day_card)
 	edge_markers = EdgeMarkers.new()
 	add_child(edge_markers)
 	alert_banner = AlertBanner.new()
@@ -285,6 +304,8 @@ func _input(event: InputEvent) -> void:
 				toggle_pause()
 		KEY_1, KEY_2, KEY_3:
 			set_speed(key.physical_keycode - KEY_1)
+		KEY_SPACE, KEY_HOME:
+			jack_focus_requested.emit(false)
 		KEY_F5:
 			show_message("Игра сохранена." if Game.save_game() == OK else "Не удалось сохранить игру.")
 		KEY_F9:
