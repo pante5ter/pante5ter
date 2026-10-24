@@ -7,7 +7,7 @@
 [sub_resource type="Resource" id="Line_1"]
 script = ExtResource("3_line")
 speaker = ""
-text = "У ворот поля — фермер Хоббс. В резиновых сапогах и плохом настроении."
+text = "На пороге коттеджа — фермер Хоббс. В резиновых сапогах и плохом настроении."
 
 [sub_resource type="Resource" id="Line_2"]
 script = ExtResource("3_line")
