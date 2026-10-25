@@ -11,12 +11,8 @@ func _process(_delta: float) -> void:
 	var shown := stack.get_children()
 	for index: int in shown.size():
 		(shown[index] as Node3D).visible = index < count
-	if Game.sim.stash.on_the_road():
-		count_label.text = "Ящики в пути в тайник"
-	elif count > 0:
-		count_label.text = "Ящики: %d шт." % count
-	else:
-		count_label.text = "Ящики"
+	count_label.visible = count > 0
+	count_label.text = "Ящики: %d шт." % count
 
 
 static func crates() -> int:

@@ -14,6 +14,7 @@ const COURIER: String = "courier"
 const PAID: String = "paid"
 const HOME: String = "home"
 const HAUL: String = "haul"
+const WORKER: String = "worker"
 
 const SHOW: String = "Показать"
 const ANSWER: String = "Ответить"
@@ -58,7 +59,7 @@ static func from_event(event: SimEvent, sim: SimState) -> Alert:
 			parcel.seconds = 10.0
 			return parcel
 		EventLog.ORDER_RECEIVED:
-			var offer := "%d шт., качество от %d, платит %s. Ответьте по телефону (Tab)." % [int(event.data["quantity"]), int(event.data["min_quality"]), UiText.money(int(event.data["reward"]))]
+			var offer := "%d шт., качество от %d, платит %s. Ответьте по телефону." % [int(event.data["quantity"]), int(event.data["min_quality"]), UiText.money(int(event.data["reward"]))]
 			var urgent: bool = event.data.get("urgent", false) == true
 			var call := make(Severity.INFO, CALL, PhoneGlyphs.CALLS, "Срочный звонок" if urgent else "Звонит клиент", news if urgent else offer)
 			call.action = ANSWER
@@ -72,6 +73,11 @@ static func from_event(event: SimEvent, sim: SimState) -> Alert:
 			return make(Severity.DANGER, COURIER, PhoneGlyphs.DANGER, "Заказ перехватили", news)
 		EventLog.HAUL_STOPPED:
 			return make(Severity.DANGER, HAUL, PhoneGlyphs.DANGER, "Ящики перехватили", news)
+		EventLog.WORKER_UNPAID:
+			return make(Severity.WARNING, WORKER, PhoneGlyphs.MONEY, "%s без зарплаты" % UiText.person(event, sim).display_name, news)
+		EventLog.WORKER_QUIT:
+			var person := UiText.person(event, sim)
+			return make(Severity.DANGER, WORKER, PhoneGlyphs.DANGER, "%s %s с фермы" % [person.display_name, PeopleText.left_word(person)], news)
 		EventLog.EVENING_CALL:
 			var call_home := make(Severity.INFO, HOME, PhoneGlyphs.CALLS, "Реджи: пора домой", news)
 			call_home.action = GO_HOME

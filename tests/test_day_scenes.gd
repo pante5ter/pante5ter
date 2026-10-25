@@ -154,7 +154,7 @@ func test_crates_wait_in_the_bunker_and_reggie_drives_them_off() -> void:
 	assert_true(Game.sim.stash.on_the_road())
 	await wait_process_frames(2)
 	assert_eq(stack.shown_crates(), 0)
-	assert_string_contains(stack.count_label.text, "в пути")
+	assert_false(stack.count_label.visible, "playtest 5: no caption left over the empty spot")
 
 
 func test_jack_can_drive_the_crates_himself_and_lands_at_the_stash() -> void:

@@ -90,7 +90,13 @@ static func clock(sim_clock: SimClock) -> String:
 
 static func real_duration(game_seconds: float, sim: SimState) -> String:
 	var real_seconds := maxi(ceili(maxf(game_seconds, 0.0) * sim.config.real_seconds_per_game_day / SimClock.GAME_SECONDS_PER_DAY), 0)
-	return "%d:%02d" % [floori(real_seconds / 60.0), real_seconds % 60]
+	var minutes := floori(real_seconds / 60.0)
+	var seconds := real_seconds % 60
+	if minutes == 0:
+		return "%d с" % seconds
+	if seconds == 0:
+		return "%d мин" % minutes
+	return "%d мин %d с" % [minutes, seconds]
 
 
 const PROBLEM_NAMES: Dictionary[String, String] = {
@@ -314,7 +320,7 @@ static func _driver_name(sim: SimState) -> String:
 	return sim.helper.definition().display_name if sim.helper.exists() else "курьера"
 
 
-static func _person(event: SimEvent, sim: SimState) -> WorkerDef:
+static func person(event: SimEvent, sim: SimState) -> WorkerDef:
 	var worker_id := String(event.data.get("worker_id", ""))
 	if sim.helper.exists() and worker_id == sim.helper.definition().id:
 		return sim.helper.definition()
@@ -326,10 +332,13 @@ static func _person(event: SimEvent, sim: SimState) -> WorkerDef:
 
 
 static func announcement(event: SimEvent, sim: SimState) -> String:
-	var worker := _person(event, sim)
+	var worker := person(event, sim)
 	match event.type:
 		EventLog.WORKER_QUIT:
 			return "%s %s: платить было нечем, а бесплатно работать — не по правилам. Принципиальн%s." % [worker.display_name, PeopleText.left_word(worker), "ый" if worker.male else "ая"]
+		EventLog.WORKER_UNPAID:
+			var days_left := int(event.data.get("days_left", 1))
+			return "%s остался без зарплаты, долг %s. Работает, но ворчит: ещё %d %s без денег — и уйдёт." % [worker.display_name, money(int(event.data["debt"])), days_left, "день" if days_left == 1 else "дня"]
 		EventLog.WORKER_PAID:
 			return "Зарплата %s: %s." % [worker.display_name, money(int(event.data["wage"]))]
 		EventLog.HELPER_UNPAID:
@@ -352,7 +361,7 @@ static func announcement(event: SimEvent, sim: SimState) -> String:
 		EventLog.ORDER_RECEIVED:
 			if event.data.get("urgent", false) == true:
 				return StoryText.urgent_call(event)
-			return "Звонит клиент: нужно %d шт., качество %d+, %s. Ответьте по телефону (Tab)." % [int(event.data["quantity"]), int(event.data["min_quality"]), money(int(event.data["reward"]))]
+			return "Звонит клиент: нужно %d шт., качество %d+, %s. Ответьте по телефону." % [int(event.data["quantity"]), int(event.data["min_quality"]), money(int(event.data["reward"]))]
 		EventLog.ORDER_MISSED:
 			return "Клиент не дождался ответа и повесил трубку. Второй раз он вряд ли позвонит."
 		EventLog.ORDER_HAGGLED:
@@ -407,7 +416,7 @@ static func announcement(event: SimEvent, sim: SimState) -> String:
 		EventLog.RAID_STARTED:
 			return "У контейнера «Молочные зубы» — в балаклавах и с телефоном: снимают клип прямо на налёте. Разберитесь, пока не обчистили ферму."
 		EventLog.RAID_RESOLVED:
-			return _raid_outcome(String(event.data["outcome"]))
+			return _raid_outcome(String(event.data["outcome"]), int(event.data.get("taken", 0)))
 		EventLog.PLOT_STAGE_CHANGED:
 			if String(event.data["stage"]) == Plot.stage_name(Plot.Stage.READY):
 				return "Грядка %d созрела." % plot_number(int(event.data["plot_id"]))
@@ -450,21 +459,25 @@ static func lord_lines(sim: SimState) -> Array[DialogueLineDef]:
 	]
 
 
-static func _raid_outcome(outcome: String) -> String:
+static func _raid_outcome(outcome: String, taken: int) -> String:
+	var loot := DayText.crates(taken)
 	match outcome:
 		"paid":
 			return "Гопники взяли деньги и ушли. Вежливо, по их меркам."
 		"gave":
-			return "Гопники забрали половину товара. Вторую, видимо, оставили из уважения."
+			return "Гопники забрали с фермы %s — половину. Вторую, видимо, оставили из уважения." % loot
 		"chased":
 			return "Гопников прогнали. Тихо, правда, не получилось."
-		"chase_failed":
-			return "Прогнать не вышло — гопники обчистили всё. Уходили не спеша."
 		"helper_chased":
-			return "Гопники ушли. Помощник даже не повысил голос."
+			return "Гопники ушли. Реджи даже не повысил голос."
+	if taken == 0:
+		return "Гопники покрутились у контейнера и ушли ни с чем: ящиков на ферме не было. Про тайник они не знают."
+	match outcome:
+		"chase_failed":
+			return "Прогнать не вышло — гопники унесли с фермы %s. Уходили не спеша. До тайника они не добрались." % loot
 		"helper_failed":
-			return "Помощник вышел к гопникам один против толпы. Товар унесли, сам цел."
-	return "Гопники обчистили всё, пока никого не было. Без свидетелей им было удобно."
+			return "Реджи вышел к гопникам один против толпы. Сам цел, но с фермы унесли %s. Тайник они не тронули." % loot
+	return "Пока никого не было, гопники унесли с фермы %s. Без свидетелей им было удобно. Про тайник они не знают." % loot
 
 
 static func error(code: String) -> String:

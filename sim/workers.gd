@@ -75,6 +75,10 @@ func capacity() -> int:
 	return maxi(_config.max_gardeners if _config != null else 1, 1)
 
 
+func unpaid_days_before_quit() -> int:
+	return maxi(_config.unpaid_days_before_quit if _config != null else 1, 1)
+
+
 func daily_wages() -> int:
 	var total := 0
 	for gardener: Gardener in _crew:

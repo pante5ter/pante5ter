@@ -104,7 +104,7 @@ func test_an_unpaid_gardener_quits_and_the_rest_stay() -> void:
 	state.apply(HireWorkerCommand.new("tom"))
 	state.apply(HireWorkerCommand.new("dave"))
 	state.economy.money = _balance.find_worker("tom").daily_wage
-	_advance(state, 24.25, 1.0)
+	_advance(state, 24.0 * float(state.config.unpaid_days_before_quit) + 0.25, 1.0)
 	assert_eq(state.event_log.of_type(EventLog.WORKER_QUIT).size(), 1)
 	assert_eq(state.workers.gardeners().size(), 1)
 

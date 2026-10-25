@@ -8,6 +8,13 @@ var actors: PackedStringArray = PackedStringArray()
 var data: Dictionary = {}
 
 
+func _init(event_type: String = "", at: float = 0.0, event_actors: PackedStringArray = PackedStringArray(), event_data: Dictionary = {}) -> void:
+	type = event_type
+	game_time = at
+	actors = event_actors
+	data = event_data
+
+
 func to_dict() -> Dictionary:
 	return {
 		"seq": seq,

@@ -192,7 +192,9 @@ func test_raiders_show_up_and_can_be_paid_off() -> void:
 	assert_ne(gang.collision_layer, 0)
 	var money := Game.sim.economy.money
 	gang.interact(level)
-	_choose(level, "Откупиться")
+	assert_true(level.hud.is_dialogue_open())
+	level.hud.dialogue_box.skip()
+	level.hud.dialogue_box.choose(0)
 	assert_false(Game.sim.raids.pending)
 	assert_eq(Game.sim.economy.money, money - Game.sim.config.raids.bribe)
 

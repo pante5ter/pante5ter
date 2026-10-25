@@ -121,8 +121,8 @@ func test_announcements_cover_worker_and_plot_news() -> void:
 func test_real_duration_shows_real_minutes_and_seconds() -> void:
 	var state := _new_state()
 	var one_real_minute := 60.0 * SimClock.GAME_SECONDS_PER_DAY / _balance.real_seconds_per_game_day
-	assert_eq(UiText.real_duration(one_real_minute * 2.5, state), "2:30")
-	assert_eq(UiText.real_duration(-5.0, state), "0:00")
+	assert_eq(UiText.real_duration(one_real_minute * 2.5, state), "2 мин 30 с")
+	assert_eq(UiText.real_duration(-5.0, state), "0 с")
 
 
 func test_order_and_delivery_news() -> void:

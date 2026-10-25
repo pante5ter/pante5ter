@@ -29,6 +29,7 @@ var _stage_holders: Array[Node3D] = []
 var _last_water: float = 0.0
 ## The pictogram over a bed that needs a hand; it stays up when the label is faint.
 var badge: Sprite3D
+@onready var _grow_light: OmniLight3D = get_node_or_null("GrowLight") as OmniLight3D
 
 
 func _ready() -> void:
@@ -66,6 +67,8 @@ func _process(_delta: float) -> void:
 	if plot.water_seconds > _last_water + 1.0:
 		splash.restart()
 	_last_water = plot.water_seconds
+	if _grow_light != null:
+		_grow_light.visible = not Game.sim.suspicion.quiet and plot.problem != Problems.LAMP
 	var visible_holder := int(plot.stage) - 1
 	for index: int in _stage_holders.size():
 		_stage_holders[index].visible = index == visible_holder

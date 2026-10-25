@@ -38,7 +38,7 @@ func _physics_process(delta: float) -> void:
 		rotation.y = atan2(flat.x, flat.z)
 	if model != null:
 		model.play_walk()
-	global_position = global_position.move_toward(next, speed * delta)
+	global_position = global_position.move_toward(next, speed * Game.time_scale * delta)
 
 
 func _arrive() -> void:

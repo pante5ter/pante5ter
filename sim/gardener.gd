@@ -8,6 +8,8 @@ var task_plot_id: int = -1
 var task_ends_at: float = 0.0
 var next_check_at: float = 0.0
 var next_wage_at: float = 0.0
+var wage_debt: int = 0
+var missed_wages: int = 0
 
 var _def: WorkerDef
 var _crew: Workers
@@ -53,12 +55,25 @@ func process(now: float) -> bool:
 
 
 func _pay_wage(now: float) -> bool:
-	if _crew.economy().spend(_def.daily_wage):
-		next_wage_at += SimClock.GAME_SECONDS_PER_DAY
+	var owed := _def.daily_wage + wage_debt
+	next_wage_at += SimClock.GAME_SECONDS_PER_DAY
+	if _crew.economy().spend(owed):
+		wage_debt = 0
+		missed_wages = 0
 		_crew.talk(_def.talkativeness)
 		_crew.event_log().record(EventLog.WORKER_PAID, now, PackedStringArray([actor()]), {
 			"worker_id": _def.id,
-			"wage": _def.daily_wage,
+			"wage": owed,
+			"money": _crew.economy().money,
+		})
+		return true
+	missed_wages += 1
+	if missed_wages < _crew.unpaid_days_before_quit():
+		wage_debt = owed
+		_crew.event_log().record(EventLog.WORKER_UNPAID, now, PackedStringArray([actor()]), {
+			"worker_id": _def.id,
+			"debt": wage_debt,
+			"days_left": _crew.unpaid_days_before_quit() - missed_wages,
 			"money": _crew.economy().money,
 		})
 		return true
@@ -133,6 +148,8 @@ func to_dict() -> Dictionary:
 		"task_ends_at": ExactFloat.encode(task_ends_at),
 		"next_check_at": ExactFloat.encode(next_check_at),
 		"next_wage_at": ExactFloat.encode(next_wage_at),
+		"wage_debt": wage_debt,
+		"missed_wages": missed_wages,
 	}
 
 
@@ -142,3 +159,5 @@ func load_dict(data: Dictionary) -> void:
 	task_ends_at = ExactFloat.decode(data["task_ends_at"])
 	next_check_at = ExactFloat.decode(data["next_check_at"])
 	next_wage_at = ExactFloat.decode(data["next_wage_at"])
+	wage_debt = int(data.get("wage_debt", 0))
+	missed_wages = int(data.get("missed_wages", 0))

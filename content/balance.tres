@@ -60,6 +60,7 @@ script = ExtResource("1_balance")
 real_seconds_per_game_day = 600.0
 starting_money = 500
 plot_count = 6
+unpaid_days_before_quit = 2
 strain = ExtResource("2_strain")
 extra_strains = Array[ExtResource("7_strain_def")]([ExtResource("4_classic"), ExtResource("5_elite")])
 worker = ExtResource("3_worker")

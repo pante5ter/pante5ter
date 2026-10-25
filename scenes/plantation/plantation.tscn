@@ -15,6 +15,7 @@
 [ext_resource type="PackedScene" path="res://scenes/actors/worker.tscn" id="13_worker"]
 [ext_resource type="Script" path="res://scenes/common/iso_camera_rig.gd" id="14_iso_camera_rig"]
 [ext_resource type="PackedScene" path="res://scenes/ui/hud.tscn" id="15_hud"]
+[ext_resource type="Script" path="res://scenes/plantation/bunker_lights.gd" id="16_bunker_lights"]
 
 [sub_resource type="Environment" id="env_bunker"]
 background_mode = 1
@@ -113,6 +114,11 @@ default_spawn = "from_elevator"
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("env_bunker")
+
+[node name="BunkerLights" type="Node" parent="." node_paths=PackedStringArray("world", "lamps")]
+script = ExtResource("16_bunker_lights")
+world = NodePath("../WorldEnvironment")
+lamps = [NodePath("../DeskLight"), NodePath("../CratesLight")]
 
 [node name="NavRegion" type="NavigationRegion3D" parent="."]
 navigation_mesh = SubResource("navmesh_bunker")

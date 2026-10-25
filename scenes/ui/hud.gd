@@ -195,6 +195,15 @@ func is_blocking_world() -> bool:
 	return action_menu.visible or pause_menu.visible or computer.visible or dialogue_box.is_open() or night.is_open()
 
 
+## Phone buttons fire on mouse down and may rebuild the screen under the cursor before the GUI
+## takes the press, so a press over an open panel never counts as a click on the world behind it.
+func is_over_panel(screen_position: Vector2) -> bool:
+	for panel: Control in [phone, computer, action_menu] as Array[Control]:
+		if panel.is_visible_in_tree() and panel.get_global_rect().has_point(screen_position):
+			return true
+	return false
+
+
 ## With choices the box waits on the last line for one; its chosen signal carries the index.
 func play_dialogue(lines: Array[DialogueLineDef], choices: PackedStringArray = PackedStringArray()) -> void:
 	action_menu.close()

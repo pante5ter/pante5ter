@@ -10,6 +10,8 @@ extends Resource
 @export var worker_candidates: Array[WorkerDef] = []
 ## Gardeners hired at the same time.
 @export var max_gardeners: int = 3
+## Missed wage days a gardener puts up with; he walks off on this one.
+@export var unpaid_days_before_quit: int = 2
 ## Hired from the first minute; null plays the farm without him.
 @export var helper: WorkerDef
 @export var skills: Array[SkillDef] = []

@@ -21,6 +21,11 @@ const WHEAT_COLOR: Color = Color("D2BE84")
 const HOUSE: Color = Color("C9B27E")
 const CONTAINER_COLOR: Color = Color("A14A35")
 const POLICE: Color = Color("2F5D9E")
+const CAPTIONS: Array[String] = ["Эшкомб-холл", "Пшеница", "Контейнер", "Дорога"]
+## Bottom-left of each caption in world coordinates, before it is pushed clear of the others.
+const CAPTION_ANCHORS: Array[Vector2] = [Vector2(-64.0, -44.0), Vector2(20.0, 0.0), Vector2(52.0, 16.0), Vector2(-80.0, ROAD_Z - 3.0)]
+const CAPTION_MARGIN: float = 2.0
+const CAPTION_TRIES: int = 12
 
 var _sim: SimState
 var _origin: Vector2 = Vector2.ZERO
@@ -79,16 +84,50 @@ func _draw() -> void:
 	draw_rect(_rect(COTTAGE), HOUSE)
 	var box_at := _to_map(CONTAINER)
 	draw_rect(Rect2(box_at - Vector2(4.0, 7.0), Vector2(8.0, 14.0)), CONTAINER_COLOR)
-	_caption(_to_map(Vector2(-64.0, -45.0)), "Эшкомб-холл")
-	_caption(_to_map(Vector2(24.0, 0.0)), "Пшеница")
-	_caption(box_at + Vector2(-78.0, -12.0), "Контейнер")
-	_caption(_to_map(Vector2(-80.0, ROAD_Z - 3.0)), "Дорога")
+	var font := get_theme_default_font()
+	var boxes := caption_boxes(size, font)
+	for index: int in boxes.size():
+		_caption(boxes[index].position + Vector2(0.0, font.get_ascent(PhoneKit.SMALL_SIZE)), CAPTIONS[index])
 	if _sim == null:
 		return
 	for spot: Spot in spots(_sim):
 		var at := _to_map(spot.world)
 		draw_circle(at, 8.0, PhoneKit.BEZEL)
 		draw_circle(at, 6.0, spot.colour)
+
+
+## Where each of CAPTIONS goes on a map of this size: inside the map, none on top of another.
+static func caption_boxes(map_size: Vector2, font: Font) -> Array[Rect2]:
+	var scale := minf(map_size.x / WORLD.size.x, map_size.y / WORLD.size.y)
+	var origin := (map_size - WORLD.size * scale) / 2.0
+	var bounds := Rect2(Vector2.ZERO, map_size).grow(-CAPTION_MARGIN)
+	var boxes: Array[Rect2] = []
+	for index: int in CAPTIONS.size():
+		var text_size := font.get_string_size(CAPTIONS[index], HORIZONTAL_ALIGNMENT_LEFT, -1, PhoneKit.SMALL_SIZE)
+		var at := origin + (CAPTION_ANCHORS[index] - WORLD.position) * scale
+		var box := _clamped(Rect2(at - Vector2(0.0, text_size.y), text_size), bounds)
+		var tries := 0
+		while _overlaps(box, boxes) and tries < CAPTION_TRIES:
+			box.position.y += text_size.y + CAPTION_MARGIN
+			if box.end.y > bounds.end.y:
+				box.position.y = bounds.position.y + float(tries) * (text_size.y + CAPTION_MARGIN)
+			box = _clamped(box, bounds)
+			tries += 1
+		boxes.append(box)
+	return boxes
+
+
+static func _clamped(box: Rect2, bounds: Rect2) -> Rect2:
+	box.position.x = clampf(box.position.x, bounds.position.x, maxf(bounds.end.x - box.size.x, bounds.position.x))
+	box.position.y = clampf(box.position.y, bounds.position.y, maxf(bounds.end.y - box.size.y, bounds.position.y))
+	return box
+
+
+static func _overlaps(box: Rect2, placed: Array[Rect2]) -> bool:
+	for other: Rect2 in placed:
+		if box.intersects(other):
+			return true
+	return false
 
 
 func _caption(at: Vector2, text: String) -> void:

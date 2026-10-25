@@ -34,6 +34,7 @@
 [ext_resource type="PackedScene" path="res://scenes/actors/jack.tscn" id="32_jack"]
 [ext_resource type="Script" path="res://scenes/common/iso_camera_rig.gd" id="33_iso_camera_rig"]
 [ext_resource type="PackedScene" path="res://scenes/ui/hud.tscn" id="34_hud"]
+[ext_resource type="PackedScene" path="res://scenes/actors/worker.tscn" id="35_worker"]
 
 [sub_resource type="Environment" id="env_field"]
 background_mode = 1
@@ -1003,6 +1004,11 @@ font_size = 32
 outline_size = 10
 
 [node name="Jack" parent="." instance=ExtResource("32_jack")]
+
+[node name="Reggie" parent="." instance=ExtResource("35_worker")]
+role = "helper"
+follow_jack = true
+only_when_free = true
 
 [node name="CameraRig" type="Node3D" parent="." node_paths=PackedStringArray("camera")]
 rotation = Vector3(0, 0.785398, 0)

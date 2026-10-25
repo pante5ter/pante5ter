@@ -87,6 +87,9 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	get_viewport().set_input_as_handled()
 	if button.pressed:
+		if hud.is_over_panel(button.position):
+			_pressing = false
+			return
 		_pressing = true
 		_dragging = false
 		_press_position = button.position

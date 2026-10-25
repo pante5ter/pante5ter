@@ -92,7 +92,7 @@ func test_every_field_interactable_can_be_reached_from_start() -> void:
 	var level := await _open(FIELD_SCENE)
 	var start := level.jack.global_position
 	var targets := _interactables(level).filter(func(target: Interactable) -> bool: return not target is RaiderGang)
-	assert_eq(targets.size(), 5, "container, parcel, two Land Rovers, Lord Ashcombe")
+	assert_eq(targets.size(), 6, "container, parcel, two Land Rovers, Lord Ashcombe, Reggie")
 	for target: Interactable in targets:
 		_assert_reachable(level, start, target.approach_position(), target.name)
 	_assert_reachable(level, start, (level.get_node("SpawnPoints/from_elevator") as Node3D).global_position, "lift exit")
@@ -177,7 +177,17 @@ func test_clicking_the_world_while_a_menu_is_open_only_closes_it() -> void:
 	var actions: Array[UiAction] = []
 	level.hud.show_actions("test", actions)
 	var start := level.jack.global_position
-	_click_world(level, start + Vector3(3.0, 0.0, 0.0))
+	var menu_rect := level.hud.action_menu.get_global_rect()
+	var screen := level.get_viewport().get_visible_rect()
+	var outside := Vector3.INF
+	for x: int in range(-4, 5):
+		for z: int in range(-4, 5):
+			var point := start + Vector3(float(x), 0.0, float(z))
+			var at := level.camera_rig.camera.unproject_position(point)
+			if screen.has_point(at) and not menu_rect.has_point(at) and point.distance_to(start) > 1.0:
+				outside = point
+	assert_ne(outside, Vector3.INF, "a bit of ground is visible beside the menu")
+	_click_world(level, outside)
 	await wait_physics_frames(5)
 	assert_false(level.hud.action_menu.visible)
 	assert_false(level.jack.is_moving())
@@ -257,10 +267,13 @@ func test_hud_announces_when_the_worker_quits() -> void:
 	await wait_process_frames(2)
 	Game.sim.economy.money = Game.sim.workers.definition().daily_wage
 	Game.sim.apply(HireWorkerCommand.new())
-	Game.sim.apply(AdvanceTimeCommand.new(Game.sim.config.real_seconds_per_game_day * 1.01))
+	var days := float(Game.sim.config.unpaid_days_before_quit) + 0.01
+	Game.sim.apply(AdvanceTimeCommand.new(Game.sim.config.real_seconds_per_game_day * days))
 	await wait_process_frames(2)
 	assert_false(Game.sim.workers.hired)
-	assert_string_contains(level.hud.message_label.text, "ушёл")
+	var alert := level.hud.alert_banner.find_alert(Alert.WORKER)
+	assert_not_null(alert, "the banner says so")
+	assert_string_contains(alert.title, "ушёл")
 
 
 func test_hud_keeps_quiet_about_old_news_after_loading() -> void:
@@ -344,10 +357,10 @@ func test_a_full_plantation_stays_walkable() -> void:
 func test_news_from_the_same_moment_are_all_shown() -> void:
 	var level := await _open(FIELD_SCENE)
 	await wait_process_frames(2)
-	Game.sim.event_log.record(EventLog.WORKER_QUIT, 0.0, PackedStringArray(), {"reason": "unpaid", "money": 0})
+	Game.sim.event_log.record(EventLog.PLOT_DRIED_OUT, 0.0, PackedStringArray(), {"plot_id": 0})
 	Game.sim.event_log.record(EventLog.PLOT_PROBLEM, 0.0, PackedStringArray(), {"plot_id": 1, "problem": Problems.PESTS})
 	await wait_process_frames(2)
-	assert_string_contains(level.hud.message_label.text, "ушёл")
+	assert_string_contains(level.hud.message_label.text, "пересохла")
 	assert_string_contains(level.hud.message_label.text, "вредители")
 
 

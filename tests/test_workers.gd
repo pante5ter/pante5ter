@@ -152,8 +152,9 @@ func test_worker_is_paid_every_game_day() -> void:
 func test_worker_quits_when_wage_cannot_be_paid() -> void:
 	var state := SimState.new(_without_helper(_balance_with_money(_balance.worker.daily_wage)), 1)
 	state.apply(HireWorkerCommand.new())
-	_advance_hours(state, 25.0, 1.0)
+	_advance_hours(state, 24.0 * float(state.config.unpaid_days_before_quit) + 1.0, 1.0)
 	assert_false(state.workers.hired)
+	assert_eq(state.event_log.of_type(EventLog.WORKER_UNPAID).size(), state.config.unpaid_days_before_quit - 1, "he warned first")
 	assert_eq(state.workers.task, Workers.Task.NONE)
 	assert_eq(state.event_log.of_type(EventLog.WORKER_QUIT).size(), 1)
 	assert_eq(state.economy.money, 0)
