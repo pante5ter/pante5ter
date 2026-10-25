@@ -43,6 +43,13 @@ static func helper_status(sim: SimState) -> String:
 	return "%s: %s, грядка %d" % [name, UiText.TASK_VERBS.get(helper.task, "работает"), UiText.plot_number(helper.task_plot_id)]
 
 
+## Where gardeners are hired, while there are none: playtesters kept asking.
+static func hire_hint(sim: SimState) -> String:
+	if not sim.workers.gardeners().is_empty() or sim.workers.capacity() <= 0:
+		return ""
+	return "Садовников нет — нанять: телефон (Tab) → «Люди»"
+
+
 static func packer_status(sim: SimState) -> String:
 	var packer := sim.packer
 	if not packer.hired:

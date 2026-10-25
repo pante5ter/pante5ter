@@ -30,6 +30,7 @@ var computer: ComputerScreen
 var dialogue_box: DialogueBox
 var story_presenter: StoryPresenter
 var alert_banner: AlertBanner
+var road_panel: RoadPanel
 var edge_markers: EdgeMarkers
 var jack_button: JackButton
 var day_card: DayCard
@@ -71,6 +72,9 @@ func _ready() -> void:
 	alert_banner = AlertBanner.new()
 	alert_banner.action_requested.connect(_on_alert_action)
 	add_child(alert_banner)
+	road_panel = RoadPanel.new()
+	road_panel.hud = self
+	add_child(road_panel)
 	phone = Phone.new()
 	phone.message.connect(show_message)
 	add_child(phone)
@@ -80,6 +84,7 @@ func _ready() -> void:
 	action_menu = ActionMenu.new()
 	add_child(action_menu)
 	computer = ComputerScreen.new()
+	computer.phone = phone
 	computer.message.connect(show_message)
 	add_child(computer)
 	pause_menu = PauseMenu.new()

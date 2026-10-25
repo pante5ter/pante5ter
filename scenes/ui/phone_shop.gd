@@ -37,19 +37,48 @@ static func fill(box: VBoxContainer, sim: SimState, phone: Phone) -> void:
 			road.add_child(PhoneKit.label("%s × %d — через %s" % [UiText.item_name(String(delivery_item["item"]), sim), int(delivery_item["quantity"]), left], PhoneKit.SMALL_SIZE, PhoneKit.MUTED))
 
 
-static func basket_text(sim: SimState) -> String:
-	var parts := PackedStringArray()
+## One line of the restock: the usual stock of an item, what is in hand or coming, what is missing.
+class Shortfall:
+	extends RefCounted
+	var item: String = ""
+	var keep: int = 0
+	var have: int = 0
+	var need: int = 0
+	var price: int = 0
+
+	func cost() -> int:
+		return need * price
+
+
+## What «Пополнить запас» pays for: only the gap up to the usual stock, parcels on the way included.
+static func shortfalls(sim: SimState) -> Array[Shortfall]:
+	var lines: Array[Shortfall] = []
 	for item: String in sim.config.restock_basket:
-		if sim.supplies.can_order(item):
-			parts.append("%s до %d" % [UiText.item_name(item, sim), sim.config.restock_basket[item]])
-	return ", ".join(parts)
+		if not sim.supplies.can_order(item):
+			continue
+		var line := Shortfall.new()
+		line.item = item
+		line.keep = sim.config.restock_basket[item]
+		line.have = sim.supplies.stock_and_coming(item)
+		line.need = maxi(line.keep - line.have, 0)
+		line.price = sim.supplies.unit_price(item)
+		lines.append(line)
+	return lines
 
 
 static func _add_restock(box: VBoxContainer, sim: SimState, phone: Phone) -> void:
 	var cost := sim.supplies.basket_cost()
 	var card := PhoneKit.card(box, PhoneKit.GOLD)
-	PhoneKit.heading(card, "Обычный запас")
-	card.add_child(PhoneKit.label(UiText.capitalized(basket_text(sim)) + ".", PhoneKit.SMALL_SIZE, PhoneKit.MUTED))
+	PhoneKit.heading(card, "Обычный запас", UiText.money(cost) if cost > 0 else "")
+	card.add_child(PhoneKit.label("Докупаем только недостающее до нормы. Что лежит на складе или уже едет, второй раз не берём — поэтому цена каждый раз своя.", PhoneKit.SMALL_SIZE, PhoneKit.MUTED))
+	for line: Shortfall in shortfalls(sim):
+		var item := UiText.capitalized(UiText.item_name(line.item, sim))
+		if line.need > 0:
+			card.add_child(PhoneKit.label("%s: %d × %s = %s (есть %d из %d)" % [item, line.need, UiText.money(line.price), UiText.money(line.cost()), line.have, line.keep], PhoneKit.SMALL_SIZE))
+		else:
+			card.add_child(PhoneKit.label("%s: хватает (%d из %d)" % [item, line.have, line.keep], PhoneKit.SMALL_SIZE, PhoneKit.MUTED))
+	if cost > sim.economy.money:
+		card.add_child(PhoneKit.label("Денег на всё не хватит — купим, сколько выйдет, по порядку списка.", PhoneKit.SMALL_SIZE, PhoneKit.WARNING))
 	var text := ("Пополнить запас — %s" % UiText.money(cost)) if cost > 0 else "Запас полный"
 	card.add_child(PhoneKit.primary(text, phone.restock, cost > 0 and sim.economy.money > 0))
 

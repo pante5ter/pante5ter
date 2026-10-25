@@ -6,13 +6,20 @@ const SCREEN_SIZE: Vector2 = Vector2(620.0, 520.0)
 const TAB_ORDERS: int = 0
 const TAB_COURIERS: int = 1
 const TAB_FARM: int = 2
+const TAB_SHOP: int = 3
+const TAB_PEOPLE: int = 4
 
 signal message(text: String)
+
+## Set by the HUD: the shop and the people tabs are the phone's apps and act through it.
+var phone: Phone
 
 var _tabs: TabContainer
 var _orders: VBoxContainer
 var _couriers: VBoxContainer
 var _farm: VBoxContainer
+var _shop: VBoxContainer
+var _people: VBoxContainer
 var _refresh_left: float = 0.0
 
 
@@ -35,6 +42,10 @@ func _ready() -> void:
 	_orders = _add_tab("Заказы")
 	_couriers = _add_tab("Курьеры")
 	_farm = _add_tab("Ферма")
+	_shop = _add_tab("Магазин")
+	_people = _add_tab("Люди")
+	if phone != null:
+		phone.message.connect(_on_phone_action.unbind(1))
 	rows.add_child(UiStyle.button("Отойти от компьютера  [Esc]", close))
 
 
@@ -82,6 +93,18 @@ func refresh() -> void:
 	UiRefresh.swap_if_changed(_orders, _fill_orders(sim))
 	UiRefresh.swap_if_changed(_couriers, _fill_couriers(sim))
 	UiRefresh.swap_if_changed(_farm, _fill_farm(sim))
+	if phone != null:
+		var shop := VBoxContainer.new()
+		PhoneShop.fill(shop, sim, phone)
+		UiRefresh.swap_if_changed(_shop, shop)
+		var people := VBoxContainer.new()
+		PhonePeople.fill(people, sim, phone)
+		UiRefresh.swap_if_changed(_people, people)
+
+
+func _on_phone_action() -> void:
+	if visible:
+		refresh()
 
 
 func dispatch(order_id: int, courier_id: String) -> void:
@@ -170,7 +193,7 @@ func _order_row(order: Order, sim: SimState, now: float) -> VBoxContainer:
 		button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		buttons.add_child(button)
 	if buttons.get_child_count() == 0:
-		row.add_child(UiStyle.label("Везти некому — наймите курьера.", 13, UiStyle.MUTED))
+		row.add_child(UiStyle.label("Везти некому — наймите курьера во вкладке «Курьеры».", 13, UiStyle.MUTED))
 	row.add_child(buttons)
 	return row
 
@@ -182,6 +205,7 @@ func _fill_couriers(sim: SimState) -> VBoxContainer:
 	if sim.helper.exists():
 		intro += " %s возит бесплатно, риск %d%%, но пока он в дороге, ферма без него." % [sim.helper.definition().display_name, roundi(sim.couriers.trip_risk(Helper.ACTOR) * 100.0)]
 	box.add_child(UiStyle.label(intro, 14, UiStyle.MUTED))
+	box.add_child(UiStyle.label("Садовников и фасовщика нанимают во вкладке «Люди» — или в телефоне, Tab → «Люди».", 14, UiStyle.ACCENT))
 	for courier: CourierDef in sim.config.courier_candidates:
 		var row := VBoxContainer.new()
 		var hired := sim.couriers.hired.has(courier.id)

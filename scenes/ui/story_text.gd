@@ -66,6 +66,9 @@ static func crew_status(sim: SimState) -> String:
 		lines.append(PeopleText.packer_status(sim))
 	if lines.is_empty():
 		return UiText.worker_status(sim.workers)
+	var hint := PeopleText.hire_hint(sim)
+	if not hint.is_empty():
+		lines.append(hint)
 	return "\n".join(lines)
 
 
