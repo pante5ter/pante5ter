@@ -40,7 +40,9 @@ static func announcement(event: SimEvent, sim: SimState) -> String:
 			return "Приехали: %s." % Travel.NAMES.get(String(event.data["to"]), "")
 		EventLog.HELPER_SKILLS_REFUNDED:
 			return "Грядки теперь на садовниках. %s вернул деньги за старые курсы: %s." % [UiText.REGGIE, UiText.money(int(event.data["refund"]))]
-	return ""
+		EventLog.HOME_NIGHT:
+			return "Ночь дома: %s." % ", ".join(home_night_gains(event))
+	return RentTalk.announcement(event, sim)
 
 
 static func evening_call(sim: SimState) -> String:
@@ -59,6 +61,8 @@ static func objective(sim: SimState) -> String:
 			return "Вы дома, Джек. Вивьен уже зевает — ложитесь спать: кровать в углу. Утром расскажу, что было за ночь."
 		return ""
 	if is_evening(sim):
+		if sim.rent.visit_promised():
+			return "Поздно, Джек, но сначала — поместье: лорд ждёт аренду до %s. Потом домой." % RentTalk.deadline(sim)
 		return "Поздно, Джек. Пора домой: садитесь в лендровер — или «Домой» на баннере. Ночью нас видно издалека."
 	return ""
 
@@ -165,6 +169,28 @@ static func news_between(sim: SimState, from: float, to: float, types: Array[Str
 
 # --- the morning briefing
 
+## What the night at home gave, for the morning briefing; empty after a night away.
+static func home_night(sim: SimState, from: float, to: float) -> PackedStringArray:
+	var lines := PackedStringArray()
+	for event: SimEvent in sim.event_log.of_type(EventLog.HOME_NIGHT):
+		if event.game_time >= from and event.game_time <= to:
+			lines.append(UiText.capitalized(", ".join(home_night_gains(event))) + ".")
+	return lines
+
+
+static func home_night_gains(event: SimEvent) -> PackedStringArray:
+	var gains := PackedStringArray()
+	var relief := float(event.data.get("suspicion_relief", 0.0))
+	if relief > 0.0:
+		gains.append("подозрение −%d%% — деревня видела, что свет в коттедже погас вовремя" % roundi(relief))
+	var bonus := int(event.data.get("bonus", 0))
+	if bonus > 0:
+		gains.append("Вивьен выиграла в бридж у жены викария %s — в кассу" % UiText.money(bonus))
+	if gains.is_empty():
+		gains.append("Джек выспался")
+	return gains
+
+
 static func briefing_title(sim: SimState) -> String:
 	return "Утро, день %d · %s" % [sim.clock.day() + 1, UiText.clock(sim.clock).get_slice("· ", 1)]
 
@@ -191,7 +217,9 @@ static func today(sim: SimState) -> PackedStringArray:
 	var story := sim.stories.pending()
 	if story != null and story.place == "manor":
 		lines.append("Лорд Эшкомб просит зайти в усадьбу.")
-	if sim.rent.amount() > 0 and sim.rent.due_in(now) <= SimClock.GAME_SECONDS_PER_DAY:
+	if sim.rent.visit_promised():
+		lines.append("Аренду %s обещали привезти лорду в поместье до %s." % [UiText.money(sim.rent.owed()), RentTalk.deadline(sim)])
+	elif sim.rent.amount() > 0 and sim.rent.due_in(now) <= SimClock.GAME_SECONDS_PER_DAY:
 		lines.append("Аренда лорду через %s — %s." % [UiText.real_duration(sim.rent.due_in(now), sim), UiText.money(sim.rent.amount())])
 	var waiting := sim.inventory.farm_crates().size()
 	if waiting > 0:

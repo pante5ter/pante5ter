@@ -170,7 +170,7 @@ func test_sleep_equals_waiting_the_night_out() -> void:
 	_advance_to_hour(waited, slept.config.day.wake_hour)
 	assert_eq(slept.clock.elapsed_game_seconds, waited.clock.elapsed_game_seconds)
 	assert_eq(slept.grow.to_array(), waited.grow.to_array())
-	assert_eq(slept.economy.money, waited.economy.money)
+	assert_eq(slept.economy.money, waited.economy.money + slept.config.day.home_night_money, "only a night in bed brings Vivienne's bridge winnings")
 
 
 func test_a_raid_wakes_jack_on_the_spot_and_sleeping_on_lets_reggie_handle_it() -> void:

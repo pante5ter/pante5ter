@@ -201,6 +201,8 @@ func test_sleep_shows_the_day_then_the_morning_briefing() -> void:
 	assert_string_contains(card.body_text(), "На ферме 1 ящик", "the briefing remembers the crate at the farm")
 	card.next_pressed.emit()
 	assert_false(level.hud.night.is_open())
+	assert_true(level.hud.is_dialogue_open(), "Vivienne has a word over breakfast")
+	level.hud.dialogue_box.skip()
 	assert_true(Game.is_running)
 
 

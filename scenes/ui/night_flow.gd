@@ -141,6 +141,9 @@ func _show_briefing() -> void:
 		{"heading": "За ночь", "lines": DayText.night(sim, _night_from, sim.clock.elapsed_game_seconds)},
 		{"heading": "Сегодня", "lines": DayText.today(sim)},
 	]
+	var at_home := DayText.home_night(sim, _night_from, sim.clock.elapsed_game_seconds)
+	if not at_home.is_empty():
+		sections.insert(1, {"heading": "Ночь дома", "lines": at_home})
 	card.show_page(DayText.briefing_title(sim), sections, "Начать день")
 
 
@@ -161,6 +164,17 @@ func close() -> void:
 	tween.tween_property(_veil, "modulate:a", 0.0, FADE_SECONDS)
 	if hud.place != Game.sim.day.place:
 		Travel.back_to_jack()
+		return
+	var woke_at_home := _home_night_since(_night_from)
+	if woke_at_home != null and hud.place == DayCycle.HOME:
+		hud.play_dialogue(Vivienne.morning_lines(woke_at_home))
+
+
+static func _home_night_since(from: float) -> SimEvent:
+	var nights := Game.sim.event_log.of_type(EventLog.HOME_NIGHT)
+	if nights.is_empty() or nights[nights.size() - 1].game_time < from:
+		return null
+	return nights[nights.size() - 1]
 
 
 ## Space or Enter turns the page.

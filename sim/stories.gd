@@ -4,7 +4,7 @@ extends RefCounted
 const LORD: String = "lord"
 const VILLAGE: String = "village"
 const CREW: String = "crew"
-const BEAT_TYPES: Array[String] = [EventLog.STORY_STARTED, EventLog.INTRIGUE_CLUE, EventLog.DIRECTOR_EVENT, EventLog.RAID_STARTED]
+const BEAT_TYPES: Array[String] = [EventLog.STORY_STARTED, EventLog.INTRIGUE_CLUE, EventLog.DIRECTOR_EVENT, EventLog.RAID_STARTED, EventLog.RENT_CALLED]
 
 ## The story waiting for Jack's choice; empty when none.
 var pending_id: String = ""

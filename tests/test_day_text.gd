@@ -96,7 +96,7 @@ func test_day_events_have_words() -> void:
 		state.event_log.record(EventLog.HELPER_SKILLS_REFUNDED, 0.0, PackedStringArray(), {"skill_ids": ["care"], "refund": 200, "money": 700}),
 	]:
 		assert_false(UiText.announcement(event, state).is_empty(), event.type)
-	assert_string_contains(DayText.evening_call(state), "20:00")
+	assert_string_contains(DayText.evening_call(state), "%d:00" % floori(state.config.day.evening_hour))
 
 
 func test_the_refund_shows_in_the_ledger() -> void:
