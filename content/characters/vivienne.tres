@@ -1,0 +1,36 @@
+[gd_resource type="Resource" script_class="CharacterDef" format=3]
+
+[ext_resource type="Script" path="res://content/defs/character_def.gd" id="1_character"]
+[ext_resource type="Script" path="res://content/defs/dialogue_line_def.gd" id="2_line"]
+
+[sub_resource type="Resource" id="Line_1"]
+script = ExtResource("2_line")
+speaker = "Вивьен"
+text = "Ну что, Эшкомб подписал? Я говорила: кто сдаёт каминные часы на мои торги, подпишет что угодно."
+
+[sub_resource type="Resource" id="Line_2"]
+script = ExtResource("2_line")
+speaker = "Джек"
+text = "Ты знала, что он на мели, раньше банка."
+
+[sub_resource type="Resource" id="Line_3"]
+script = ExtResource("2_line")
+speaker = "Вивьен"
+text = "Аукционный дом всегда знает раньше банка. Что растёт под его пшеницей, я не спрашиваю. Мне хватает того, что я знаю."
+
+[sub_resource type="Resource" id="Line_4"]
+script = ExtResource("2_line")
+speaker = "Вивьен"
+text = "Я выходила за австралийца без гроша, Джек, а не за арестанта. Хочешь в свой клуб — не попадайся."
+
+[resource]
+script = ExtResource("1_character")
+id = "vivienne"
+display_name = "Вивьен"
+bio = "Жена Джека и владелица аукционного дома; безупречный «королевский» английский. Вышла за Джека в Кембридже, когда у него не было ни гроша. Её торги первыми узнают, кто из аристократов тихо продаёт фамильное серебро, — так Джек и нашёл лорда Эшкомба: тот сдал ей каминные часы. Про подвал знает и не спрашивает. За бриджем добывает сплетни, а иногда и деньги."
+meeting = "event"
+meet_event = "jack_arrived"
+meet_key = "to"
+meet_value = "home"
+place = "home"
+intro = Array[ExtResource("2_line")]([SubResource("Line_1"), SubResource("Line_2"), SubResource("Line_3"), SubResource("Line_4")])

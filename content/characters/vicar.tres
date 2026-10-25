@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="CharacterDef" format=3]
+
+[ext_resource type="Script" path="res://content/defs/character_def.gd" id="1_character"]
+
+[resource]
+script = ExtResource("1_character")
+id = "vicar"
+display_name = "Преподобный Кэткарт"
+bio = "Викарий церкви Святого Михаила. Всё время собирает на крышу, которая, по подсчётам Вивьен, уже золотая. В проповедях вспоминает щедрых — и тех, кто богатеет по ночам. Без имён, но с адресом."

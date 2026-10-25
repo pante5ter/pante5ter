@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="CharacterDef" format=3]
+
+[ext_resource type="Script" path="res://content/defs/character_def.gd" id="1_character"]
+[ext_resource type="Script" path="res://content/defs/dialogue_line_def.gd" id="2_line"]
+
+[sub_resource type="Resource" id="Line_1"]
+script = ExtResource("2_line")
+speaker = "Реджи"
+text = "Гарри развозил пиццу в Оксфорде. Рекорд по скорости держит до сих пор. По штрафам тоже."
+
+[sub_resource type="Resource" id="Line_2"]
+script = ExtResource("2_line")
+speaker = "Гарри"
+text = "Тридцать минут или бесплатно, шеф. Бесплатно у вас не бывает — значит, двадцать."
+
+[resource]
+script = ExtResource("1_character")
+id = "harry"
+display_name = "Гарри"
+bio = "Курьер. Бывший развозчик пиццы из Оксфорда: гоняет быстро, но не смотрит по сторонам."
+meeting = "event"
+meet_event = "courier_hired"
+meet_key = "courier_id"
+meet_value = "harry"
+intro = Array[ExtResource("2_line")]([SubResource("Line_1"), SubResource("Line_2")])

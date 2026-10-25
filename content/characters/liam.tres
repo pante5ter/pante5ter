@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="CharacterDef" format=3]
+
+[ext_resource type="Script" path="res://content/defs/character_def.gd" id="1_character"]
+
+[resource]
+script = ExtResource("1_character")
+id = "liam"
+display_name = "Лиам"
+bio = "Кузен Реджи, недавно вышел. Парень хороший, только руки у него сами по себе. Моет посуду в пабе «Плуг» и задолжал букмекеру."

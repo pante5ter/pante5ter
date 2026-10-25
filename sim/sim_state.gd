@@ -47,6 +47,7 @@ var climate: Climate
 var day: DayCycle
 var stash: Stash
 var planting: PlantingPlan
+var meetings: Meetings
 
 
 func _init(balance: BalanceConfig, seed_value: int) -> void:
@@ -91,10 +92,12 @@ func _init(balance: BalanceConfig, seed_value: int) -> void:
 	day.attach_economy(economy)
 	stash = Stash.new(balance, inventory, packing, suspicion, rng, event_log)
 	stash.attach(helper, packer)
+	meetings = Meetings.new(balance, event_log)
 	progress.update(empire_value(), clock.elapsed_game_seconds)
 	# Whatever the start logged is not news to the intrigue; a refused first command must change nothing.
 	intrigue.seen_events = event_log.size()
 	thefts.seen_events = event_log.size()
+	meetings.seen_events = event_log.size()
 
 
 func apply(command: SimCommand) -> CommandResult:
@@ -104,6 +107,7 @@ func apply(command: SimCommand) -> CommandResult:
 	first_day.update(clock.elapsed_game_seconds)
 	intrigue.update(clock.elapsed_game_seconds)
 	thefts.update(clock.elapsed_game_seconds)
+	meetings.update(clock.elapsed_game_seconds)
 	progress.update(empire_value(), clock.elapsed_game_seconds)
 	return result
 
@@ -194,6 +198,8 @@ func _apply(command: SimCommand) -> CommandResult:
 	if command is SetPlantingPlanCommand:
 		var plan := command as SetPlantingPlanCommand
 		return planting.set_beds(plan.strain_id, plan.beds, now, command.actor)
+	if command is MeetCommand:
+		return meetings.meet((command as MeetCommand).character_id, now, command.actor)
 	return CommandResult.failure(CommandResult.UNKNOWN_COMMAND)
 
 
@@ -302,6 +308,7 @@ func _process_events(now: float) -> void:
 	intrigue.update(now)
 	thefts.update(now)
 	director.process(now)
+	meetings.update(now)
 
 
 func _grow_unless_quiet(now: float, game_seconds: float) -> void:
@@ -362,6 +369,7 @@ func to_dict() -> Dictionary:
 		"day": day.to_dict(),
 		"stash": stash.to_dict(),
 		"planting_plan": planting.to_dict(),
+		"meetings": meetings.to_dict(),
 		"event_log": event_log.to_array(),
 	}
 
@@ -447,6 +455,11 @@ func _load_dict(data: Dictionary) -> void:
 	if data.has("stash"):
 		stash.load_dict(data["stash"] as Dictionary)
 	planting.load_dict(data.get("planting_plan", {}) as Dictionary)
+	# A save from before the intros knows everyone already.
+	if data.has("meetings"):
+		meetings.load_dict(data["meetings"] as Dictionary)
+	else:
+		meetings.meet_everyone()
 
 
 ## Before v12 the bench and the shelf stood in the bunker; everything on them now waits at the stash.

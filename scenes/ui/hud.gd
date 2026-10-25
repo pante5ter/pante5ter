@@ -29,6 +29,7 @@ var pause_menu: PauseMenu
 var computer: ComputerScreen
 var dialogue_box: DialogueBox
 var story_presenter: StoryPresenter
+var intros: IntroPresenter
 var alert_banner: AlertBanner
 var road_panel: RoadPanel
 var edge_markers: EdgeMarkers
@@ -107,6 +108,9 @@ func _ready() -> void:
 	story_presenter = StoryPresenter.new()
 	story_presenter.hud = self
 	add_child(story_presenter)
+	intros = IntroPresenter.new()
+	intros.hud = self
+	add_child(intros)
 	remote_bar = RemoteBar.new()
 	remote_bar.hud = self
 	add_child(remote_bar)

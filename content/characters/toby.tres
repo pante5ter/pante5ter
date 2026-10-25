@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="CharacterDef" format=3]
+
+[ext_resource type="Script" path="res://content/defs/character_def.gd" id="1_character"]
+
+[resource]
+script = ExtResource("1_character")
+id = "toby"
+display_name = "Тоби Пэлфри"
+bio = "Молодой репортёр «Котсуолдского вестника». Пишет про ночные фургоны у поля; у редакции две версии — кино или тело."

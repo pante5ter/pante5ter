@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="CharacterDef" format=3]
+
+[ext_resource type="Script" path="res://content/defs/character_def.gd" id="1_character"]
+
+[resource]
+script = ExtResource("1_character")
+id = "hobbs"
+display_name = "Фермер Хоббс"
+bio = "Сосед по полю. Тридцать лет держит свиней и делает силос, поэтому отличает силос от всего остального. Разговаривает в пабе со всеми, со свиньями тоже."

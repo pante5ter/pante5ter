@@ -32,6 +32,7 @@
 [ext_resource type="Resource" path="res://content/climate.tres" id="33_climate"]
 [ext_resource type="Resource" path="res://content/day.tres" id="34_day"]
 [ext_resource type="Resource" path="res://content/stash.tres" id="35_stash"]
+[ext_resource type="Resource" path="res://content/cast.tres" id="36_cast"]
 
 [sub_resource type="Resource" id="Resource_milestone_1"]
 script = ExtResource("14_milestone_def")
@@ -83,6 +84,7 @@ courier_theft_story = ExtResource("32_courier_theft")
 climate = ExtResource("33_climate")
 day = ExtResource("34_day")
 stash = ExtResource("35_stash")
+cast = ExtResource("36_cast")
 fertilizer_price = 15
 fertilizer_bonus = 12
 prune_bonus = 8

@@ -37,6 +37,8 @@ extends Resource
 @export var day: DayDef
 ## The drive from the farm to the stash.
 @export var stash: StashDef
+## The people Jack meets and their backstories. Null: no intros.
+@export var cast: CastDef
 
 @export_group("Care")
 @export var fertilizer_price: int = 0
