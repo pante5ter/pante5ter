@@ -13,6 +13,7 @@ extends Resource
 
 @export_group("Size")
 @export var max_open: int = 3
+## A wholesale call's size; without a retail share, every call's.
 @export var quantity_min: int = 2
 @export var quantity_max: int = 5
 @export var quality_min: int = 40
@@ -25,6 +26,17 @@ extends Resource
 @export var reward_multiplier: float = 1.3
 @export_range(0.0, 1.0) var haggle_success: float = 0.5
 @export var haggle_bonus: float = 0.25
+
+@export_group("Wholesale and retail")
+## Share of regular callers who buy a few boxes at retail; zero: calls carry no kind, as before.
+@export_range(0.0, 1.0) var retail_share: float = 0.0
+@export var retail_quantity_min: int = 1
+@export var retail_quantity_max: int = 3
+## On top of reward_multiplier, per kind.
+@export var wholesale_price_multiplier: float = 1.0
+@export var retail_price_multiplier: float = 1.0
+## Wholesale deadline once accepted; zero keeps deadline_hours.
+@export var wholesale_deadline_hours: float = 0.0
 
 @export_group("Packing")
 @export var pack_minutes_per_unit: float = 10.0

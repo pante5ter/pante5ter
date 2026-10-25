@@ -9,7 +9,7 @@ static func fill(box: VBoxContainer, sim: SimState, phone: Phone) -> void:
 		box.add_child(PhoneKit.label("Тихо. Клиенты звонят сами — телефон пискнет.", PhoneKit.BODY_SIZE, PhoneKit.MUTED))
 	for order: Order in calls:
 		var card := PhoneKit.card(box, PhoneKit.DANGER if order.urgent else Phone.APP_COLORS[Phone.APP_CALLS])
-		PhoneKit.heading(card, "%sКлиент: %d шт." % ["Срочно! " if order.urgent else "", order.quantity], UiText.money(order.reward))
+		PhoneKit.heading(card, "%sКлиент%s: %d шт." % ["Срочно! " if order.urgent else "", UiText.order_kind(order.kind), order.quantity], UiText.money(order.reward))
 		var strain := sim.config.find_strain(order.strain_id) if not order.strain_id.is_empty() else null
 		var wants := "Сорт «%s» · качество от %d" % [strain.display_name, order.min_quality] if strain != null else "Качество от %d" % order.min_quality
 		card.add_child(PhoneKit.label("%s · повесит трубку через %s" % [wants, UiText.real_duration(order.answer_by - now, sim)], PhoneKit.SMALL_SIZE, PhoneKit.MUTED))

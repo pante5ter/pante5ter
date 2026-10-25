@@ -66,7 +66,7 @@ func test_accepting_starts_the_delivery_deadline() -> void:
 	assert_eq(order.status, Order.Status.ACCEPTED)
 	_advance(state, state.config.orders.answer_hours + 0.5)
 	assert_not_null(state.orders.find(order.id), "accepted orders no longer hang up")
-	_advance(state, state.config.orders.deadline_hours)
+	_advance(state, (order.deadline - state.clock.elapsed_game_seconds) / SimClock.GAME_SECONDS_PER_HOUR + 0.01)
 	assert_null(state.orders.find(order.id))
 	assert_gt(state.event_log.of_type(EventLog.ORDER_EXPIRED).size(), 0)
 

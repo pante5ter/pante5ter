@@ -63,14 +63,15 @@ func _strain_name(strain_id: String) -> String:
 
 # --- 1. «Не на что нанять людей»
 
-func test_starting_money_hires_a_gardener_and_stocks_up_for_two_days() -> void:
+## Playtest 6 trimmed the purse: the first day is covered, the second is paid from the first sales.
+func test_starting_money_hires_a_gardener_and_stocks_up_for_the_first_day() -> void:
 	var dearest := 0
 	for candidate: WorkerDef in _balance.candidates():
 		dearest = maxi(dearest, candidate.daily_wage)
 	var state := _calm(_balance.starting_money)
 	var basket := state.supplies.basket_cost()
-	var two_days := 2 * dearest + 2 * _balance.helper.daily_wage + basket
-	assert_gte(_balance.starting_money, two_days, "the dearest gardener for two days, Reggie and the usual basket")
+	var first_day := dearest + _balance.helper.daily_wage + basket
+	assert_gte(_balance.starting_money, first_day, "the dearest gardener, Reggie and the usual basket")
 
 
 func test_the_bigger_purse_does_not_hand_out_the_first_level() -> void:
@@ -84,7 +85,7 @@ func test_at_the_start_jack_can_hire_and_restock_on_the_same_morning() -> void:
 	assert_true(state.apply(HireWorkerCommand.new("tom")).ok)
 	assert_true(state.apply(RestockCommand.new()).ok)
 	assert_eq(state.supplies.basket_cost(), 0, "the whole basket was affordable")
-	assert_gte(state.economy.money, state.workers.daily_wages() + _balance.helper.daily_wage, "tomorrow's wages are still there")
+	assert_gte(state.economy.money, _balance.helper.daily_wage, "Reggie's wage is still there")
 
 
 # --- 2. «Клиент не дождался»
@@ -221,7 +222,8 @@ func test_the_reward_is_priced_by_the_strain_asked_for() -> void:
 	_spawned_strains(state, 30)
 	for order: Order in state.orders.all():
 		var strain := _balance.find_strain(order.strain_id)
-		assert_eq(order.reward, roundi(float(order.quantity * Economy.price_with(strain, order.min_quality)) * _balance.orders.reward_multiplier))
+		var kind_multiplier := _balance.orders.retail_price_multiplier if order.kind == Order.RETAIL else _balance.orders.wholesale_price_multiplier
+		assert_eq(order.reward, roundi(float(order.quantity * Economy.price_with(strain, order.min_quality)) * _balance.orders.reward_multiplier * kind_multiplier))
 
 
 func test_order_received_event_carries_the_strain() -> void:

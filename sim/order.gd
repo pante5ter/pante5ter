@@ -3,6 +3,9 @@ extends RefCounted
 
 enum Status { OFFERED, ACCEPTED, IN_TRANSIT }
 
+const WHOLESALE: String = "wholesale"
+const RETAIL: String = "retail"
+
 var id: int = 0
 var quantity: int = 0
 var min_quality: int = 0
@@ -22,6 +25,8 @@ var deadline_hours: float = 0.0
 var delayed: bool = false
 ## The strain the client wants; empty takes any.
 var strain_id: String = ""
+## WHOLESALE or RETAIL for a regular call; empty for scripted, urgent and old ones.
+var kind: String = ""
 
 
 static func status_name(value: Status) -> String:
@@ -45,6 +50,7 @@ func to_dict() -> Dictionary:
 		"deadline_hours": ExactFloat.encode(deadline_hours),
 		"delayed": delayed,
 		"strain_id": strain_id,
+		"kind": kind,
 	}
 
 
@@ -70,4 +76,5 @@ static func from_dict(data: Dictionary) -> Order:
 	order.delayed = data.get("delayed", false) == true
 	order.deadline_hours = ExactFloat.decode(data["deadline_hours"]) if data.has("deadline_hours") else 0.0
 	order.strain_id = String(data.get("strain_id", ""))
+	order.kind = String(data.get("kind", ""))
 	return order

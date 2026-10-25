@@ -200,16 +200,35 @@ func has_room() -> bool:
 
 
 func _spawn(at: float) -> void:
-	var quantity := _rng.randi_range(_def.quantity_min, _def.quantity_max)
+	var kind := _pick_kind()
+	var retail := kind == Order.RETAIL
+	var quantity := _rng.randi_range(_def.retail_quantity_min, _def.retail_quantity_max) if retail else _rng.randi_range(_def.quantity_min, _def.quantity_max)
 	var quality_steps := maxi(floori(float(_def.quality_max - _def.quality_min) / float(maxi(_def.quality_step, 1))), 0)
 	var min_quality := _def.quality_min + _rng.randi_range(0, quality_steps) * _def.quality_step
 	var strain_id := pick_strain()
-	var reward := roundi(float(quantity * Economy.price_with(price_strain(strain_id), min_quality)) * _def.reward_multiplier)
-	inject(quantity, min_quality, reward, _def.answer_hours, 0.0, false, at, strain_id)
+	var reward := roundi(float(quantity * Economy.price_with(price_strain(strain_id), min_quality)) * _def.reward_multiplier * _kind_price_multiplier(kind))
+	var deadline_hours := _def.wholesale_deadline_hours if kind == Order.WHOLESALE else 0.0
+	inject(quantity, min_quality, reward, _def.answer_hours, deadline_hours, false, at, strain_id, kind)
+
+
+## No draw without a retail share, so old content keeps its sequence of calls.
+func _pick_kind() -> String:
+	if _def.retail_share <= 0.0:
+		return ""
+	return Order.RETAIL if _rng.randf() < _def.retail_share else Order.WHOLESALE
+
+
+func _kind_price_multiplier(kind: String) -> float:
+	match kind:
+		Order.WHOLESALE:
+			return _def.wholesale_price_multiplier
+		Order.RETAIL:
+			return _def.retail_price_multiplier
+	return 1.0
 
 
 ## A call placed by the script or the director rather than the usual schedule.
-func inject(quantity: int, min_quality: int, reward: int, answer_hours: float, deadline_hours: float, urgent: bool, at: float, strain_id: String = "") -> Order:
+func inject(quantity: int, min_quality: int, reward: int, answer_hours: float, deadline_hours: float, urgent: bool, at: float, strain_id: String = "", kind: String = "") -> Order:
 	var order := Order.new()
 	order.id = _next_id
 	_next_id += 1
@@ -220,6 +239,7 @@ func inject(quantity: int, min_quality: int, reward: int, answer_hours: float, d
 	order.answer_by = at + answer_hours * SimClock.GAME_SECONDS_PER_HOUR
 	order.deadline_hours = deadline_hours
 	order.urgent = urgent
+	order.kind = kind
 	_orders.append(order)
 	var data := {
 		"order_id": order.id,
@@ -231,6 +251,8 @@ func inject(quantity: int, min_quality: int, reward: int, answer_hours: float, d
 		data["urgent"] = true
 	if not strain_id.is_empty():
 		data["strain_id"] = strain_id
+	if not kind.is_empty():
+		data["kind"] = kind
 	_event_log.record(EventLog.ORDER_RECEIVED, at, PackedStringArray([_tag(order)]), data)
 	return order
 
