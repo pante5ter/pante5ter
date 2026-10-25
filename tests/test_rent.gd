@@ -139,9 +139,10 @@ func test_eviction_after_consecutive_misses_blocks_commands() -> void:
 	assert_eq(state.to_json(), before)
 
 
-func test_idle_player_on_real_balance_is_evicted_within_a_week() -> void:
+## Rent every three days with three misses allowed: an idle player is out on day 9 (day 6 with the old two-day rent).
+func test_idle_player_on_real_balance_is_evicted_within_ten_days() -> void:
 	var state := SimState.new(_balance, 3)
-	_advance_hours(state, 7.0 * 24.0, 1.0)
+	_advance_hours(state, 10.0 * 24.0, 1.0)
 	assert_true(state.rent.evicted, "doing nothing must not be a way to survive")
 	var evicted := state.event_log.of_type(EventLog.RENT_EVICTED)
 	assert_eq(evicted.size(), 1)

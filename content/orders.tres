@@ -8,6 +8,7 @@ first_order_hours = 0.5
 interval_hours = 2.0
 answer_hours = 2.5
 deadline_hours = 16.0
+quiet_from_hour = 22.0
 max_open = 3
 quantity_min = 2
 quantity_max = 5

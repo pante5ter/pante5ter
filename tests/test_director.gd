@@ -84,9 +84,10 @@ func test_a_quiet_farm_gets_an_event_after_the_quiet_spell() -> void:
 	assert_almost_eq(_director_events(state)[0].game_time, quiet * HOUR, EPSILON)
 
 
+## Over the first day, up to the quiet hours: an urgent caller at night waits for the morning (test_playtest6_sim).
 func test_never_quiet_for_longer_than_the_spell() -> void:
 	var state := SimState.new(_config(Director.URGENT_ORDER), 4)
-	_advance(state, 48.0)
+	_advance(state, state.config.orders.quiet_from_hour)
 	var director := state.config.director
 	var times: Array[float] = [0.0]
 	for event: SimEvent in state.event_log.entries():

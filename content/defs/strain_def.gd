@@ -18,11 +18,12 @@ extends Resource
 @export var dry_penalty_per_hour: float = 0.0
 
 @export_group("Yield (units per harvest)")
-@export var base_yield: int = 1
+## Each harvest rolls uniformly in yield_min..yield_max, never the same total as the strain's last harvest;
+## care adds on top. Equal bounds harvest the same every time.
+@export var yield_min: int = 1
+@export var yield_max: int = 1
 @export var fertilizer_yield: int = 0
 @export var prune_yield: int = 0
-## Each harvest rolls 0..this many extra units on top; zero harvests the same every time.
-@export var bonus_yield_max: int = 0
 
 @export_group("Price")
 @export var base_price: int = 1
@@ -34,8 +35,17 @@ func growth_hours() -> float:
 	return seed_hours + sprout_hours + bush_hours
 
 
-func yield_for(fertilized: bool, pruned: bool) -> int:
-	return maxi(base_yield + (fertilizer_yield if fertilized else 0) + (prune_yield if pruned else 0), 1)
+func care_yield(fertilized: bool, pruned: bool) -> int:
+	return (fertilizer_yield if fertilized else 0) + (prune_yield if pruned else 0)
+
+
+func top_yield() -> int:
+	return maxi(yield_max, yield_min)
+
+
+## Before care.
+func mean_yield() -> float:
+	return float(yield_min + top_yield()) / 2.0
 
 
 func needs_seeds() -> bool:

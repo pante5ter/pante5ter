@@ -58,6 +58,11 @@ func holds_calls() -> bool:
 	return step <= Step.SEND
 
 
+## Nobody steals on Jack's first day or while Reggie is still showing him round: a loss there reads as a bug.
+func spares_thieves(now: float) -> bool:
+	return _def != null and (active() or now < SimClock.GAME_SECONDS_PER_DAY)
+
+
 func lord_at() -> float:
 	return _def.lord_hour * SimClock.GAME_SECONDS_PER_HOUR if _def != null else INF
 

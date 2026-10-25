@@ -21,6 +21,9 @@ var _inventory: Inventory = null
 var _suspicion: Suspicion = null
 ## Set by SimState: the helper's plot is left to him.
 var helper: Helper = null
+## Set by SimState: nobody pockets a crop under the boss's nose or on his first day.
+var day: DayCycle = null
+var first_day: FirstDay = null
 
 ## Anyone on the crew.
 var hired: bool:
@@ -146,6 +149,17 @@ func busy_plot_ids(except: Gardener = null) -> Array[int]:
 
 func farm_is_quiet() -> bool:
 	return _suspicion != null and _suspicion.quiet
+
+
+## Without a day cycle nobody knows where Jack is, so he counts as away.
+func jack_on_farm() -> bool:
+	return day != null and day.enabled() and day.place == DayCycle.FARM and not day.travelling()
+
+
+func theft_possible(now: float) -> bool:
+	if first_day != null and first_day.spares_thieves(now):
+		return false
+	return not jack_on_farm()
 
 
 func talk(amount: float) -> void:

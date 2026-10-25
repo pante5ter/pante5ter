@@ -27,7 +27,7 @@ func _config() -> BalanceConfig:
 	config.suspicion.inspection_threshold = 1000.0
 	# Flat yield, so what the pests ate is the only thing that changes the count.
 	config.strain = _balance.strain.duplicate() as StrainDef
-	config.strain.bonus_yield_max = 0
+	config.strain.yield_max = config.strain.yield_min
 	return config
 
 

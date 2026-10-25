@@ -7,6 +7,9 @@ extends Resource
 ## How long a caller waits for an answer before hanging up.
 @export var answer_hours: float = 1.0
 @export var deadline_hours: float = 8.0
+## From this hour until the day's wake hour nobody rings; a call due then comes in the morning.
+## Negative: clients ring around the clock. Only with a day cycle.
+@export var quiet_from_hour: float = -1.0
 
 @export_group("Size")
 @export var max_open: int = 3

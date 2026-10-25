@@ -141,12 +141,16 @@ func test_tended_plots_never_dry_out_for_long() -> void:
 
 
 func test_worker_is_paid_every_game_day() -> void:
-	var state := SimState.new(_funded, 1)
+	var with_rent := _funded.duplicate() as BalanceConfig
+	with_rent.starting_money += _balance.rent.amount
+	var state := SimState.new(with_rent, 1)
 	state.apply(HireWorkerCommand.new())
-	_advance_hours(state, 49.0, 1.0)
-	assert_eq(state.event_log.of_type(EventLog.WORKER_PAID).size(), 2)
+	var hours := _balance.rent.first_due_hours + 1.0
+	var days := floori(hours / 24.0)
+	_advance_hours(state, hours, 1.0)
+	assert_eq(state.event_log.of_type(EventLog.WORKER_PAID).size(), days)
 	assert_eq(state.event_log.of_type(EventLog.RENT_PAID).size(), 1)
-	assert_eq(state.economy.money, _funded.starting_money - 3 * _balance.worker.daily_wage - _balance.rent.amount)
+	assert_eq(state.economy.money, with_rent.starting_money - (days + 1) * _balance.worker.daily_wage - _balance.rent.amount)
 
 
 func test_worker_quits_when_wage_cannot_be_paid() -> void:
@@ -230,7 +234,7 @@ func test_thirty_days_with_a_worker_stay_profitable_and_bounded() -> void:
 	gut.p("worker economy: %.0f per game day, %d events in 30 days" % [profit_per_day, state.event_log.size()])
 	assert_true(state.workers.hired, "worker must not quit while the farm pays him")
 	assert_eq(state.event_log.of_type(EventLog.RENT_MISSED).size(), 0, "a cared-for farm pays the lord every time")
-	assert_true(state.event_log.of_type(EventLog.RENT_PAID).size() >= 14, "rent must actually be charged")
+	assert_true(state.event_log.of_type(EventLog.RENT_PAID).size() >= floori(30.0 * 24.0 / _balance.rent.period_hours), "rent must actually be charged")
 	assert_true(lowest_money >= 0)
 	assert_gt(profit_per_day, float(_balance.worker.daily_wage))
 	assert_lt(state.event_log.size(), 30 * 500, "event log must not explode")

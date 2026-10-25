@@ -89,6 +89,9 @@ func _init(balance: BalanceConfig, seed_value: int) -> void:
 	thefts = CourierThefts.new(balance, stories, event_log)
 	day = DayCycle.new(balance.day, suspicion, event_log)
 	day.attach_economy(economy)
+	workers.day = day
+	workers.first_day = first_day
+	couriers.first_day = first_day
 	stash = Stash.new(balance, inventory, packing, suspicion, rng, event_log)
 	stash.attach(helper, packer)
 	progress.update(empire_value(), clock.elapsed_game_seconds)
@@ -341,6 +344,7 @@ func to_dict() -> Dictionary:
 		"economy": economy.to_dict(),
 		"inventory": inventory.to_dict(),
 		"plots": grow.to_array(),
+		"last_yields": grow.yields_to_dict(),
 		"workers": workers.to_dict(),
 		"supplies": supplies.to_dict(),
 		"orders": orders.to_dict(),
@@ -415,6 +419,7 @@ func _load_dict(data: Dictionary) -> void:
 	economy.load_dict(data["economy"] as Dictionary)
 	inventory.load_dict(data["inventory"] as Dictionary)
 	grow.load_array(data["plots"] as Array)
+	grow.load_yields(data.get("last_yields", {}) as Dictionary)
 	workers.load_dict(data["workers"] as Dictionary)
 	supplies.load_dict(data["supplies"] as Dictionary)
 	orders.load_dict(data["orders"] as Dictionary)

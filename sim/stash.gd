@@ -43,6 +43,10 @@ func haul_seconds() -> float:
 	return (_def.haul_hours if _def != null else 0.0) * SimClock.GAME_SECONDS_PER_HOUR
 
 
+func unload_seconds() -> float:
+	return (_def.unload_minutes if _def != null else 0.0) * 60.0
+
+
 func risk(by: String) -> float:
 	if _def == null:
 		return 0.0
@@ -116,6 +120,8 @@ func _arrive(at: float) -> void:
 		crate.at_stash = true
 		_inventory.put(crate)
 	_event_log.record(EventLog.HAUL_ARRIVED, at, PackedStringArray([by]), {"driver": by, "units": units})
+	if _packer != null:
+		_packer.crates_arrived(at + unload_seconds())
 	if by == Helper.ACTOR:
 		_helper_packs(at)
 

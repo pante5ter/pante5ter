@@ -102,7 +102,11 @@ func _finish_task(now: float) -> void:
 func _harvest(now: float) -> void:
 	var result := _crew.grow().harvest(task_plot_id, now, actor())
 	var rng := _crew.rng()
-	if not result.ok or rng == null or rng.randf() >= _def.steal_chance():
+	if not result.ok or rng == null:
+		return
+	# Rolled even when he cannot steal, so Jack's whereabouts do not shift the dice for everything after.
+	var tempted := rng.randf() < _def.steal_chance()
+	if not tempted or not _crew.theft_possible(now):
 		return
 	var stolen := _crew.inventory().take(result.value)
 	_crew.event_log().record(EventLog.WORKER_STOLE, now, PackedStringArray([actor(), "plot:%d" % task_plot_id]), {

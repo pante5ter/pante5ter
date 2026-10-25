@@ -11,6 +11,8 @@ var _supplies: Supplies = null
 var _progress: Progress = null
 ## Set by SimState: picks the strain when nobody names one.
 var planner: PlantingPlan = null
+## strain id -> units its last harvest grew, so the next one comes out different.
+var last_yields: Dictionary[String, int] = {}
 
 
 func _init(strain: StrainDef, plot_count: int, rng: SimRng, event_log: EventLog, inventory: Inventory) -> void:
@@ -124,9 +126,11 @@ func harvest(plot_id: int, now: float, actor: String) -> CommandResult:
 		return CommandResult.failure(CommandResult.PLOT_NOT_READY)
 	var strain := strain_of(target)
 	var quality := _roll_quality(target)
-	# Rolled only for strains with a range, so flat strains draw from the RNG exactly as before.
-	var bonus := _rng.randi_range(0, strain.bonus_yield_max) if strain.bonus_yield_max > 0 else 0
-	var grown := strain.yield_for(target.fertilized, target.pruned) + bonus
+	var care := strain.care_yield(target.fertilized, target.pruned)
+	var rolled := _roll_yield(strain, care)
+	var bonus := rolled - strain.yield_min
+	var grown := maxi(rolled + care, 1)
+	last_yields[strain.id] = grown
 	var eaten := mini(eaten_units(target), grown)
 	if eaten >= grown:
 		_event_log.record(EventLog.PLOT_CROP_EATEN, now, _actors(actor, target), {"plot_id": plot_id, "eaten": eaten})
@@ -147,6 +151,21 @@ func harvest(plot_id: int, now: float, actor: String) -> CommandResult:
 	})
 	target.reset()
 	return CommandResult.success(product_ids[0])
+
+
+## Uniform over the strain's range, skipping the roll that would repeat its last harvest.
+## The skip keeps the long-run average: from any amount every other one is equally likely.
+## Flat strains draw nothing from the RNG.
+func _roll_yield(strain: StrainDef, care: int) -> int:
+	var low := strain.yield_min
+	var high := strain.top_yield()
+	if high <= low:
+		return low
+	var repeat := int(last_yields.get(strain.id, -1)) - care
+	if repeat < low or repeat > high:
+		return _rng.randi_range(low, high)
+	var roll := _rng.randi_range(low, high - 1)
+	return roll + 1 if roll >= repeat else roll
 
 
 ## Units the pests have already eaten off this bed's coming harvest.
@@ -244,3 +263,13 @@ func load_array(source: Array) -> void:
 	_plots.clear()
 	for item: Variant in source:
 		_plots.append(Plot.from_dict(item as Dictionary))
+
+
+func yields_to_dict() -> Dictionary:
+	return last_yields.duplicate()
+
+
+func load_yields(data: Dictionary) -> void:
+	last_yields.clear()
+	for strain_id: Variant in data:
+		last_yields[String(strain_id)] = int(data[strain_id])
