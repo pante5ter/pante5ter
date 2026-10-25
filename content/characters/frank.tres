@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="CharacterDef" format=3]
+
+[ext_resource type="Script" path="res://content/defs/character_def.gd" id="1_character"]
+[ext_resource type="Script" path="res://content/defs/dialogue_line_def.gd" id="2_line"]
+
+[sub_resource type="Resource" id="Line_1"]
+script = ExtResource("2_line")
+speaker = "Реджи"
+text = "Фрэнк тридцать лет возил Королевскую почту. Ни одной потерянной посылки, ни одного штрафа. Скорость в комплект не входила."
+
+[sub_resource type="Resource" id="Line_2"]
+script = ExtResource("2_line")
+speaker = "Фрэнк"
+text = "Торопятся те, кого ловят, мистер Кэллоуэй. Я доезжаю."
+
+[resource]
+script = ExtResource("1_character")
+id = "frank"
+display_name = "Фрэнк"
+bio = "Курьер. Тридцать лет возил Королевскую почту: медленный, осторожный, берёт больше всех, зато доезжает."
+meeting = "event"
+meet_event = "courier_hired"
+meet_key = "courier_id"
+meet_value = "frank"
+intro = Array[ExtResource("2_line")]([SubResource("Line_1"), SubResource("Line_2")])

@@ -1,0 +1,32 @@
+[gd_resource type="Resource" script_class="CharacterDef" format=3]
+
+[ext_resource type="Script" path="res://content/defs/character_def.gd" id="1_character"]
+[ext_resource type="Script" path="res://content/defs/dialogue_line_def.gd" id="2_line"]
+
+[sub_resource type="Resource" id="Line_1"]
+script = ExtResource("2_line")
+speaker = "Джек"
+text = "Двенадцать лет, Реджи. Шахтёрский городок в Квинсленде, стипендия за регби, Кембридж — и вот я под пшеницей у лорда."
+
+[sub_resource type="Resource" id="Line_2"]
+script = ExtResource("2_line")
+speaker = "Реджи"
+text = "Вы пропустили главное, мистер Кэллоуэй. Первый курс, спортивная сумка с товаром и портер колледжа, который знает всё обо всех."
+
+[sub_resource type="Resource" id="Line_3"]
+script = ExtResource("2_line")
+speaker = "Джек"
+text = "Ты мог донести."
+
+[sub_resource type="Resource" id="Line_4"]
+script = ExtResource("2_line")
+speaker = "Реджи"
+text = "Мог. Но вы торговали очень глупо, а глупость я терплю хуже, чем преступность. Я показал, как надо. С тех пор и показываю. Начнём."
+
+[resource]
+script = ExtResource("1_character")
+id = "reggie"
+display_name = "Реджи"
+bio = "Правая рука Джека, водитель и человек, который решает проблемы. Йоркширец, бывший портер колледжа в Кембридже: смотритель, который знает всё обо всех. Двенадцать лет назад поймал первокурсника Джека с сумкой товара и вместо доноса сказал: «Ты делаешь это очень глупо. Давай покажу, как надо». Педантичен, всегда в пальто, говорит сухо и зовёт босса «мистер Кэллоуэй». Слабое место — кузен Лиам."
+meeting = "opening"
+intro = Array[ExtResource("2_line")]([SubResource("Line_1"), SubResource("Line_2"), SubResource("Line_3"), SubResource("Line_4")])

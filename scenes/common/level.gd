@@ -34,7 +34,7 @@ func _ready() -> void:
 	hud.underground = place == DayCycle.FARM and not _is_opening_level()
 	hud.place = place
 	if _is_opening_level() and Game.take_fresh_start():
-		hud.play_dialogue((load(PROLOGUE_PATH) as DialogueDef).lines)
+		hud.intros.play_opening((load(PROLOGUE_PATH) as DialogueDef).lines)
 
 
 ## A new game starts in the main scene, so only that level opens with the prologue.

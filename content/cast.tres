@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="CastDef" format=3]
+
+[ext_resource type="Script" path="res://content/defs/cast_def.gd" id="1_cast"]
+[ext_resource type="Script" path="res://content/defs/character_def.gd" id="2_character"]
+[ext_resource type="Resource" path="res://content/characters/jack.tres" id="3_jack"]
+[ext_resource type="Resource" path="res://content/characters/ashcombe.tres" id="4_ashcombe"]
+[ext_resource type="Resource" path="res://content/characters/reggie.tres" id="5_reggie"]
+[ext_resource type="Resource" path="res://content/characters/clients.tres" id="6_clients"]
+[ext_resource type="Resource" path="res://content/characters/vivienne.tres" id="7_vivienne"]
+[ext_resource type="Resource" path="res://content/characters/frank.tres" id="8_frank"]
+[ext_resource type="Resource" path="res://content/characters/harry.tres" id="9_harry"]
+[ext_resource type="Resource" path="res://content/characters/pete.tres" id="10_pete"]
+[ext_resource type="Resource" path="res://content/characters/milk_teeth.tres" id="11_milk_teeth"]
+[ext_resource type="Resource" path="res://content/characters/gaffer.tres" id="12_gaffer"]
+[ext_resource type="Resource" path="res://content/characters/hobbs.tres" id="13_hobbs"]
+[ext_resource type="Resource" path="res://content/characters/vicar.tres" id="14_vicar"]
+[ext_resource type="Resource" path="res://content/characters/toby.tres" id="15_toby"]
+[ext_resource type="Resource" path="res://content/characters/liam.tres" id="16_liam"]
+
+[resource]
+script = ExtResource("1_cast")
+characters = Array[ExtResource("2_character")]([ExtResource("3_jack"), ExtResource("4_ashcombe"), ExtResource("5_reggie"), ExtResource("6_clients"), ExtResource("7_vivienne"), ExtResource("8_frank"), ExtResource("9_harry"), ExtResource("10_pete"), ExtResource("11_milk_teeth"), ExtResource("12_gaffer"), ExtResource("13_hobbs"), ExtResource("14_vicar"), ExtResource("15_toby"), ExtResource("16_liam")])

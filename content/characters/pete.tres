@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="CharacterDef" format=3]
+
+[ext_resource type="Script" path="res://content/defs/character_def.gd" id="1_character"]
+[ext_resource type="Script" path="res://content/defs/dialogue_line_def.gd" id="2_line"]
+
+[sub_resource type="Resource" id="Line_1"]
+script = ExtResource("2_line")
+speaker = "Реджи"
+text = "Пит местный. Знает каждую тропу и каждого в пабе. Второе меня и беспокоит."
+
+[sub_resource type="Resource" id="Line_2"]
+script = ExtResource("2_line")
+speaker = "Пит"
+text = "Та посылка, мистер Кэллоуэй, правда потерялась. Я её потом долго искал. С друзьями."
+
+[resource]
+script = ExtResource("1_character")
+id = "pete"
+display_name = "Пит"
+bio = "Курьер из местных. Дешёвый, знает каждую тропу и каждого в пабе. Говорят, однажды «потерял» посылку — потому и один из подозреваемых, когда ищут крысу."
+meeting = "event"
+meet_event = "courier_hired"
+meet_key = "courier_id"
+meet_value = "pete"
+intro = Array[ExtResource("2_line")]([SubResource("Line_1"), SubResource("Line_2")])

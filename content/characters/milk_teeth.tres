@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="CharacterDef" format=3]
+
+[ext_resource type="Script" path="res://content/defs/character_def.gd" id="1_character"]
+[ext_resource type="Script" path="res://content/defs/dialogue_line_def.gd" id="2_line"]
+
+[sub_resource type="Resource" id="Line_1"]
+script = ExtResource("2_line")
+speaker = "Реджи"
+text = "«Молочные зубы». Пацаны из лондонского боксёрского зала: балаклавы, телефон и мечта о миллионе просмотров."
+
+[sub_resource type="Resource" id="Line_2"]
+script = ExtResource("2_line")
+speaker = "Джек"
+text = "Кто за ними стоит?"
+
+[sub_resource type="Resource" id="Line_3"]
+script = ExtResource("2_line")
+speaker = "Реджи"
+text = "Гаффер, хозяин зала. Бывший боксёр, сам на дело не ходит. Когда его ребята наглеют, он приходит извиняться — если вы для него достаточно весите."
+
+[resource]
+script = ExtResource("1_character")
+id = "milk_teeth"
+display_name = "«Молочные зубы»"
+bio = "Банда молодых бойцов из боксёрского зала Гаффера. Налетают в балаклавах и снимают дрилл-клипы прямо на налётах. Про стеллаж в контейнере им кто-то рассказал — этого кого-то Реджи и ищет."
+meeting = "event"
+meet_event = "raid_resolved"
+intro = Array[ExtResource("2_line")]([SubResource("Line_1"), SubResource("Line_2"), SubResource("Line_3")])

@@ -83,6 +83,7 @@ const SLEEP_INTERRUPTED: String = "sleep_interrupted"
 const RENT_CALLED: String = "rent_called"
 const RENT_VISIT_PROMISED: String = "rent_visit_promised"
 const HOME_NIGHT: String = "home_night"
+const CHARACTER_MET: String = "character_met"
 
 var _entries: Array[SimEvent] = []
 

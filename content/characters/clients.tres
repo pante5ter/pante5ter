@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="CharacterDef" format=3]
+
+[ext_resource type="Script" path="res://content/defs/character_def.gd" id="1_character"]
+[ext_resource type="Script" path="res://content/defs/dialogue_line_def.gd" id="2_line"]
+
+[sub_resource type="Resource" id="Line_1"]
+script = ExtResource("2_line")
+speaker = "Реджи"
+text = "Первый звонок. Знаете, кто нам звонит, мистер Кэллоуэй? Ваши одноклубники по регби."
+
+[sub_resource type="Resource" id="Line_2"]
+script = ExtResource("2_line")
+speaker = "Джек"
+text = "В Кембридже они покупали на карманные."
+
+[sub_resource type="Resource" id="Line_3"]
+script = ExtResource("2_line")
+speaker = "Реджи"
+text = "Теперь у них титулы, долги и та же привычка. Платят исправно, торгуются из принципа — так учили в Итоне."
+
+[resource]
+script = ExtResource("1_character")
+id = "clients"
+display_name = "Клиенты"
+bio = "Бывшие одноклубники Джека по регби и их круг. В Кембридже покупали на карманные, теперь — на остатки наследства. Платят исправно, торгуются из принципа. Звонят на телефон; где ферма, не знают и не узнают."
+meeting = "event"
+meet_event = "order_received"
+intro = Array[ExtResource("2_line")]([SubResource("Line_1"), SubResource("Line_2"), SubResource("Line_3")])
