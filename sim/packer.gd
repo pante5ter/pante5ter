@@ -7,6 +7,8 @@ var hired: bool = false
 var working: bool = false
 var next_check_at: float = 0.0
 var next_wage_at: float = 0.0
+## Crates that just came off the car are carried in first; she does not start packing before this.
+var crates_ready_at: float = 0.0
 
 var _def: WorkerDef = null
 var _config: BalanceConfig
@@ -79,11 +81,18 @@ func process(now: float) -> void:
 		next_check_at = now
 	if working or now < next_check_at:
 		return
+	if now < crates_ready_at:
+		next_check_at = crates_ready_at
+		return
 	if _suspicion.quiet or _packing.busy() or _packing.unpacked_count() == 0:
 		next_check_at = now + _def.idle_check_minutes * 60.0
 		return
 	if _packing.start(now, ACTOR, _def.competence).ok:
 		working = true
+
+
+func crates_arrived(ready_at: float) -> void:
+	crates_ready_at = maxf(crates_ready_at, ready_at)
 
 
 func _pay_wage(now: float) -> void:
@@ -112,6 +121,7 @@ func to_dict() -> Dictionary:
 		"working": working,
 		"next_check_at": ExactFloat.encode(next_check_at),
 		"next_wage_at": ExactFloat.encode(next_wage_at),
+		"crates_ready_at": ExactFloat.encode(crates_ready_at),
 	}
 
 
@@ -123,3 +133,4 @@ func load_dict(data: Dictionary) -> void:
 	working = data["working"] == true
 	next_check_at = ExactFloat.decode(data["next_check_at"])
 	next_wage_at = ExactFloat.decode(data["next_wage_at"])
+	crates_ready_at = ExactFloat.decode(data["crates_ready_at"]) if data.has("crates_ready_at") else 0.0

@@ -19,6 +19,8 @@ const ALWAYS_NOTABLE: Array[String] = [
 
 var last_notable_at: float = 0.0
 var seen_events: int = 0
+## An urgent caller who picked the night rings at this morning hour instead; the quiet spell may bring something else.
+var urgent_call_at: float = INF
 
 var _def: DirectorDef
 var _config: BalanceConfig
@@ -52,7 +54,11 @@ func quiet_seconds() -> float:
 
 
 func next_event_time() -> float:
-	return INF if _def == null else last_notable_at + quiet_seconds()
+	return INF if _def == null else minf(_quiet_ends_at(), urgent_call_at)
+
+
+func _quiet_ends_at() -> float:
+	return last_notable_at + quiet_seconds()
 
 
 ## An old save starts the quiet clock from the moment it is loaded.
@@ -65,12 +71,22 @@ func process(now: float) -> void:
 	if _def == null:
 		return
 	_scan()
-	if now < next_event_time():
+	if now >= urgent_call_at:
+		urgent_call_at = INF
+		# A full line by the morning means he found another supplier; the phone stays quiet.
+		if _orders.has_room():
+			_trigger(URGENT_ORDER, now)
+			last_notable_at = maxf(last_notable_at, now)
+		seen_events = _event_log.size()
+	if now < _quiet_ends_at():
 		return
 	last_notable_at = now
 	if _busy():
 		return
 	var kind := _pick_kind()
+	if kind == URGENT_ORDER and _orders.calls_resume_at(now) > now:
+		urgent_call_at = minf(urgent_call_at, _orders.calls_resume_at(now))
+		kind = _pick_kind(URGENT_ORDER)
 	if not kind.is_empty():
 		_trigger(kind, now)
 	seen_events = _event_log.size()
@@ -113,11 +129,11 @@ func _deliveries_on_time() -> Array[Order]:
 	return found
 
 
-func _pick_kind() -> String:
+func _pick_kind(except: String = "") -> String:
 	var candidates: Array[String] = []
 	var total := 0.0
 	for kind: String in KINDS:
-		if _def.weight(kind) > 0.0 and applicable(kind):
+		if kind != except and _def.weight(kind) > 0.0 and applicable(kind):
 			candidates.append(kind)
 			total += _def.weight(kind)
 	if candidates.is_empty():
@@ -179,9 +195,14 @@ func _trigger(kind: String, now: float) -> void:
 
 
 func to_dict() -> Dictionary:
-	return {"last_notable_at": ExactFloat.encode(last_notable_at), "seen_events": seen_events}
+	return {
+		"last_notable_at": ExactFloat.encode(last_notable_at),
+		"seen_events": seen_events,
+		"urgent_call_at": ExactFloat.encode(urgent_call_at),
+	}
 
 
 func load_dict(data: Dictionary) -> void:
 	last_notable_at = ExactFloat.decode(data["last_notable_at"])
 	seen_events = int(data["seen_events"])
+	urgent_call_at = ExactFloat.decode(data["urgent_call_at"]) if data.has("urgent_call_at") else INF

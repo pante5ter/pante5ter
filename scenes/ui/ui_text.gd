@@ -427,6 +427,8 @@ static func announcement(event: SimEvent, sim: SimState) -> String:
 			if String(event.data["stage"]) == Plot.stage_name(Plot.Stage.READY):
 				return "Грядка %d созрела." % plot_number(int(event.data["plot_id"]))
 		EventLog.RENT_PAID:
+			if String(event.data.get("where", "")) == Rent.FROM_CREDIT:
+				return "Аренду за этот срок лорд Эшкомб списал из аванса. Звонить не стал: джентльмены о деньгах дважды не говорят."
 			return "Лорду Эшкомбу ушла аренда: %s. Дом пока не продают." % money(int(event.data["amount"]))
 		EventLog.RENT_MISSED:
 			if event.data.get("promised", false) == true:
@@ -443,6 +445,9 @@ static func announcement(event: SimEvent, sim: SimState) -> String:
 static func _rent_is_short(sim: SimState) -> bool:
 	var rent := sim.rent
 	if rent.amount() <= 0 or sim.economy.money >= rent.amount():
+		return false
+	# The advance covers it, or the manor summons already names the sum and the hour.
+	if rent.owed() <= 0 or rent.visit_promised():
 		return false
 	return rent.due_in(sim.clock.elapsed_game_seconds) <= RENT_WARNING_HOURS * SimClock.GAME_SECONDS_PER_HOUR
 

@@ -163,9 +163,32 @@ func process(now: float) -> void:
 			_orders.erase(order)
 			_event_log.record(EventLog.ORDER_EXPIRED, now, PackedStringArray([_tag(order)]), {"order_id": order.id})
 	while now >= next_spawn_at:
+		var morning := calls_resume_at(next_spawn_at)
+		if morning > next_spawn_at:
+			next_spawn_at = morning
+			continue
 		if has_room() and not hold_calls:
 			_spawn(next_spawn_at)
 		next_spawn_at += _def.interval_hours * SimClock.GAME_SECONDS_PER_HOUR
+
+
+## `at` itself in the daytime; during the quiet night hours, the next wake hour.
+## The opening night is the prologue's: Reggie's first call rings in it, and nothing waits for the morning.
+func calls_resume_at(at: float) -> float:
+	if _config == null or _config.day == null or _def.quiet_from_hour < 0.0:
+		return at
+	if at < _def.quiet_from_hour * SimClock.GAME_SECONDS_PER_HOUR:
+		return at
+	var wake := _config.day.wake_hour
+	var hour := fmod(at, SimClock.GAME_SECONDS_PER_DAY) / SimClock.GAME_SECONDS_PER_HOUR
+	var quiet := hour >= _def.quiet_from_hour or hour < wake
+	if _def.quiet_from_hour < wake:
+		quiet = hour >= _def.quiet_from_hour and hour < wake
+	if not quiet:
+		return at
+	var day_start := floorf(at / SimClock.GAME_SECONDS_PER_DAY) * SimClock.GAME_SECONDS_PER_DAY
+	var morning := day_start + wake * SimClock.GAME_SECONDS_PER_HOUR
+	return morning if morning > at else morning + SimClock.GAME_SECONDS_PER_DAY
 
 
 func _open_count() -> int:

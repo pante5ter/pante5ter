@@ -19,6 +19,8 @@ var _suspicion: Suspicion
 var _rng: SimRng
 var _event_log: EventLog
 var _helper: Helper = null
+## Set by SimState: no courier runs off with a parcel on Jack's first day.
+var first_day: FirstDay = null
 
 
 func _init(config: BalanceConfig, orders: Orders, economy: Economy, suspicion: Suspicion, rng: SimRng, event_log: EventLog) -> void:
@@ -186,7 +188,9 @@ func _arrive(order: Order, now: float) -> void:
 		_event_log.record(EventLog.DELIVERY_STOPPED, now, actors, {"order_id": order.id, "courier_id": order.courier_id})
 		return
 	var def := _config.find_courier(order.courier_id)
-	if def != null and _rng.randf() < def.greed:
+	# Rolled even on the first day, so sparing Jack then does not shift the dice for everything after.
+	var greedy := def != null and _rng.randf() < def.greed
+	if greedy and not (first_day != null and first_day.spares_thieves(now)):
 		hired.erase(order.courier_id)
 		busy_until.erase(order.courier_id)
 		if not banned.has(order.courier_id):

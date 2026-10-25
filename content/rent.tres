@@ -4,9 +4,9 @@
 
 [resource]
 script = ExtResource("1_rent")
-amount = 1500
-period_hours = 48.0
-first_due_hours = 48.0
+amount = 2250
+period_hours = 72.0
+first_due_hours = 72.0
 evict_after_missed = 3
 missed_suspicion = 10.0
-call_ahead_hours = 14.0
+call_ahead_hours = 10.0

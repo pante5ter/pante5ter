@@ -10,3 +10,4 @@ suspicion_risk_factor = 0.03
 jack_risk_factor = 1.0
 per_haul_suspicion = 1.0
 stopped_suspicion = 10.0
+unload_minutes = 15.0

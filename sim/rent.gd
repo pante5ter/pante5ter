@@ -8,6 +8,8 @@ const VISIT: String = "visit"
 ## Where the money changed hands, in RENT_PAID.
 const BY_PHONE: String = "phone"
 const AT_MANOR: String = "manor"
+## Settled from money paid ahead; the lord does not ring for it.
+const FROM_CREDIT: String = "credit"
 ## call_stage: the lord has rung and waits for an answer / Jack promised to bring it to the manor.
 const CALLED: String = "called"
 const PROMISED: String = "promised"
@@ -127,9 +129,9 @@ func _promise_visit(now: float, actor: String) -> CommandResult:
 	return CommandResult.success()
 
 
-## When the lord rings about the next payment; INF once he has, or when he never does.
+## When the lord rings about the next payment; INF once he has, when he never does, or when the advance covers it.
 func _call_time() -> float:
-	if _def == null or _def.call_ahead_hours <= 0.0 or not call_stage.is_empty():
+	if _def == null or _def.call_ahead_hours <= 0.0 or not call_stage.is_empty() or owed() <= 0:
 		return INF
 	return next_due_at - _def.call_ahead_hours * SimClock.GAME_SECONDS_PER_HOUR
 
@@ -146,16 +148,22 @@ func _call(at: float) -> void:
 func _settle(at: float) -> void:
 	var promised := visit_promised()
 	call_stage = ""
-	if promised:
+	if promised and owed() > 0:
 		_miss(at, true)
 		return
 	var due := owed()
+	var from_credit := amount() - due
 	if _economy.spend(due):
 		_paid()
-		_event_log.record(EventLog.RENT_PAID, at, PackedStringArray([LORD_ACTOR]), {
+		var data := {
 			"amount": due,
 			"money": _economy.money,
-		})
+		}
+		if from_credit > 0:
+			data["from_credit"] = from_credit
+		if due == 0:
+			data["where"] = FROM_CREDIT
+		_event_log.record(EventLog.RENT_PAID, at, PackedStringArray([LORD_ACTOR]), data)
 		return
 	_miss(at, false)
 

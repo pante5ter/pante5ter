@@ -133,7 +133,7 @@ func _last_harvest(state: SimState) -> SimEvent:
 
 func test_every_strain_has_a_harvest_range_in_content() -> void:
 	for strain: StrainDef in _balance.strains():
-		assert_gt(strain.bonus_yield_max, 0, "%s yields a varying amount" % strain.id)
+		assert_gt(strain.yield_max, strain.yield_min, "%s yields a varying amount" % strain.id)
 
 
 func test_harvest_amount_varies_and_beats_the_old_flat_yield() -> void:
@@ -143,9 +143,9 @@ func test_harvest_amount_varies_and_beats_the_old_flat_yield() -> void:
 		var total := 0
 		for amount: int in amounts:
 			total += amount
-			assert_between(amount, strain.base_yield, strain.base_yield + strain.bonus_yield_max)
+			assert_between(amount, strain.yield_min, strain.yield_max)
 		assert_gt(amounts.max(), amounts.min(), "%s harvests differ" % strain.id)
-		assert_gt(float(total) / float(amounts.size()), float(strain.base_yield) + 0.5, "%s yields more on average" % strain.id)
+		assert_gt(float(total) / float(amounts.size()), float(strain.yield_min) + 0.5, "%s yields more on average" % strain.id)
 
 
 func test_harvest_amount_is_seeded() -> void:
@@ -160,14 +160,15 @@ func test_harvest_event_records_the_amount_and_the_lucky_extra() -> void:
 	state.apply(HarvestCommand.new(0))
 	var event := _last_harvest(state)
 	assert_eq(int(event.data["quantity"]), (event.data["product_ids"] as Array).size())
-	assert_eq(int(event.data["quantity"]), _balance.find_strain("basic").base_yield + int(event.data["bonus"]))
+	assert_eq(int(event.data["quantity"]), _balance.find_strain("basic").yield_min + int(event.data["bonus"]))
 	assert_eq(String(event.data["strain_id"]), "basic")
 
 
 func test_a_strain_without_a_range_harvests_flat() -> void:
 	var strain := StrainDef.new()
 	strain.id = "test"
-	strain.base_yield = 2
+	strain.yield_min = 2
+	strain.yield_max = 2
 	var event_log := EventLog.new()
 	var grow := Grow.new(strain, 1, SimRng.new(1), event_log, Inventory.new())
 	for index: int in 5:
