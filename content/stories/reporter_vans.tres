@@ -1,0 +1,82 @@
+[gd_resource type="Resource" script_class="StoryDef" format=3]
+
+[ext_resource type="Script" path="res://content/defs/story_def.gd" id="1_story"]
+[ext_resource type="Script" path="res://content/defs/story_choice_def.gd" id="2_choice"]
+[ext_resource type="Script" path="res://content/defs/dialogue_line_def.gd" id="3_line"]
+
+[sub_resource type="Resource" id="Line_1"]
+script = ExtResource("3_line")
+speaker = ""
+text = "Снова звонит Тоби Пэлфри. Голос тот же, бодрости поменьше. Клавиатура молчит — он записывает от руки."
+
+[sub_resource type="Resource" id="Line_2"]
+script = ExtResource("3_line")
+speaker = "Репортёр"
+text = "Пишу про ночную жизнь деревни. Её нет, поэтому заметка короткая. Только миссис Коул с Милл-лейн не спит — считает машины. Говорит, у вашего поля по ночам оживлённее, чем у паба."
+
+[sub_resource type="Resource" id="Line_3"]
+script = ExtResource("3_line")
+speaker = "Репортёр"
+text = "Я выводов не делаю. Просто подумал: вдруг вы захотите сами что-нибудь рассказать. Раньше, чем миссис Коул."
+
+[sub_resource type="Resource" id="Line_4"]
+script = ExtResource("3_line")
+speaker = "Реджи"
+text = "Он не спрашивает. Он ждёт, что мы расскажем сами."
+
+[sub_resource type="Resource" id="Line_5"]
+script = ExtResource("3_line")
+speaker = "Репортёр"
+text = "Экологичные вешенки для лондонских ресторанов! Это же разворот: «Тайна ночного поля раскрыта — грибы»."
+
+[sub_resource type="Resource" id="Line_6"]
+script = ExtResource("3_line")
+speaker = "Реджи"
+text = "Скучнее заголовка не придумать. Ровно то, что нужно."
+
+[sub_resource type="Resource" id="Line_7"]
+script = ExtResource("3_line")
+speaker = "Репортёр"
+text = "Грибы. По ночам. Миссис Коул будет в восторге. Я, пожалуй, подержу заметку у себя. Пока."
+
+[sub_resource type="Resource" id="Line_8"]
+script = ExtResource("3_line")
+speaker = "Реджи"
+text = "Опять это «пока». Мне оно нравится всё меньше."
+
+[sub_resource type="Resource" id="Choice_1"]
+script = ExtResource("2_choice")
+label = "Дать интервью про «грибную ферму»"
+chance = 0.5
+suspicion = -8.0
+fail_suspicion = 12.0
+reply = Array[ExtResource("3_line")]([SubResource("Line_5"), SubResource("Line_6")])
+fail_reply = Array[ExtResource("3_line")]([SubResource("Line_7"), SubResource("Line_8")])
+
+[sub_resource type="Resource" id="Line_9"]
+script = ExtResource("3_line")
+speaker = "Репортёр"
+text = "Целую полосу? «Кэллоуэй: органические удобрения». Знаете, редактор вдруг остыл к ночной жизни деревни."
+
+[sub_resource type="Resource" id="Line_10"]
+script = ExtResource("3_line")
+speaker = "Реджи"
+text = "Свобода прессы — дорогое удовольствие. Особенно её отсутствие."
+
+[sub_resource type="Resource" id="Choice_2"]
+script = ExtResource("2_choice")
+label = "Купить рекламную полосу — £200"
+money = -200
+suspicion = -10.0
+relation_change = 1
+relation = "village"
+reply = Array[ExtResource("3_line")]([SubResource("Line_9"), SubResource("Line_10")])
+
+[resource]
+script = ExtResource("1_story")
+id = "reporter_vans"
+kind = "village"
+after_stories = PackedStringArray("reporter")
+min_suspicion = 30.0
+lines = Array[ExtResource("3_line")]([SubResource("Line_1"), SubResource("Line_2"), SubResource("Line_3"), SubResource("Line_4")])
+choices = Array[ExtResource("2_choice")]([SubResource("Choice_1"), SubResource("Choice_2")])

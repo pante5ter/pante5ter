@@ -4,11 +4,13 @@
 [ext_resource type="Script" path="res://content/defs/suspect_def.gd" id="2_suspect"]
 [ext_resource type="Script" path="res://content/defs/dialogue_line_def.gd" id="3_line"]
 [ext_resource type="Resource" path="res://content/stories/raid_clip.tres" id="4_opening"]
+[ext_resource type="Resource" path="res://content/stories/reggie_cousin.tres" id="5_cousin"]
+[ext_resource type="Resource" path="res://content/stories/neighbour_smell.tres" id="6_neighbour"]
 
 [sub_resource type="Resource" id="Line_1"]
 script = ExtResource("3_line")
 speaker = ""
-text = "Пит долго смотрел в пол. Потом выложил всё: кто звонил, сколько заплатили, что сказал про стеллаж."
+text = "Пит долго смотрел в пол. Потом выложил всё: кто звонил, сколько заплатили и как он ехал за фургоном Реджи с одной фарой."
 
 [sub_resource type="Resource" id="Line_2"]
 script = ExtResource("3_line")
@@ -30,9 +32,15 @@ script = ExtResource("2_suspect")
 id = "pete"
 display_name = "Пит"
 courier_id = "pete"
-alibi_clue = "Пит в ночь налёта сидел в участке в Сайренсестере за неоплаченные штрафы. Алиби железное, хоть и позорное."
-guilty_clues = PackedStringArray("У Пита новенький телефон за девятьсот фунтов. При его-то ставке курьера.", "Пит дважды спрашивал Реджи, во сколько тот запирает контейнер. Говорил — из любопытства.")
-accuse_label = "Это Пит, курьер"
+alibi_clue = "Налёт был около двух ночи. Пит с полуночи до шести сидел в участке в Сайренсестере — за неоплаченные штрафы. Позорно, зато с протоколом."
+alibi_place = "Участок в Сайренсестере"
+herring_clue = "Пит дважды спрашивал Реджи, до которого часа тот работает. Говорит — чтобы не ездить к тайнику зря."
+herring_place = "Тайник у трассы"
+guilty_clues = PackedStringArray("У Пита «Фиеста» с разбитой левой фарой. Чинить, говорит, дорого. Ездит так уже месяц.")
+guilty_places = PackedStringArray("Стоянка у паба «Плуг»")
+trail_clues = PackedStringArray("За ночь до налёта от тайника до самого поля за фургоном Реджи шла машина с одной фарой. Реджи тогда решил — мотоцикл.")
+trail_places = PackedStringArray("Трасса A417")
+accuse_label = "Пит, курьер"
 guilty_reply = Array[ExtResource("3_line")]([SubResource("Line_1"), SubResource("Line_2")])
 innocent_reply = Array[ExtResource("3_line")]([SubResource("Line_3"), SubResource("Line_4")])
 
@@ -61,16 +69,23 @@ script = ExtResource("2_suspect")
 id = "liam"
 display_name = "Лиам"
 courier_id = ""
-alibi_clue = "Лиам в ту ночь был у тётки в Уэльсе. Тётка прислала фото: Лиам, овцы, полное отчаяние."
-guilty_clues = PackedStringArray("Лиам задолжал букмекеру из Хакни. Тому самому, что держит зал, где тренируются «Молочные зубы».", "В клипе «Зубов» мелькает кепка с эмблемой паба «Плуг», где Лиам моет посуду.")
-accuse_label = "Это Лиам, кузен Реджи"
+intro_story = ExtResource("5_cousin")
+alibi_clue = "В ночь налёта Лиам был у тётки в Уэльсе. Тётка прислала фото: Лиам, овцы, полное отчаяние. В углу — дата и время."
+alibi_place = "Ферма тётки, Уэльс"
+herring_clue = "Лиам на днях угощал весь «Плуг». Говорит, выиграл на собачьих бегах. Собаки, как обычно, молчат."
+herring_place = "Паб «Плуг»"
+guilty_clues = PackedStringArray("Лиам должен Ронни Флэку из Хакни. Сумма — как за хорошую машину. Ронни терпелив, но недолго.")
+guilty_places = PackedStringArray("Букмекерская контора, Хакни")
+trail_clues = PackedStringArray("Зал, где тренируются «Молочные зубы», принадлежит Ронни Флэку. Он же принимает ставки. И, говорят, выкупает долги.")
+trail_places = PackedStringArray("Боксёрский зал, Хакни")
+accuse_label = "Лиам, кузен Реджи"
 guilty_reply = Array[ExtResource("3_line")]([SubResource("Line_5"), SubResource("Line_6")])
 innocent_reply = Array[ExtResource("3_line")]([SubResource("Line_7"), SubResource("Line_8")])
 
 [sub_resource type="Resource" id="Line_9"]
 script = ExtResource("3_line")
 speaker = "Фермер Хоббс"
-text = "Ладно, ладно! Подошли в пабе, спросили про контейнер, дали денег. Я думал, они просто глянуть…"
+text = "Ладно, ладно! Подошли в пабе, спросили про поле, дали денег. Я им только нарисовал, где канава. Думал, они просто глянуть…"
 
 [sub_resource type="Resource" id="Line_10"]
 script = ExtResource("3_line")
@@ -92,31 +107,46 @@ script = ExtResource("2_suspect")
 id = "hobbs"
 display_name = "фермер Хоббс"
 courier_id = ""
-alibi_clue = "Хоббс в ночь налёта принимал роды у свиноматки. Ветеринар подтверждает — к сожалению, в подробностях."
-guilty_clues = PackedStringArray("Хоббс купил новый трактор. За наличные. Свиньи столько не приносят.", "Хоббс как-то сказал в пабе: «Я-то знаю, что у Кэллоуэя в контейнере». Тогда все посмеялись.")
-accuse_label = "Это фермер Хоббс"
+intro_story = ExtResource("6_neighbour")
+alibi_clue = "В ночь налёта Хоббс принимал роды у свиноматки. Ветеринар был с ним до утра и подтверждает — к сожалению, в подробностях."
+alibi_place = "Ветлечебница в Бибери"
+herring_clue = "Хоббс купил трактор. Подержанный, но за наличные. Говорит — страховка за сарай, который «сам сгорел»."
+herring_place = "Двор фермы за ручьём"
+guilty_clues = PackedStringArray("Хоббс третий месяц берёт корм у Беллами в долг. Хозяйка говорит, последний счёт он унёс «показать жене».")
+guilty_places = PackedStringArray("Лавка «Корма и сёдла Беллами»")
+trail_clues = PackedStringArray("У «Зубов» при налёте выпала схема поля — с канавой и калиткой. Нарисована на обороте счёта из лавки Беллами.")
+trail_places = PackedStringArray("Край поля, у канавы")
+accuse_label = "Хоббс, фермер по соседству"
 guilty_reply = Array[ExtResource("3_line")]([SubResource("Line_9"), SubResource("Line_10")])
 innocent_reply = Array[ExtResource("3_line")]([SubResource("Line_11"), SubResource("Line_12")])
 
 [sub_resource type="Resource" id="Line_13"]
 script = ExtResource("3_line")
 speaker = ""
-text = "Вечер. Реджи раскладывает на столе всё, что удалось узнать."
+text = "Вечер. Реджи стоит у пробковой доски. Булавки, нитки, пять чашек остывшего чая."
 
 [sub_resource type="Resource" id="Line_14"]
 script = ExtResource("3_line")
 speaker = "Реджи"
-text = "Пора решать, мистер Кэллоуэй. Вот что у нас есть."
+text = "Пора решать, мистер Кэллоуэй. Вот что у нас есть. Кое-что врёт, кое-что — нет."
+
+[sub_resource type="Resource" id="Line_15"]
+script = ExtResource("3_line")
+speaker = "Реджи"
+text = "Как скажете. Только крыса тем временем не молчит — ночью держите товар подальше от полки. Доска никуда не денется. Вернёмся к ней позже."
 
 [resource]
 script = ExtResource("1_intrigue")
 opening_story = ExtResource("4_opening")
 suspects = Array[ExtResource("2_suspect")]([SubResource("Suspect_1"), SubResource("Suspect_2"), SubResource("Suspect_3")])
-clue_interval_hours = 5.0
+clue_interval_hours = 4.0
 accuse_lines = Array[ExtResource("3_line")]([SubResource("Line_13"), SubResource("Line_14")])
 crew_speaker = "Реджи"
 boss_speaker = "Гаффер"
 boss_name_line = "Как обещал. Ваш болтун — %s. Дальше без меня."
+wait_label = "Пока никого — нужно больше"
+wait_reply = Array[ExtResource("3_line")]([SubResource("Line_15")])
+wait_hours = 12.0
 caught_calm_days = 5.0
 paid_calm_days = 2.0
 retaliated_calm_days = 4.0

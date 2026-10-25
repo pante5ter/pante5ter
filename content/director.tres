@@ -9,6 +9,7 @@
 [ext_resource type="Resource" path="res://content/stories/vicar_roof.tres" id="7_vicar"]
 [ext_resource type="Resource" path="res://content/stories/lord_advance.tres" id="8_advance"]
 [ext_resource type="Resource" path="res://content/stories/lord_dinner.tres" id="9_dinner"]
+[ext_resource type="Resource" path="res://content/stories/reporter_vans.tres" id="10_reporter_vans"]
 
 [resource]
 script = ExtResource("1_director")
@@ -29,4 +30,4 @@ urgent_deadline_hours = 8.0
 rumour_inspection_min_suspicion = 25.0
 rumour_inspection_hours = 3.0
 courier_delay_hours = 1.0
-stories = Array[ExtResource("2_story_def")]([ExtResource("3_neighbour"), ExtResource("4_reporter"), ExtResource("5_cousin"), ExtResource("6_hiker"), ExtResource("7_vicar"), ExtResource("8_advance"), ExtResource("9_dinner")])
+stories = Array[ExtResource("2_story_def")]([ExtResource("3_neighbour"), ExtResource("4_reporter"), ExtResource("5_cousin"), ExtResource("6_hiker"), ExtResource("7_vicar"), ExtResource("8_advance"), ExtResource("9_dinner"), ExtResource("10_reporter_vans")])

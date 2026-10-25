@@ -42,6 +42,10 @@ func all() -> Array[StoryDef]:
 				found.append(story)
 	if _config.intrigue != null and _config.intrigue.opening_story != null:
 		found.append(_config.intrigue.opening_story)
+	if _config.intrigue != null:
+		for person: SuspectDef in _config.intrigue.suspects:
+			if person.intro_story != null and not found.has(person.intro_story):
+				found.append(person.intro_story)
 	found.append_array(_built.values())
 	return found
 
@@ -86,15 +90,29 @@ func relation(key: String) -> int:
 	return relations.get(key, 0)
 
 
-## Director stories of this kind that have not been told yet, in content order.
+## Director stories of this kind that have not been told yet and are ready to be, in content order.
 func untold(kind: String) -> Array[StoryDef]:
 	var found: Array[StoryDef] = []
 	if _config.director == null:
 		return found
 	for story: StoryDef in _config.director.stories:
-		if story.kind == kind and not used.has(story.id):
+		if story.kind == kind and not used.has(story.id) and is_ready(story):
 			found.append(story)
 	return found
+
+
+## A later beat of a story waits for the earlier ones and for the village to grow suspicious.
+func is_ready(story: StoryDef) -> bool:
+	for earlier: String in story.after_stories:
+		if not used.has(earlier):
+			return false
+	return _suspicion.level >= story.min_suspicion
+
+
+## A runtime story asked again later: the intrigue's accusation when Jack wants more time.
+func forget(story_id: String) -> void:
+	if pending_id != story_id:
+		used.erase(story_id)
 
 
 func start(story: StoryDef, now: float, actor: String) -> bool:
