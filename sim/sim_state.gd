@@ -84,6 +84,7 @@ func _init(balance: BalanceConfig, seed_value: int) -> void:
 	intrigue = Intrigue.new(balance, rng, stories, raids, couriers, suspicion, event_log)
 	thefts = CourierThefts.new(balance, stories, event_log)
 	day = DayCycle.new(balance.day, suspicion, event_log)
+	day.attach_economy(economy)
 	stash = Stash.new(balance, inventory, packing, suspicion, rng, event_log)
 	stash.attach(helper, packer)
 	progress.update(empire_value(), clock.elapsed_game_seconds)
@@ -184,6 +185,8 @@ func _apply(command: SimCommand) -> CommandResult:
 	if command is ChooseCommand:
 		var choose := command as ChooseCommand
 		return stories.choose(choose.story_id, choose.choice, now, command.actor)
+	if command is RentCommand:
+		return rent.answer((command as RentCommand).choice, now, command.actor)
 	return CommandResult.failure(CommandResult.UNKNOWN_COMMAND)
 
 

@@ -79,6 +79,9 @@ const JACK_OUT_LATE: String = "jack_out_late"
 const JACK_SLEPT: String = "jack_slept"
 const JACK_WOKE: String = "jack_woke"
 const SLEEP_INTERRUPTED: String = "sleep_interrupted"
+const RENT_CALLED: String = "rent_called"
+const RENT_VISIT_PROMISED: String = "rent_visit_promised"
+const HOME_NIGHT: String = "home_night"
 
 var _entries: Array[SimEvent] = []
 

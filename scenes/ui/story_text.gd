@@ -84,6 +84,9 @@ static func rat_hunt(sim: SimState) -> String:
 
 
 static func summons(sim: SimState, underground: bool) -> String:
+	var rent := RentTalk.task(sim, underground)
+	if not rent.is_empty():
+		return rent
 	var story := sim.stories.pending()
 	if story == null or story.place != StoryDef.MANOR:
 		return ""

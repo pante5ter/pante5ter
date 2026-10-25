@@ -7,3 +7,6 @@ extends Resource
 ## Consecutive missed payments after which the lord evicts Jack.
 @export var evict_after_missed: int = 3
 @export var missed_suspicion: float = 0.0
+## The lord rings this many game hours before the rent is due: pay now or bring it to the manor.
+## Zero: no call, the rent is simply taken when due.
+@export var call_ahead_hours: float = 0.0

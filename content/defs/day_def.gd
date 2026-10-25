@@ -13,3 +13,7 @@ extends Resource
 @export var wake_hour: float = 7.0
 ## Game minutes for any drive between the farm, home and the stash.
 @export var travel_minutes: float = 20.0
+## Waking at home after a full night there: the village saw the cottage go dark on time.
+@export var home_night_suspicion_relief: float = 0.0
+## And Vivienne's winnings at the bridge table go into the till.
+@export var home_night_money: int = 0

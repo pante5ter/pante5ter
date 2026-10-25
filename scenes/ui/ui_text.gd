@@ -423,6 +423,8 @@ static func announcement(event: SimEvent, sim: SimState) -> String:
 		EventLog.RENT_PAID:
 			return "Лорду Эшкомбу ушла аренда: %s. Дом пока не продают." % money(int(event.data["amount"]))
 		EventLog.RENT_MISSED:
+			if event.data.get("promised", false) == true:
+				return RentTalk.missed_visit(event)
 			return "Аренду заплатить нечем. Лорд недоволен, по округе пошли разговоры. Пропущено %d из %d." % [int(event.data["missed"]), int(event.data["evict_after"])]
 		EventLog.RENT_EVICTED:
 			return error(CommandResult.EVICTED)

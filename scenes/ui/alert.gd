@@ -81,7 +81,7 @@ static func from_event(event: SimEvent, sim: SimState) -> Alert:
 		EventLog.EVENING_CALL:
 			var call_home := make(Severity.INFO, HOME, PhoneGlyphs.CALLS, "Реджи: пора домой", news)
 			call_home.action = GO_HOME
-			call_home.seconds = 14.0
+			call_home.sticky = true
 			return call_home
 	return null
 

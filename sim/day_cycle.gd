@@ -28,6 +28,7 @@ var slept_at: float = -1.0
 var _def: DayDef
 var _suspicion: Suspicion
 var _event_log: EventLog
+var _economy: Economy
 
 
 func _init(def: DayDef, suspicion: Suspicion, event_log: EventLog) -> void:
@@ -36,6 +37,11 @@ func _init(def: DayDef, suspicion: Suspicion, event_log: EventLog) -> void:
 	_event_log = event_log
 	if _def != null:
 		start_at(0.0)
+
+
+## Vivienne's bridge winnings after a night at home go here.
+func attach_economy(economy: Economy) -> void:
+	_economy = economy
 
 
 func definition() -> DayDef:
@@ -108,6 +114,26 @@ func fall_asleep(now: float, actor: String) -> void:
 func wake_up(now: float) -> void:
 	day_started_at = now
 	_event_log.record(EventLog.JACK_WOKE, now, PackedStringArray([JACK]), {"slept_at": slept_at})
+	_home_night(now)
+
+
+## Waking at home after a real night (not the prologue's): less talk in the village and a little money.
+func _home_night(now: float) -> void:
+	if not is_home() or now < nights_from:
+		return
+	var before := _suspicion.level
+	_suspicion.add(-maxf(_def.home_night_suspicion_relief, 0.0))
+	var relief := before - _suspicion.level
+	var bonus := maxi(_def.home_night_money, 0) if _economy != null else 0
+	if bonus > 0:
+		_economy.earn(bonus)
+	if relief <= 0.0 and bonus <= 0:
+		return
+	_event_log.record(EventLog.HOME_NIGHT, now, PackedStringArray([JACK, "vivienne"]), {
+		"suspicion_relief": relief,
+		"bonus": bonus,
+		"money": _economy.money if _economy != null else 0,
+	})
 
 
 func interrupt_sleep(alarm: SimEvent) -> void:
