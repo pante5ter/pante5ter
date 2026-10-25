@@ -160,10 +160,14 @@ func test_a_greedy_worker_steals_some_of_the_harvest() -> void:
 	var state := SimState.new(config, 5)
 	state.apply(HireWorkerCommand.new(thief.id))
 	_advance_in_steps(state, 20.0, 0.5)
-	var harvested := state.event_log.of_type(EventLog.PLOT_HARVESTED).size()
-	assert_gt(harvested, 0)
-	assert_eq(state.event_log.of_type(EventLog.WORKER_STOLE).size(), harvested)
-	assert_eq(state.inventory.count(), 0)
+	var harvests := state.event_log.of_type(EventLog.PLOT_HARVESTED)
+	assert_gt(harvests.size(), 0)
+	var stolen := state.event_log.of_type(EventLog.WORKER_STOLE).size()
+	assert_eq(stolen, harvests.size(), "a unit off every harvest")
+	var units := 0
+	for harvest: SimEvent in harvests:
+		units += int(harvest.data["quantity"])
+	assert_eq(state.inventory.count(), units - stolen)
 
 
 func test_an_honest_worker_never_steals() -> void:

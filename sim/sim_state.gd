@@ -46,6 +46,7 @@ var thefts: CourierThefts
 var climate: Climate
 var day: DayCycle
 var stash: Stash
+var planting: PlantingPlan
 
 
 func _init(balance: BalanceConfig, seed_value: int) -> void:
@@ -61,10 +62,13 @@ func _init(balance: BalanceConfig, seed_value: int) -> void:
 	supplies = Supplies.new(balance, economy, event_log)
 	supplies.attach(progress)
 	grow.attach(balance, supplies, progress)
+	planting = PlantingPlan.new(balance, grow, supplies, progress, event_log)
+	grow.planner = planting
 	suspicion = Suspicion.new(balance.suspicion, grow, economy, event_log)
 	workers = Workers.new(balance.worker, grow, economy, event_log)
 	workers.attach(balance, rng, inventory, suspicion)
 	orders = Orders.new(balance.orders, balance.strain, rng, inventory, event_log)
+	orders.attach(balance, progress)
 	couriers = Couriers.new(balance, orders, economy, suspicion, rng, event_log)
 	packing = Packing.new(balance.orders, inventory, event_log)
 	problems = Problems.new(balance.problems, grow, supplies, rng, event_log)
@@ -187,6 +191,9 @@ func _apply(command: SimCommand) -> CommandResult:
 		return stories.choose(choose.story_id, choose.choice, now, command.actor)
 	if command is RentCommand:
 		return rent.answer((command as RentCommand).choice, now, command.actor)
+	if command is SetPlantingPlanCommand:
+		var plan := command as SetPlantingPlanCommand
+		return planting.set_beds(plan.strain_id, plan.beds, now, command.actor)
 	return CommandResult.failure(CommandResult.UNKNOWN_COMMAND)
 
 
@@ -354,6 +361,7 @@ func to_dict() -> Dictionary:
 		"climate": climate.to_dict(),
 		"day": day.to_dict(),
 		"stash": stash.to_dict(),
+		"planting_plan": planting.to_dict(),
 		"event_log": event_log.to_array(),
 	}
 
@@ -438,6 +446,7 @@ func _load_dict(data: Dictionary) -> void:
 		day.load_dict(data["day"] as Dictionary)
 	if data.has("stash"):
 		stash.load_dict(data["stash"] as Dictionary)
+	planting.load_dict(data.get("planting_plan", {}) as Dictionary)
 
 
 ## Before v12 the bench and the shelf stood in the bunker; everything on them now waits at the stash.

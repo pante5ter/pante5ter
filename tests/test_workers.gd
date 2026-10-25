@@ -209,12 +209,18 @@ func test_player_taking_the_workers_plot_is_harmless() -> void:
 func test_thirty_days_with_a_worker_stay_profitable_and_bounded() -> void:
 	var state := SimState.new(_calm(_balance), 11)
 	state.apply(HireWorkerCommand.new())
+	# Clients ask for the house strain and for «Классика»: half the beds each, seeds kept in stock.
+	var basic_beds := floori(state.grow.plots().size() / 2.0)
+	assert_true(state.apply(SetPlantingPlanCommand.new("basic", basic_beds)).ok)
+	assert_true(state.apply(SetPlantingPlanCommand.new("classic", state.grow.plots().size() - basic_beds)).ok)
+	assert_true(state.apply(SetAutoReorderCommand.new(Supplies.seed_item("classic"), 4)).ok)
 	var lowest_money := state.economy.money
 	for hour: int in 30 * 24:
 		_advance_hours(state, 1.0, 1.0)
 		lowest_money = mini(lowest_money, state.economy.money)
 		for order: Order in state.orders.with_status(Order.Status.OFFERED):
 			state.apply(AnswerOrderCommand.new(order.id, Orders.ACCEPT))
+		state.apply(PickUpParcelCommand.new())
 		state.apply(HaulCommand.new(Helper.ACTOR))
 		state.apply(PackCommand.new())
 		for order: Order in state.orders.with_status(Order.Status.ACCEPTED):

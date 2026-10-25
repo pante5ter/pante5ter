@@ -25,6 +25,9 @@ func _config() -> BalanceConfig:
 	config.raids.chance_per_night = 0.0
 	config.suspicion = _balance.suspicion.duplicate() as SuspicionDef
 	config.suspicion.inspection_threshold = 1000.0
+	# Flat yield, so what the pests ate is the only thing that changes the count.
+	config.strain = _balance.strain.duplicate() as StrainDef
+	config.strain.bonus_yield_max = 0
 	return config
 
 

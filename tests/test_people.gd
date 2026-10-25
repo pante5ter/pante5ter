@@ -50,9 +50,9 @@ func _accepted_order(state: SimState) -> Order:
 
 
 ## Goods on the stash shelf and bench.
-func _stock(state: SimState, count: int, quality: int, packed: bool) -> void:
+func _stock(state: SimState, count: int, quality: int, packed: bool, strain_id: String = "") -> void:
 	for index: int in count:
-		var product := state.inventory.create(state.config.strain.id, quality)
+		var product := state.inventory.create(strain_id if not strain_id.is_empty() else state.config.strain.id, quality)
 		product.packed = packed
 		product.at_stash = true
 
@@ -162,7 +162,8 @@ func test_he_cannot_take_two_orders_at_once() -> void:
 	_advance(state, state.config.orders.interval_hours)
 	var second := state.orders.with_status(Order.Status.OFFERED)[0]
 	state.apply(AnswerOrderCommand.new(second.id, Orders.ACCEPT))
-	_stock(state, first.quantity + second.quantity, 100, true)
+	_stock(state, first.quantity, 100, true, first.strain_id)
+	_stock(state, second.quantity, 100, true, second.strain_id)
 	assert_true(state.apply(DispatchCommand.new(first.id, Helper.ACTOR)).ok)
 	assert_eq(state.apply(DispatchCommand.new(second.id, Helper.ACTOR)).error, CommandResult.HELPER_AWAY)
 

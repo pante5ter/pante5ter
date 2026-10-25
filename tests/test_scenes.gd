@@ -112,7 +112,9 @@ func test_ripe_bed_menu_harvests() -> void:
 	_plots_grid(level).view_for(1).interact(level)
 	_choose(level, "Собрать урожай")
 	assert_eq(Game.sim.grow.plot(1).stage, Plot.Stage.EMPTY)
-	assert_eq(Game.sim.inventory.count(), 1)
+	var harvested := Game.sim.event_log.of_type(EventLog.PLOT_HARVESTED)
+	assert_eq(harvested.size(), 1)
+	assert_eq(Game.sim.inventory.count(), int(harvested[0].data["quantity"]))
 
 
 func test_buying_a_bed_adds_it_to_the_plantation() -> void:
@@ -229,6 +231,11 @@ func test_locked_strain_is_not_offered_for_planting() -> void:
 		assert_false(String(label).contains(elite.display_name))
 
 
+## Boxes for an order must be of the strain the client asked for.
+func _strain_for(order: Order) -> String:
+	return order.strain_id if not order.strain_id.is_empty() else Game.sim.config.strain.id
+
+
 func _accept_first_call() -> Order:
 	Game.sim.apply(AdvanceTimeCommand.new(_hours_to_real(Game.sim.config.orders.first_order_hours + 0.01)))
 	var order := Game.sim.orders.all()[0]
@@ -250,7 +257,7 @@ func test_phone_answers_calls_and_the_computer_ships_orders() -> void:
 	await wait_process_frames(2)
 	assert_false(desk.screen_glow.visible, "nothing to ship yet")
 	for index: int in order.quantity:
-		Game.sim.inventory.create(Game.sim.config.strain.id, 100).packed = true
+		Game.sim.inventory.create(_strain_for(order), 100).packed = true
 	await wait_process_frames(2)
 	assert_true(desk.screen_glow.visible, "boxes ready: the computer glows")
 	desk.interact(level)
@@ -302,8 +309,8 @@ func test_dispatch_buttons_need_matching_packed_boxes() -> void:
 	var level := await _open(PLANTATION_SCENE)
 	var order := _accept_first_call()
 	for index: int in order.quantity:
-		Game.sim.inventory.create(Game.sim.config.strain.id, order.min_quality - 1).packed = true
-		Game.sim.inventory.create(Game.sim.config.strain.id, 100)
+		Game.sim.inventory.create(_strain_for(order), order.min_quality - 1).packed = true
+		Game.sim.inventory.create(_strain_for(order), 100)
 	level.hud.open_computer()
 	var buttons := level.hud.computer.dispatch_buttons(order.id)
 	assert_gt(buttons.size(), 0)
@@ -311,7 +318,7 @@ func test_dispatch_buttons_need_matching_packed_boxes() -> void:
 		assert_true(button.disabled, "%s must be disabled without the right boxes" % button.text)
 	assert_false(buttons.any(func(button: Button) -> bool: return button.text.contains("Отвезти самому")), "Jack does not drive")
 	for index: int in order.quantity:
-		Game.sim.inventory.create(Game.sim.config.strain.id, order.min_quality).packed = true
+		Game.sim.inventory.create(_strain_for(order), order.min_quality).packed = true
 	level.hud.computer.refresh()
 	buttons = level.hud.computer.dispatch_buttons(order.id)
 	assert_false(buttons[0].disabled, "the helper can take it now")
@@ -393,7 +400,7 @@ func test_hired_couriers_wait_at_the_drop_point_off_the_farm_and_walk_the_road_w
 	Game.sim.apply(HireCourierCommand.new("harry"))
 	var order := _accept_first_call()
 	for index: int in order.quantity:
-		Game.sim.inventory.create(Game.sim.config.strain.id, 100).packed = true
+		Game.sim.inventory.create(_strain_for(order), 100).packed = true
 	await wait_process_frames(2)
 	var container := level.get_node("NavRegion/Container") as Node3D
 	assert_true(courier.visible, "an idle courier stands about")

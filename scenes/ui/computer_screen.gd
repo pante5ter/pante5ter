@@ -179,8 +179,9 @@ func _order_row(order: Order, sim: SimState, now: float) -> VBoxContainer:
 	row.set_meta("order_id", order.id)
 	var matching := sim.orders.matching_products(order).size()
 	var can_ship := sim.orders.can_fill(order)
-	var shortage := "" if can_ship else "\nПодходящих коробок %d из %d — нужен фасованный товар качества %d+." % [matching, order.quantity, order.min_quality]
-	row.add_child(UiStyle.label("Заказ #%d: %d шт., качество %d+, %s. Срок через %s.%s" % [order.id, order.quantity, order.min_quality, UiText.money(order.reward), UiText.real_duration(order.deadline - now, sim), shortage]))
+	var strain := UiText.order_strain(order.strain_id, sim)
+	var shortage := "" if can_ship else "\nПодходящих коробок %d из %d — нужен фасованный товар%s качества %d+." % [matching, order.quantity, strain, order.min_quality]
+	row.add_child(UiStyle.label("Заказ #%d: %d шт.%s, качество %d+, %s. Срок через %s.%s" % [order.id, order.quantity, strain, order.min_quality, UiText.money(order.reward), UiText.real_duration(order.deadline - now, sim), shortage]))
 	var buttons := VBoxContainer.new()
 	var free := sim.couriers.available_for(order, now)
 	for courier_id: String in sim.couriers.drivers():

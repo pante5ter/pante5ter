@@ -15,6 +15,8 @@ extends Resource
 @export var quality_min: int = 40
 @export var quality_max: int = 70
 @export var quality_step: int = 5
+## How often a caller asks for each strain; locked strains are skipped. Empty: callers take any.
+@export var strain_weights: Dictionary[String, float] = {}
 
 @export_group("Pay")
 @export var reward_multiplier: float = 1.3

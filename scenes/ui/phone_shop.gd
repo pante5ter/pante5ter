@@ -19,6 +19,7 @@ static func fill(box: VBoxContainer, sim: SimState, phone: Phone) -> void:
 			continue
 		var growth := UiText.real_duration(strain.growth_hours() * SimClock.GAME_SECONDS_PER_HOUR, sim)
 		_add_item(box, "Семена «%s»" % strain.display_name, "Растёт %s, качество около %d" % [growth, strain.base_quality], item, sim.supplies.seeds(strain.id), sim, phone)
+	PhonePlan.fill(box, sim, phone)
 	_add_item(box, "Удобрение", "+%d к качеству одной грядки" % sim.config.fertilizer_bonus, Supplies.FERTILIZER, sim.supplies.fertilizer, sim, phone)
 	_add_item(box, "Средство от вредителей", "Вредители останавливают рост грядки", Supplies.PESTICIDE, sim.supplies.count(Supplies.PESTICIDE), sim, phone)
 	_add_item(box, "Запасная лампа", "Без света куст не растёт, пока лампу не заменят", Supplies.LAMP, sim.supplies.count(Supplies.LAMP), sim, phone)

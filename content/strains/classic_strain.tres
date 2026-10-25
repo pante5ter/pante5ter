@@ -17,6 +17,7 @@ dry_penalty_per_hour = 4.0
 base_yield = 1
 fertilizer_yield = 1
 prune_yield = 1
+bonus_yield_max = 2
 base_price = 120
 price_mult_at_q0 = 0.3
 price_mult_at_q100 = 2.0

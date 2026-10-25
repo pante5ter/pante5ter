@@ -135,7 +135,7 @@ func test_urgent_order_has_a_short_fuse_and_a_bonus() -> void:
 	assert_eq(urgent.size(), 1)
 	var order := urgent[0] as Order
 	var def := state.config.director
-	var usual := float(order.quantity * Economy.price_with(state.config.strain, order.min_quality)) * state.config.orders.reward_multiplier
+	var usual := float(order.quantity * Economy.price_with(state.orders.price_strain(order.strain_id), order.min_quality)) * state.config.orders.reward_multiplier
 	assert_gt(float(order.reward), usual * 1.5)
 	state.apply(AnswerOrderCommand.new(order.id, Orders.ACCEPT))
 	assert_almost_eq(order.deadline - state.clock.elapsed_game_seconds, def.urgent_deadline_hours * HOUR, EPSILON)

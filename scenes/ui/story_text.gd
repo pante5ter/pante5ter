@@ -72,8 +72,9 @@ static func crew_status(sim: SimState) -> String:
 	return "\n".join(lines)
 
 
-static func urgent_call(event: SimEvent) -> String:
-	return "Срочный звонок: %d шт., качество %d+, %s — вдвое против обычного. Ждать клиент не будет." % [int(event.data["quantity"]), int(event.data["min_quality"]), UiText.money(int(event.data["reward"]))]
+static func urgent_call(event: SimEvent, sim: SimState) -> String:
+	var strain := UiText.order_strain(String(event.data.get("strain_id", "")), sim)
+	return "Срочный звонок: %d шт.%s, качество %d+, %s — вдвое против обычного. Ждать клиент не будет." % [int(event.data["quantity"]), strain, int(event.data["min_quality"]), UiText.money(int(event.data["reward"]))]
 
 
 static func rat_hunt(sim: SimState) -> String:

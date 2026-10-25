@@ -72,8 +72,9 @@ func _send_pete(state: SimState) -> Order:
 	_advance(state, state.config.orders.first_order_hours + STEP_HOURS)
 	var order := state.orders.all()[0]
 	assert_true(state.apply(AnswerOrderCommand.new(order.id, Orders.ACCEPT)).ok)
+	var strain_id := order.strain_id if not order.strain_id.is_empty() else state.config.strain.id
 	for unit: int in order.quantity:
-		state.inventory.create(state.config.strain.id, 100).packed = true
+		state.inventory.create(strain_id, 100).packed = true
 	assert_true(state.apply(DispatchCommand.new(order.id, "pete")).ok)
 	return order
 

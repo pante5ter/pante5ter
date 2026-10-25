@@ -16,6 +16,8 @@ var _reference_strain: StrainDef
 var _rng: SimRng
 var _inventory: Inventory
 var _event_log: EventLog
+var _config: BalanceConfig = null
+var _progress: Progress = null
 
 
 func _init(def: OrdersDef, reference_strain: StrainDef, rng: SimRng, inventory: Inventory, event_log: EventLog) -> void:
@@ -25,6 +27,39 @@ func _init(def: OrdersDef, reference_strain: StrainDef, rng: SimRng, inventory: 
 	_inventory = inventory
 	_event_log = event_log
 	next_spawn_at = def.first_order_hours * SimClock.GAME_SECONDS_PER_HOUR
+
+
+func attach(config: BalanceConfig, progress: Progress) -> void:
+	_config = config
+	_progress = progress
+
+
+## A strain a caller asks for, weighted by content and skipping locked ones; empty takes any.
+## With a single candidate nothing is drawn.
+func pick_strain() -> String:
+	if _config == null:
+		return ""
+	var candidates: Array[String] = []
+	var total := 0.0
+	for strain: StrainDef in _config.strains():
+		var weight := float(_def.strain_weights.get(strain.id, 0.0))
+		if weight > 0.0 and (_progress == null or _progress.is_strain_unlocked(strain.id)):
+			candidates.append(strain.id)
+			total += weight
+	if candidates.size() <= 1:
+		return candidates[0] if not candidates.is_empty() else ""
+	var roll := _rng.randf() * total
+	for strain_id: String in candidates:
+		roll -= float(_def.strain_weights[strain_id])
+		if roll < 0.0:
+			return strain_id
+	return candidates[candidates.size() - 1]
+
+
+## The strain an order is priced by: the one asked for, or the house strain.
+func price_strain(strain_id: String) -> StrainDef:
+	var asked := _config.find_strain(strain_id) if _config != null and not strain_id.is_empty() else null
+	return asked if asked != null else _reference_strain
 
 
 func all() -> Array[Order]:
@@ -53,7 +88,7 @@ func remove(order: Order) -> void:
 func matching_products(order: Order) -> Array[Product]:
 	var candidates: Array[Product] = []
 	for product: Product in _inventory.products():
-		if product.packed and product.quality >= order.min_quality:
+		if product.packed and order.accepts(product):
 			candidates.append(product)
 	candidates.sort_custom(func(a: Product, b: Product) -> bool: return a.quality < b.quality or (a.quality == b.quality and a.id < b.id))
 	return candidates.slice(0, order.quantity)
@@ -145,18 +180,20 @@ func _spawn(at: float) -> void:
 	var quantity := _rng.randi_range(_def.quantity_min, _def.quantity_max)
 	var quality_steps := maxi(floori(float(_def.quality_max - _def.quality_min) / float(maxi(_def.quality_step, 1))), 0)
 	var min_quality := _def.quality_min + _rng.randi_range(0, quality_steps) * _def.quality_step
-	var reward := roundi(float(quantity * Economy.price_with(_reference_strain, min_quality)) * _def.reward_multiplier)
-	inject(quantity, min_quality, reward, _def.answer_hours, 0.0, false, at)
+	var strain_id := pick_strain()
+	var reward := roundi(float(quantity * Economy.price_with(price_strain(strain_id), min_quality)) * _def.reward_multiplier)
+	inject(quantity, min_quality, reward, _def.answer_hours, 0.0, false, at, strain_id)
 
 
 ## A call placed by the script or the director rather than the usual schedule.
-func inject(quantity: int, min_quality: int, reward: int, answer_hours: float, deadline_hours: float, urgent: bool, at: float) -> Order:
+func inject(quantity: int, min_quality: int, reward: int, answer_hours: float, deadline_hours: float, urgent: bool, at: float, strain_id: String = "") -> Order:
 	var order := Order.new()
 	order.id = _next_id
 	_next_id += 1
 	order.quantity = quantity
 	order.min_quality = min_quality
 	order.reward = reward
+	order.strain_id = strain_id
 	order.answer_by = at + answer_hours * SimClock.GAME_SECONDS_PER_HOUR
 	order.deadline_hours = deadline_hours
 	order.urgent = urgent
@@ -169,6 +206,8 @@ func inject(quantity: int, min_quality: int, reward: int, answer_hours: float, d
 	}
 	if urgent:
 		data["urgent"] = true
+	if not strain_id.is_empty():
+		data["strain_id"] = strain_id
 	_event_log.record(EventLog.ORDER_RECEIVED, at, PackedStringArray([_tag(order)]), data)
 	return order
 

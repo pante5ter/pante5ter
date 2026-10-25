@@ -19,9 +19,9 @@ static func _shortage(order: Order, sim: SimState) -> String:
 	var boxes := sim.orders.matching_products(order).size()
 	var waiting := 0
 	for product: Product in sim.inventory.products():
-		if not product.packed and product.quality >= order.min_quality:
+		if not product.packed and order.accepts(product):
 			waiting += 1
-	var text := "нет расфасованного товара качества %d+ (коробок %d из %d" % [order.min_quality, boxes, order.quantity]
+	var text := "нет расфасованного товара%s качества %d+ (коробок %d из %d" % [UiText.order_strain(order.strain_id, sim), order.min_quality, boxes, order.quantity]
 	if waiting > 0:
 		text += ", ещё %d шт. ждут фасовки" % waiting
 	return text + ")"
