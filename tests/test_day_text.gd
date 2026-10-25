@@ -28,18 +28,20 @@ func test_crates_agree_with_the_number() -> void:
 	assert_eq(DayText.crates(22), "22 ящика")
 
 
-func test_the_summary_counts_the_day() -> void:
+## Playtest 6: the summary keeps money, losses and situations; harvest counts were noise.
+func test_the_summary_counts_the_money_and_the_losses() -> void:
 	var state := _state()
 	state.apply(PlantCommand.new(0))
 	state.grow.plot(0).stage = Plot.Stage.READY
 	state.apply(HarvestCommand.new(0))
-	var harvested := state.inventory.count()
 	state.apply(HaulCommand.new(Helper.ACTOR))
 	state.apply(AdvanceTimeCommand.new(20.0))
+	state.event_log.record(EventLog.HAUL_STOPPED, state.clock.elapsed_game_seconds, PackedStringArray([Helper.ACTOR]), {"driver": Helper.ACTOR, "units": 3})
 	var lines := "\n".join(DayText.summary(state, 0.0, state.clock.elapsed_game_seconds))
-	assert_string_contains(lines, "собрано %d," % harvested)
+	assert_string_contains(lines, "Деньги:")
+	assert_string_contains(lines, "Потери: полиция забрала %s." % DayText.crates(3))
 	assert_false(lines.contains(".."), "no double stops")
-	assert_string_contains(lines, "в тайник привезено %s" % DayText.crates(harvested))
+	assert_false(lines.contains("собрано"), "harvest counts are not in the summary")
 	assert_string_contains(lines, "В кассе")
 
 
@@ -47,7 +49,7 @@ func test_a_quiet_day_says_so() -> void:
 	var state := _state()
 	var lines := DayText.summary(state, 0.0, 0.0)
 	assert_string_contains(lines[0], "не пришло и не ушло")
-	assert_string_contains("\n".join(lines), "Урожая сегодня не было")
+	assert_eq(lines.size(), 2, "money and the till, nothing else")
 
 
 func test_the_briefing_lists_what_waits_today() -> void:
@@ -71,8 +73,8 @@ func test_a_calm_night_and_a_busy_one() -> void:
 func test_long_nights_keep_the_last_news() -> void:
 	var state := _state()
 	for index: int in 7:
-		state.event_log.record(EventLog.PLOT_DRIED_OUT, float(index), PackedStringArray(), {"plot_id": index})
-	var news := DayText.news_between(state, 0.0, 10.0, DayText.NIGHT_NEWS)
+		state.event_log.record(EventLog.WORKER_UNPAID, float(index), PackedStringArray(), {"worker_id": "tom", "debt": 10 * (index + 1), "days_left": 1})
+	var news := DayText.news_between(state, 0.0, 10.0, DayText.SITUATIONS)
 	assert_eq(news.size(), DayText.MAX_NEWS + 1)
 	assert_string_contains(news[0], "ещё 3")
 

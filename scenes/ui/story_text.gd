@@ -112,7 +112,7 @@ static func announcement(event: SimEvent, sim: SimState) -> String:
 		Director.RUMOUR:
 			if String(event.data["about"]) == Director.ABOUT_INSPECTION:
 				var hours := float(event.data["hours"]) * SimClock.GAME_SECONDS_PER_HOUR
-				return "Знакомый из участка шепнул: проверка будет через %s. Свет лучше выключить заранее — или довериться %s." % [UiText.real_duration(hours, sim), _helper_dative(sim)]
+				return "Знакомый из участка шепнул: проверка будет %s. Свет лучше выключить заранее — или довериться %s." % [UiText.game_when(event.game_time + hours, sim), _helper_dative(sim)]
 			return "В пабе болтают, что гопники с трассы присмотрели наш контейнер. Этой ночью товар лучше держать в дороге, а не на полке."
 		Director.COURIER_TROUBLE:
 			var hours := float(event.data["hours"]) * SimClock.GAME_SECONDS_PER_HOUR

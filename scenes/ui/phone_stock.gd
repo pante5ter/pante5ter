@@ -48,7 +48,7 @@ static func fill_empire(box: VBoxContainer, sim: SimState) -> void:
 	_add_rent(box, sim)
 	var heat := PhoneKit.card(box, PhoneKit.DANGER if sim.suspicion.inspection_pending() else PhoneKit.CARD)
 	heat.add_child(PhoneKit.label(UiText.suspicion(sim)))
-	heat.add_child(PhoneKit.label("Растёт от заказов, болтливых работников и большой фермы. Проверку переживёте, если вовремя выключить свет.", PhoneKit.SMALL_SIZE, PhoneKit.MUTED))
+	heat.add_child(PhoneKit.label("Растёт от заказов, болтливых работников, большой фермы и машины, которая ночью выезжает с поля в деревню: соседи видят фары. Проверку переживёте, если вовремя выключить свет.", PhoneKit.SMALL_SIZE, PhoneKit.MUTED))
 
 
 static func _add_rent(box: VBoxContainer, sim: SimState) -> void:
@@ -60,7 +60,7 @@ static func _add_rent(box: VBoxContainer, sim: SimState) -> void:
 		card.add_child(PhoneKit.label("Лорд Эшкомб расторг аренду: поле больше не ваше."))
 		return
 	PhoneKit.heading(card, "Аренда лорду", UiText.money(rent.amount()))
-	card.add_child(PhoneKit.label("Следующий платёж через %s." % UiText.real_duration(rent.due_in(sim.clock.elapsed_game_seconds), sim), PhoneKit.SMALL_SIZE, PhoneKit.MUTED))
+	card.add_child(PhoneKit.label("Следующий платёж — %s." % UiText.game_when(rent.next_due_at, sim), PhoneKit.SMALL_SIZE, PhoneKit.MUTED))
 	if rent.missed > 0:
 		card.add_child(PhoneKit.label("Пропущено подряд: %d из %d." % [rent.missed, rent.max_missed()], PhoneKit.BODY_SIZE, PhoneKit.GOLD))
 

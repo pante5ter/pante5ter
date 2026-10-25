@@ -15,7 +15,7 @@ static func fill(box: VBoxContainer, sim: SimState) -> void:
 	_day_line(purse, "Сегодня, день %d" % (today + 1), MoneyLedger.totals(sim, _day_start(today), now + 1.0))
 	if today > 0:
 		_day_line(purse, "Вчера", MoneyLedger.totals(sim, _day_start(today - 1), _day_start(today)))
-	_add_bills(box, sim, now)
+	_add_bills(box, sim)
 	box.add_child(PhoneKit.label("Последние операции", PhoneKit.TITLE_SIZE, PhoneKit.MUTED))
 	var entries := MoneyLedger.entries(sim)
 	var shown := 0
@@ -47,7 +47,7 @@ static func _day_line(parent: Container, title: String, totals: Vector2i) -> voi
 
 
 ## What leaves the purse on its own: rent and the crew's daily wages.
-static func _add_bills(box: VBoxContainer, sim: SimState, now: float) -> void:
+static func _add_bills(box: VBoxContainer, sim: SimState) -> void:
 	var wages := 0
 	var who := PackedStringArray()
 	if sim.helper.exists():
@@ -65,7 +65,7 @@ static func _add_bills(box: VBoxContainer, sim: SimState, now: float) -> void:
 	var bills := PhoneKit.card(box)
 	PhoneKit.heading(bills, "Регулярные расходы")
 	if rent > 0:
-		_pair(bills, "Аренда, через %s" % UiText.real_duration(sim.rent.due_in(now), sim), UiText.money(rent))
+		_pair(bills, "Аренда, срок %s" % UiText.game_when(sim.rent.next_due_at, sim, true), UiText.money(rent))
 	if wages > 0:
 		_pair(bills, "Зарплаты в день (%s)" % ", ".join(who), UiText.money(wages))
 

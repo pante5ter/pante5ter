@@ -41,6 +41,8 @@ var underground: bool = false
 ## Set by the level: which of Jack's places this view shows.
 var place: String = ""
 var speed_buttons: Array[Button] = []
+## Under the clock: what Jack has to do himself by a set hour.
+var tasks_label: Label
 
 var _message_left: float = 0.0
 var _watched_sim: SimState
@@ -48,10 +50,17 @@ var _seen_events: int = 0
 var _dialogue_was_running: bool = false
 var _hidden_for_dialogue: Array[CanvasItem] = []
 
+## A trip runs in the sim at once, and the fade takes the old HUD away with its message: the message
+## and the news it had not read yet carry over to the HUD of the next scene.
+static var _carried_text: String = ""
+static var _carried_sim_id: int = 0
+static var _carried_seen: int = 0
+
 
 func _ready() -> void:
 	message_label.modulate.a = 0.0
 	hover_label.visible = false
+	_add_tasks_label()
 	_add_corner_button("Телефон  [Tab]", toggle_phone, Vector2(1.0, 1.0), Rect2(-190.0, -60.0, 176.0, 44.0))
 	_add_corner_button("Меню  [Esc]", toggle_pause, Vector2(1.0, 0.0), Rect2(-150.0, 12.0, 136.0, 36.0))
 	jack_button = JackButton.new()
@@ -113,6 +122,41 @@ func _ready() -> void:
 	night = NightFlow.new()
 	night.hud = self
 	add_child(night)
+	_take_carried_message()
+
+
+func _add_tasks_label() -> void:
+	tasks_label = UiStyle.label("", 15, Color(1.0, 0.62, 0.5))
+	tasks_label.name = "Tasks"
+	tasks_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	tasks_label.visible = false
+	var rows := time_label.get_parent()
+	rows.add_child(tasks_label)
+	rows.move_child(tasks_label, time_label.get_index() + 1)
+
+
+func _exit_tree() -> void:
+	if _watched_sim == null:
+		return
+	_carried_sim_id = _watched_sim.get_instance_id()
+	_carried_seen = _seen_events
+	_carried_text = message_label.text if _message_left > 0.0 else ""
+
+
+func _take_carried_message() -> void:
+	var sim := Game.sim
+	var carried := _carried_text
+	var same_game := sim != null and sim.get_instance_id() == _carried_sim_id
+	_carried_text = ""
+	_carried_sim_id = 0
+	if not same_game:
+		return
+	_watched_sim = sim
+	_seen_events = mini(_carried_seen, sim.event_log.size())
+	_announce_new_events(sim)
+	if carried.is_empty():
+		return
+	show_message(carried if _message_left <= 0.0 else carried + "\n" + message_label.text)
 
 
 func _add_corner_button(text: String, on_pressed: Callable, anchor: Vector2, rect: Rect2) -> void:
@@ -138,6 +182,8 @@ func _process(delta: float) -> void:
 	empire_label.text = UiText.empire(sim)
 	suspicion_label.text = UiText.suspicion(sim)
 	suspicion_label.modulate = Color(1.0, 0.55, 0.45) if sim.suspicion.inspection_pending() or sim.raids.pending else Color.WHITE
+	tasks_label.text = JackTasks.text(sim)
+	tasks_label.visible = not tasks_label.text.is_empty()
 	phone.underground = underground
 	_announce_new_events(sim)
 	for index: int in speed_buttons.size():

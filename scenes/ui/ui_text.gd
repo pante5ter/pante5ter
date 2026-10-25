@@ -7,6 +7,8 @@ const VIVIENNE: String = "Вивьен"
 const JACK: String = "Джек"
 ## Reggie starts nagging about rent this many game hours before it is due.
 const RENT_WARNING_HOURS: float = 12.0
+## Deadlines further off than this read as game clock time; nearer ones as a real countdown.
+const CLOCK_DEADLINE_HOURS: float = 2.0
 
 const STAGE_NAMES: Dictionary[Plot.Stage, String] = {
 	Plot.Stage.EMPTY: "пусто",
@@ -99,6 +101,33 @@ static func real_duration(game_seconds: float, sim: SimState) -> String:
 	return "%d мин %d с" % [minutes, seconds]
 
 
+## A game moment as the HUD clock shows it: «сегодня в 18:00», «завтра в 10:00», «в 00:00, день 3».
+## With until: «до 18:00 сегодня», «до 10:00 завтра», «до 00:00, день 3». Midnight always names the day:
+## «завтра в 00:00» reads as the end of tomorrow.
+static func game_when(at: float, sim: SimState, until: bool = false) -> String:
+	if not is_finite(at):
+		return "без срока"
+	var minutes_total := roundi(at / 60.0)
+	var minutes_per_day := roundi(SimClock.GAME_SECONDS_PER_DAY / 60.0)
+	var day := floori(float(minutes_total) / float(minutes_per_day))
+	var minute_of_day := minutes_total - day * minutes_per_day
+	var hhmm := "%02d:%02d" % [floori(minute_of_day / 60.0), minute_of_day % 60]
+	var days_ahead := day - sim.clock.day()
+	if minute_of_day == 0 or days_ahead < 0 or days_ahead > 1:
+		return "%s %s, день %d" % ["до" if until else "в", hhmm, day + 1]
+	var which := "сегодня" if days_ahead == 0 else "завтра"
+	return ("до %s %s" % [hhmm, which]) if until else ("%s в %s" % [which, hhmm])
+
+
+## A deadline Jack has to meet: far ones as clock time, near ones as a real countdown.
+## «до 18:00 сегодня» or «через 45 с».
+static func due_by(at: float, sim: SimState) -> String:
+	var left := at - sim.clock.elapsed_game_seconds
+	if left > CLOCK_DEADLINE_HOURS * SimClock.GAME_SECONDS_PER_HOUR:
+		return game_when(at, sim, true)
+	return "через " + real_duration(left, sim)
+
+
 const PROBLEM_NAMES: Dictionary[String, String] = {
 	Problems.PESTS: "вредители",
 	Problems.MOLD: "плесень",
@@ -131,7 +160,7 @@ static func empire(sim: SimState) -> String:
 static func suspicion(sim: SimState) -> String:
 	var text := "Подозрение: %d%%" % roundi(sim.suspicion.level)
 	if sim.suspicion.inspection_pending():
-		text += " · ПРОВЕРКА через %s" % real_duration(sim.suspicion.inspection_at - sim.clock.elapsed_game_seconds, sim)
+		text += " · ПРОВЕРКА %s" % game_when(sim.suspicion.inspection_at, sim)
 	if sim.suspicion.quiet:
 		text += " · ферма затихла"
 	return text
@@ -260,7 +289,7 @@ static func objective(sim: SimState, underground: bool = false) -> String:
 	if sim.suspicion.inspection_pending() and not sim.suspicion.quiet:
 		return "Едет проверка. Изобразим скуку: на компьютере выключите свет, придержите курьеров."
 	if _rent_is_short(sim):
-		return "Через %s аренда лорду — %s, а в кассе %s. Продайте товар через компьютер, иначе лорд обидится." % [real_duration(sim.rent.due_in(sim.clock.elapsed_game_seconds), sim), money(sim.rent.amount()), money(sim.economy.money)]
+		return "Лорду пора платить: аренда %s %s, а в кассе %s. Продайте товар через компьютер, иначе лорд обидится." % [money(sim.rent.amount()), game_when(sim.rent.next_due_at, sim, true), money(sim.economy.money)]
 	var day := DayText.objective(sim)
 	if not day.is_empty():
 		return day
@@ -454,7 +483,7 @@ static func lord_lines(sim: SimState) -> Array[DialogueLineDef]:
 			DialogueLineDef.make(LORD, "Мне искренне жаль, мистер Кэллоуэй. Банк, знаете ли, не принимает обещаний. Я тоже больше не могу."),
 			DialogueLineDef.make(REGGIE, "Поле больше не наше. Предлагаю не задерживаться."),
 		]
-	var due := "следующий платёж %s через %s" % [money(rent.amount()), real_duration(rent.due_in(sim.clock.elapsed_game_seconds), sim)]
+	var due := "следующий платёж %s %s" % [money(rent.amount()), game_when(rent.next_due_at, sim, true)]
 	if rent.missed > 0:
 		return [
 			DialogueLineDef.make(LORD, "Мистер Кэллоуэй, платёж так и не пришёл. Я не привык напоминать о деньгах. Это неловко для нас обоих."),
