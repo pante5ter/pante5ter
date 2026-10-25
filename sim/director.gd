@@ -143,9 +143,10 @@ func _trigger(kind: String, now: float) -> void:
 	match kind:
 		URGENT_ORDER:
 			var quantity := _rng.randi_range(_def.urgent_quantity_min, _def.urgent_quantity_max)
-			var price := Economy.price_with(_config.strain, _def.urgent_min_quality)
+			var strain_id := _orders.pick_strain()
+			var price := Economy.price_with(_orders.price_strain(strain_id), _def.urgent_min_quality)
 			var reward := roundi(float(quantity * price) * _config.orders.reward_multiplier * _def.urgent_reward_multiplier)
-			data["order_id"] = _orders.inject(quantity, _def.urgent_min_quality, reward, _def.urgent_answer_hours, _def.urgent_deadline_hours, true, now).id
+			data["order_id"] = _orders.inject(quantity, _def.urgent_min_quality, reward, _def.urgent_answer_hours, _def.urgent_deadline_hours, true, now, strain_id).id
 		LORD_VISIT:
 			var visit := _stories.untold(StoryDef.LORD)[0]
 			_stories.start(visit, now, ACTOR)

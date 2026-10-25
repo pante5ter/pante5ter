@@ -83,6 +83,9 @@ func test_objective_points_at_harvest_and_then_the_buyer() -> void:
 		var step := minf(hours_left, strain.water_capacity_hours)
 		state.apply(AdvanceTimeCommand.new(_real_seconds_for_game_hours(step)))
 		hours_left -= step
+	# A ringing phone comes first in the objective; callers hold the line long enough to overlap the harvest.
+	for call: Order in state.orders.with_status(Order.Status.OFFERED):
+		state.apply(AnswerOrderCommand.new(call.id, Orders.DECLINE))
 	assert_string_contains(UiText.objective(state), "Собери")
 	state.apply(HarvestCommand.new(0))
 	assert_string_contains(UiText.objective(state), "тайник", "fresh crates leave the farm first")

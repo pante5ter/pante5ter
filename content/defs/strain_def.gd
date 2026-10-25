@@ -21,6 +21,8 @@ extends Resource
 @export var base_yield: int = 1
 @export var fertilizer_yield: int = 0
 @export var prune_yield: int = 0
+## Each harvest rolls 0..this many extra units on top; zero harvests the same every time.
+@export var bonus_yield_max: int = 0
 
 @export_group("Price")
 @export var base_price: int = 1

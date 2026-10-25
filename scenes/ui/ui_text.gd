@@ -210,6 +210,12 @@ static func item_name(item: String, sim: SimState) -> String:
 	return "семена «%s»" % strain.display_name if strain != null else item
 
 
+## " сорта «Классика»" after the unit count of an order that names a strain; empty when any will do.
+static func order_strain(strain_id: String, sim: SimState) -> String:
+	var strain := sim.config.find_strain(strain_id) if not strain_id.is_empty() else null
+	return " сорта «%s»" % strain.display_name if strain != null else ""
+
+
 static func stage(value: Plot.Stage) -> String:
 	return STAGE_NAMES.get(value, "?")
 
@@ -360,8 +366,8 @@ static func announcement(event: SimEvent, sim: SimState) -> String:
 			return "Грядка %d пересохла — рост остановился." % plot_number(int(event.data["plot_id"]))
 		EventLog.ORDER_RECEIVED:
 			if event.data.get("urgent", false) == true:
-				return StoryText.urgent_call(event)
-			return "Звонит клиент: нужно %d шт., качество %d+, %s. Ответьте по телефону." % [int(event.data["quantity"]), int(event.data["min_quality"]), money(int(event.data["reward"]))]
+				return StoryText.urgent_call(event, sim)
+			return "Звонит клиент: нужно %d шт.%s, качество %d+, %s. Ответьте по телефону." % [int(event.data["quantity"]), order_strain(String(event.data.get("strain_id", "")), sim), int(event.data["min_quality"]), money(int(event.data["reward"]))]
 		EventLog.ORDER_MISSED:
 			return "Клиент не дождался ответа и повесил трубку. Второй раз он вряд ли позвонит."
 		EventLog.ORDER_HAGGLED:

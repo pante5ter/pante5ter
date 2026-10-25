@@ -123,6 +123,9 @@ func actions(level: Level) -> Array[UiAction]:
 	var result: Array[UiAction] = []
 	match plot.stage:
 		Plot.Stage.EMPTY:
+			var best := sim.config.find_strain(sim.planting.choose())
+			var by_plan := "" if sim.planting.is_empty() else " (по плану)"
+			result.append(UiAction.make("Посадить лучшее: «%s»%s" % [best.display_name, by_plan], _plant.bind(level, "")))
 			for strain: StrainDef in sim.config.strains():
 				if not sim.progress.is_strain_unlocked(strain.id):
 					continue
@@ -154,10 +157,16 @@ func _harvest(level: Level) -> void:
 	if not result.ok:
 		level.show_message(UiText.error(result.error))
 		return
-	var harvested := Game.sim.event_log.last()
-	var quality := Game.sim.inventory.find(result.value).quality
-	var units := int(harvested.data.get("quantity", 1)) if harvested != null and harvested.type == EventLog.PLOT_HARVESTED else 1
-	level.show_message("Собрано %d шт., качество %d. Заказы — в телефоне (Tab)." % [units, quality])
+	level.show_message(harvest_text(Game.sim.event_log.last(), Game.sim))
+
+
+static func harvest_text(harvested: SimEvent, sim: SimState) -> String:
+	if harvested == null or harvested.type != EventLog.PLOT_HARVESTED:
+		return "Собрано. Заказы — в телефоне (Tab)."
+	var strain_id := String(harvested.data.get("strain_id", ""))
+	var strain := sim.config.find_strain(strain_id) if not strain_id.is_empty() else null
+	var strain_text := " «%s»" % strain.display_name if strain != null else ""
+	return "Собрано %d шт.%s, качество %d. Заказы — в телефоне (Tab)." % [int(harvested.data.get("quantity", 1)), strain_text, int(harvested.data["quality"])]
 
 
 func _run(level: Level, command: SimCommand, success_text: String) -> void:

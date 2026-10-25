@@ -75,13 +75,17 @@ func test_full_loop_through_commands() -> void:
 	var product_id := _apply_ok(state, HarvestCommand.new(0)).value
 	var quality := state.inventory.find(product_id).quality
 	assert_between(quality, 0, 100)
+	assert_eq(state.inventory.count(), int(state.event_log.of_type(EventLog.PLOT_HARVESTED)[0].data["quantity"]))
 
-	var price := _apply_ok(state, SellCommand.new(product_id)).value
-	assert_eq(price, state.economy.price_for(quality))
-	assert_eq(state.economy.money, _balance.starting_money + price)
+	var earned := 0
+	for product: Product in state.inventory.products():
+		var price := _apply_ok(state, SellCommand.new(product.id)).value
+		assert_eq(price, state.economy.price_for(product.quality))
+		earned += price
+	assert_eq(state.economy.money, _balance.starting_money + earned)
 	assert_eq(state.inventory.count(), 0)
 	assert_eq(state.event_log.of_type(EventLog.PLOT_HARVESTED).size(), 1)
-	assert_eq(state.event_log.of_type(EventLog.PRODUCT_SOLD).size(), 1)
+	assert_eq(state.event_log.of_type(EventLog.PRODUCT_SOLD).size(), int(state.event_log.of_type(EventLog.PLOT_HARVESTED)[0].data["quantity"]))
 
 
 func test_growth_finishes_on_time_when_clock_is_not_round() -> void:

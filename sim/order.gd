@@ -20,6 +20,8 @@ var urgent: bool = false
 var deadline_hours: float = 0.0
 ## Already held up on the road once; one hold-up per delivery.
 var delayed: bool = false
+## The strain the client wants; empty takes any.
+var strain_id: String = ""
 
 
 static func status_name(value: Status) -> String:
@@ -42,7 +44,12 @@ func to_dict() -> Dictionary:
 		"urgent": urgent,
 		"deadline_hours": ExactFloat.encode(deadline_hours),
 		"delayed": delayed,
+		"strain_id": strain_id,
 	}
+
+
+func accepts(product: Product) -> bool:
+	return product.quality >= min_quality and (strain_id.is_empty() or product.strain_id == strain_id)
 
 
 static func from_dict(data: Dictionary) -> Order:
@@ -62,4 +69,5 @@ static func from_dict(data: Dictionary) -> Order:
 	order.urgent = data.get("urgent", false) == true
 	order.delayed = data.get("delayed", false) == true
 	order.deadline_hours = ExactFloat.decode(data["deadline_hours"]) if data.has("deadline_hours") else 0.0
+	order.strain_id = String(data.get("strain_id", ""))
 	return order

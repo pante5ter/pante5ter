@@ -229,11 +229,23 @@ func test_every_strain_says_how_care_changes_its_yield() -> void:
 	assert_false(basic.fertilizer_yield == elite.fertilizer_yield and basic.prune_yield == elite.prune_yield, "strains react to care differently")
 
 
+## The care bonus on top of the harvest's lucky extra, which the event reports.
+func _care_units(strain_id: String, fertilize: bool, prune: bool) -> int:
+	var state := _rich_grower()
+	_ready_plot(state, 0, strain_id, fertilize, prune)
+	var before := state.inventory.count()
+	assert_true(state.apply(HarvestCommand.new(0)).ok)
+	var bonus := int((state.event_log.of_type(EventLog.PLOT_HARVESTED).back() as SimEvent).data["bonus"])
+	return state.inventory.count() - before - bonus
+
+
 func test_fertiliser_and_pruning_add_units_to_the_harvest() -> void:
 	var strain := _balance.find_strain("basic")
-	assert_eq(_harvest_count("basic", false, false), strain.base_yield)
-	assert_eq(_harvest_count("basic", true, false), strain.base_yield + strain.fertilizer_yield)
-	assert_eq(_harvest_count("basic", true, true), strain.base_yield + strain.fertilizer_yield + strain.prune_yield)
+	assert_eq(_care_units("basic", false, false), strain.base_yield)
+	assert_eq(_care_units("basic", true, false), strain.base_yield + strain.fertilizer_yield)
+	assert_eq(_care_units("basic", true, true), strain.base_yield + strain.fertilizer_yield + strain.prune_yield)
+	var cared := strain.base_yield + strain.fertilizer_yield + strain.prune_yield
+	assert_between(_harvest_count("basic", true, true), cared, cared + strain.bonus_yield_max)
 
 
 func test_harvest_event_reports_the_amount() -> void:
@@ -242,5 +254,5 @@ func test_harvest_event_reports_the_amount() -> void:
 	state.apply(HarvestCommand.new(0))
 	var harvested := state.event_log.of_type(EventLog.PLOT_HARVESTED)
 	var strain := state.config.find_strain("basic")
-	assert_eq(int(harvested[0].data["quantity"]), strain.base_yield + strain.fertilizer_yield + strain.prune_yield)
+	assert_eq(int(harvested[0].data["quantity"]), strain.base_yield + strain.fertilizer_yield + strain.prune_yield + int(harvested[0].data["bonus"]))
 	assert_eq((harvested[0].data["product_ids"] as Array).size(), int(harvested[0].data["quantity"]))

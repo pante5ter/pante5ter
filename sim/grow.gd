@@ -9,6 +9,8 @@ var _plots: Array[Plot] = []
 var _config: BalanceConfig = null
 var _supplies: Supplies = null
 var _progress: Progress = null
+## Set by SimState: picks the strain when nobody names one.
+var planner: PlantingPlan = null
 
 
 func _init(strain: StrainDef, plot_count: int, rng: SimRng, event_log: EventLog, inventory: Inventory) -> void:
@@ -34,15 +36,6 @@ func strain_of(target: Plot) -> StrainDef:
 	return _strain
 
 
-func replant_strain(target: Plot) -> String:
-	if _config == null or target.last_strain_id.is_empty():
-		return ""
-	var last := _config.find_strain(target.last_strain_id)
-	if last == null or (last.needs_seeds() and _supplies.seeds(last.id) <= 0):
-		return ""
-	return last.id
-
-
 func add_plot() -> Plot:
 	var added := Plot.new(_plots.size())
 	_plots.append(added)
@@ -65,6 +58,8 @@ func plant(plot_id: int, now: float, actor: String, strain_id: String = "") -> C
 		return CommandResult.failure(CommandResult.INVALID_PLOT)
 	if target.stage != Plot.Stage.EMPTY:
 		return CommandResult.failure(CommandResult.PLOT_OCCUPIED)
+	if strain_id.is_empty() and planner != null:
+		strain_id = planner.choose()
 	var strain := _strain
 	if not strain_id.is_empty():
 		strain = _config.find_strain(strain_id) if _config != null else null
@@ -129,7 +124,9 @@ func harvest(plot_id: int, now: float, actor: String) -> CommandResult:
 		return CommandResult.failure(CommandResult.PLOT_NOT_READY)
 	var strain := strain_of(target)
 	var quality := _roll_quality(target)
-	var grown := strain.yield_for(target.fertilized, target.pruned)
+	# Rolled only for strains with a range, so flat strains draw from the RNG exactly as before.
+	var bonus := _rng.randi_range(0, strain.bonus_yield_max) if strain.bonus_yield_max > 0 else 0
+	var grown := strain.yield_for(target.fertilized, target.pruned) + bonus
 	var eaten := mini(eaten_units(target), grown)
 	if eaten >= grown:
 		_event_log.record(EventLog.PLOT_CROP_EATEN, now, _actors(actor, target), {"plot_id": plot_id, "eaten": eaten})
@@ -143,6 +140,8 @@ func harvest(plot_id: int, now: float, actor: String) -> CommandResult:
 		"product_id": product_ids[0],
 		"product_ids": product_ids,
 		"quantity": product_ids.size(),
+		"bonus": bonus,
+		"strain_id": strain.id,
 		"quality": quality,
 		"eaten": eaten,
 	})

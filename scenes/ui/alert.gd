@@ -59,7 +59,7 @@ static func from_event(event: SimEvent, sim: SimState) -> Alert:
 			parcel.seconds = 10.0
 			return parcel
 		EventLog.ORDER_RECEIVED:
-			var offer := "%d шт., качество от %d, платит %s. Ответьте по телефону." % [int(event.data["quantity"]), int(event.data["min_quality"]), UiText.money(int(event.data["reward"]))]
+			var offer := "%d шт.%s, качество от %d, платит %s. Ответьте по телефону." % [int(event.data["quantity"]), UiText.order_strain(String(event.data.get("strain_id", "")), sim), int(event.data["min_quality"]), UiText.money(int(event.data["reward"]))]
 			var urgent: bool = event.data.get("urgent", false) == true
 			var call := make(Severity.INFO, CALL, PhoneGlyphs.CALLS, "Срочный звонок" if urgent else "Звонит клиент", news if urgent else offer)
 			call.action = ANSWER

@@ -90,7 +90,7 @@ func _finish_task(now: float) -> void:
 	var grow := _crew.grow()
 	match task:
 		Workers.Task.PLANT:
-			grow.plant(task_plot_id, now, actor(), grow.replant_strain(grow.plot(task_plot_id)))
+			grow.plant(task_plot_id, now, actor())
 		Workers.Task.WATER:
 			grow.water(task_plot_id, now, actor())
 		Workers.Task.HARVEST:
