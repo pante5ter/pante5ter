@@ -5,6 +5,8 @@ const RAIDER_ACTOR: String = "raiders"
 const PAY: String = "pay"
 const GIVE: String = "give"
 const CHASE: String = "chase"
+## Outcomes where the gang left with crates and Jack was not there to answer them.
+const UNATTENDED_ROBBERIES: Array[String] = ["ignored", "helper_failed"]
 
 var pending: bool = false
 var deadline: float = 0.0
@@ -155,6 +157,25 @@ func _resolve(now: float, actor: String, outcome: String, data: Dictionary) -> v
 	var record := data.duplicate()
 	record["outcome"] = outcome
 	_event_log.record(EventLog.RAID_RESOLVED, now, PackedStringArray([actor, RAIDER_ACTOR]), record)
+
+
+static func is_unattended_robbery(event: SimEvent) -> bool:
+	if event == null or event.type != EventLog.RAID_RESOLVED:
+		return false
+	return UNATTENDED_ROBBERIES.has(String(event.data.get("outcome", ""))) and crates_taken(event) > 0
+
+
+static func crates_taken(event: SimEvent) -> int:
+	return maxi(int(event.data.get("taken", 0)), 0)
+
+
+## The latest robbery Jack missed at or after seq; null when there was none.
+static func last_unattended_robbery_since(event_log: EventLog, seq: int) -> SimEvent:
+	var found: SimEvent = null
+	for event: SimEvent in event_log.since(seq):
+		if is_unattended_robbery(event):
+			found = event
+	return found
 
 
 func to_dict() -> Dictionary:

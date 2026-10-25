@@ -36,6 +36,7 @@ var jack_button: JackButton
 var day_card: DayCard
 var night: NightFlow
 var remote_bar: RemoteBar
+var raid_recap: RaidRecap
 ## Set by the level: Reggie phrases directions from where Jack stands.
 var underground: bool = false
 ## Set by the level: which of Jack's places this view shows.
@@ -113,6 +114,10 @@ func _ready() -> void:
 	dialogue_box = DIALOGUE_BOX_SCENE.instantiate() as DialogueBox
 	dialogue_box.finished.connect(_on_dialogue_finished)
 	add_child(dialogue_box)
+	# Processed before the story presenter: the call about a robbery comes before the story it starts.
+	raid_recap = RaidRecap.new()
+	raid_recap.hud = self
+	add_child(raid_recap)
 	story_presenter = StoryPresenter.new()
 	story_presenter.hud = self
 	add_child(story_presenter)
