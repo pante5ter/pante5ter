@@ -47,6 +47,9 @@ func _advance(state: SimState, hours: float) -> void:
 
 
 func _raid(state: SimState) -> void:
+	for person: SuspectDef in state.config.intrigue.suspects:
+		if person.intro_story != null and not state.stories.used.has(person.intro_story.id):
+			state.stories.used.append(person.intro_story.id)
 	state.raids.pending = true
 	state.raids.deadline = state.clock.elapsed_game_seconds + HOUR
 	assert_true(state.apply(RaidCommand.new(Raids.PAY)).ok)

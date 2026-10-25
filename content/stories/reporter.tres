@@ -7,69 +7,76 @@
 [sub_resource type="Resource" id="Line_1"]
 script = ExtResource("3_line")
 speaker = ""
-text = "Звонок с незнакомого номера. Молодой голос, на фоне стучит клавиатура."
+text = "Звонок с незнакомого номера. Молодой бодрый голос, на фоне стучит клавиатура."
 
 [sub_resource type="Resource" id="Line_2"]
 script = ExtResource("3_line")
 speaker = "Репортёр"
-text = "Тоби Пэлфри, «Котсуолдский вестник». Читатели жалуются на ночные фургоны. Версий две: вы снимаете кино или прячете тело. Редактор склоняется к телу."
+text = "Тоби Пэлфри, «Котсуолдский вестник». Готовлю выпуск к празднику урожая. Тыквы, сидр, викарий на тракторе. Вы ведь новый арендатор у лорда Эшкомба?"
 
 [sub_resource type="Resource" id="Line_3"]
 script = ExtResource("3_line")
-speaker = "Реджи"
-text = "Местная газета — не Скотленд-Ярд. Хуже: её читают все."
+speaker = "Репортёр"
+text = "Пара слов для рубрики «Новые лица»: что растите, будете ли выставлять тыкву. Соседи говорят, у вас трудолюбивые ребята. Допоздна работают."
 
 [sub_resource type="Resource" id="Line_4"]
 script = ExtResource("3_line")
-speaker = "Репортёр"
-text = "Экологичные вешенки для лондонских ресторанов! Это же разворот: «Тайна поля раскрыта — грибы»."
+speaker = "Реджи"
+text = "Мальчик с блокнотом. Пока что — про тыквы."
 
 [sub_resource type="Resource" id="Line_5"]
 script = ExtResource("3_line")
-speaker = "Реджи"
-text = "Скучнее заголовка не придумать. Ровно то, что нужно."
+speaker = "Репортёр"
+text = "Пшеница, сено, немного овощей — чудесно. Напишу: «Новый сосед любит землю». Читатели такое обожают."
 
 [sub_resource type="Resource" id="Line_6"]
 script = ExtResource("3_line")
-speaker = "Репортёр"
-text = "Грибы. Которые возят по ночам фургонами. Пожалуй, напишу «Расследование продолжается»."
+speaker = "Реджи"
+text = "Самая скучная заметка в истории графства. Идеально."
 
 [sub_resource type="Resource" id="Line_7"]
 script = ExtResource("3_line")
-speaker = "Реджи"
-text = "Слово «продолжается» мне не нравится."
-
-[sub_resource type="Resource" id="Choice_1"]
-script = ExtResource("2_choice")
-label = "Дать интервью про «грибную ферму»"
-chance = 0.5
-suspicion = -8.0
-fail_suspicion = 12.0
-reply = Array[ExtResource("3_line")]([SubResource("Line_4"), SubResource("Line_5")])
-fail_reply = Array[ExtResource("3_line")]([SubResource("Line_6"), SubResource("Line_7")])
+speaker = "Репортёр"
+text = "Пшеница? Забавно, я проезжал мимо — она у вас какая-то… декоративная. Ладно, не моё дело. Пока."
 
 [sub_resource type="Resource" id="Line_8"]
 script = ExtResource("3_line")
-speaker = "Репортёр"
-text = "Целую полосу? «Кэллоуэй: органические удобрения». Знаете, редактор вдруг остыл к истории с телом."
+speaker = "Реджи"
+text = "«Пока» — это он про заметку или про нас?"
+
+[sub_resource type="Resource" id="Choice_1"]
+script = ExtResource("2_choice")
+label = "Поболтать про поле и праздник урожая"
+chance = 0.6
+suspicion = -3.0
+fail_suspicion = 4.0
+relation_change = 1
+relation = "village"
+reply = Array[ExtResource("3_line")]([SubResource("Line_5"), SubResource("Line_6")])
+fail_reply = Array[ExtResource("3_line")]([SubResource("Line_7"), SubResource("Line_8")])
 
 [sub_resource type="Resource" id="Line_9"]
 script = ExtResource("3_line")
+speaker = "Репортёр"
+text = "Спонсор праздничного выпуска! «Ферма Кэллоуэя поздравляет графство». Редактор растрогается. Он вообще легко растрогивается — за двести фунтов."
+
+[sub_resource type="Resource" id="Line_10"]
+script = ExtResource("3_line")
 speaker = "Реджи"
-text = "Свобода прессы — дорогое удовольствие. Особенно её отсутствие."
+text = "Кто платит за праздник, того не подозревают. По крайней мере, до праздника."
 
 [sub_resource type="Resource" id="Choice_2"]
 script = ExtResource("2_choice")
-label = "Купить рекламную полосу — £200"
+label = "Оплатить праздничную полосу — £200"
 money = -200
-suspicion = -10.0
+suspicion = -6.0
 relation_change = 1
 relation = "village"
-reply = Array[ExtResource("3_line")]([SubResource("Line_8"), SubResource("Line_9")])
+reply = Array[ExtResource("3_line")]([SubResource("Line_9"), SubResource("Line_10")])
 
 [resource]
 script = ExtResource("1_story")
 id = "reporter"
 kind = "village"
-lines = Array[ExtResource("3_line")]([SubResource("Line_1"), SubResource("Line_2"), SubResource("Line_3")])
+lines = Array[ExtResource("3_line")]([SubResource("Line_1"), SubResource("Line_2"), SubResource("Line_3"), SubResource("Line_4")])
 choices = Array[ExtResource("2_choice")]([SubResource("Choice_1"), SubResource("Choice_2")])

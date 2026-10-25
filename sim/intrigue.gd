@@ -2,13 +2,17 @@ class_name Intrigue
 extends RefCounted
 
 ## After the first raid: somebody told the gang about the container. The rat is drawn when the
-## arc starts and every clue Reggie brings is true, so the right answer can be worked out.
+## arc starts and every clue Reggie brings is true, so the right answer can be worked out —
+## though only by putting two of them together. Nobody is suspected before Jack has met him.
 enum Phase { WAITING, OPENING, INVESTIGATING, ACCUSING, DONE }
 
 const ACTOR: String = "reggie"
 const ACCUSE_STORY_ID: String = "intrigue_accuse"
-const ALIBI: String = "alibi"
-const GUILTY: String = "guilty"
+const ALIBI: String = IntrigueBoard.ALIBI
+const HERRING: String = IntrigueBoard.HERRING
+const GUILTY: String = IntrigueBoard.GUILTY
+const TRAIL: String = IntrigueBoard.TRAIL
+const WAITED: String = "wait"
 const CAUGHT: String = "caught"
 const WRONG: String = "wrong"
 const RETALIATED: String = "retaliated"
@@ -21,6 +25,8 @@ var schedule: Array[String] = []
 var clues_given: int = 0
 var next_clue_at: float = INF
 var boss_named: bool = false
+## Jack asked for more time: the accusation comes back at this game time; 0 when not waiting.
+var accuse_at: float = 0.0
 var seen_events: int = 0
 
 var _def: IntrigueDef
@@ -58,25 +64,41 @@ func rat_suspect() -> SuspectDef:
 
 
 static func clue_parts(key: String) -> PackedStringArray:
-	return key.split(":")
+	return IntrigueBoard.parts(key)
 
 
 func clue_text(key: String) -> String:
-	var parts := clue_parts(key)
-	var person := _def.suspect(parts[0]) if _def != null else null
-	if person == null:
-		return ""
-	if parts[1] == ALIBI:
-		return person.alibi_clue
-	var index := int(parts[2])
-	return person.guilty_clues[index] if index < person.guilty_clues.size() else ""
+	return IntrigueBoard.text(_def, key)
 
 
 func given_clues() -> Array[String]:
 	return schedule.slice(0, clues_given)
 
 
+## Jack has met him, or at least heard of him: his introduction story has been told.
+func is_introduced(person: SuspectDef) -> bool:
+	return person.intro_story == null or _stories.used.has(person.intro_story.id)
+
+
+## Someone whose introduction cannot be told is left out of the hunt altogether.
+func _can_meet(person: SuspectDef) -> bool:
+	return is_introduced(person) or not person.intro_story.choices.is_empty()
+
+
+## The names the accusation offers, in content order.
+func accusable() -> Array[SuspectDef]:
+	var found: Array[SuspectDef] = []
+	if _def == null:
+		return found
+	for person: SuspectDef in _def.suspects:
+		if is_introduced(person):
+			found.append(person)
+	return found
+
+
 func next_event_time() -> float:
+	if phase == Phase.ACCUSING and accuse_at > 0.0:
+		return accuse_at
 	if phase != Phase.INVESTIGATING:
 		return INF
 	if clues_given < schedule.size():
@@ -106,24 +128,40 @@ func update(now: float) -> void:
 				if String(answer.data["story_id"]) == _def.opening_story.id:
 					_opening_answered(int(answer.data["choice"]), answer.data["worked"] == true, now)
 		Phase.ACCUSING:
-			if not _stories.used.has(ACCUSE_STORY_ID):
-				_try_accuse(now)
 			for answer: SimEvent in answers:
 				if String(answer.data["story_id"]) == ACCUSE_STORY_ID:
 					_accused(int(answer.data["choice"]), now)
-	if phase == Phase.INVESTIGATING:
+			if accuse_at > 0.0 and now >= accuse_at:
+				accuse_at = 0.0
+			if phase == Phase.ACCUSING and not _stories.used.has(ACCUSE_STORY_ID):
+				_try_accuse(now)
+	if phase == Phase.INVESTIGATING and _introduce(now):
+		if next_clue_at == INF and clues_given < schedule.size():
+			next_clue_at = now + _def.clue_interval_hours * SimClock.GAME_SECONDS_PER_HOUR
+		next_clue_at = maxf(next_clue_at, now)
 		_bring_clues(now)
 	seen_events = _event_log.size()
 
 
 func _start(now: float) -> void:
-	rat = _rng.randi_range(0, _def.suspects.size() - 1)
-	schedule.clear()
+	var cast: Array[int] = []
 	for index: int in _def.suspects.size():
+		if _can_meet(_def.suspects[index]):
+			cast.append(index)
+	if cast.is_empty():
+		phase = Phase.DONE
+		return
+	rat = cast[_rng.randi_range(0, cast.size() - 1)]
+	schedule.clear()
+	for index: int in cast:
 		var person := _def.suspects[index]
+		if not person.herring_clue.is_empty():
+			schedule.append("%s:%s:0" % [person.id, HERRING])
 		if index == rat:
 			for clue: int in person.guilty_clues.size():
 				schedule.append("%s:%s:%d" % [person.id, GUILTY, clue])
+			for clue: int in person.trail_clues.size():
+				schedule.append("%s:%s:%d" % [person.id, TRAIL, clue])
 		else:
 			schedule.append("%s:%s:0" % [person.id, ALIBI])
 	for index: int in range(schedule.size() - 1, 0, -1):
@@ -148,7 +186,8 @@ func _opening_answered(choice: int, worked: bool, now: float) -> void:
 		IntrigueDef.INVESTIGATE:
 			path = "investigate"
 			phase = Phase.INVESTIGATING
-			next_clue_at = now + _def.clue_interval_hours * SimClock.GAME_SECONDS_PER_HOUR
+			# The clock starts once everybody on the list has been met; see update().
+			next_clue_at = INF
 		IntrigueDef.PAY_BOSS:
 			path = "pay_boss"
 			boss_named = true
@@ -171,8 +210,9 @@ func _bring_clues(now: float) -> void:
 	while clues_given < schedule.size() and now >= next_clue_at:
 		var key := schedule[clues_given]
 		clues_given += 1
-		var parts := clue_parts(key)
-		_event_log.record(EventLog.INTRIGUE_CLUE, next_clue_at, PackedStringArray([ACTOR, parts[0]]), {
+		var subject := IntrigueBoard.subject(key)
+		var actors := PackedStringArray([ACTOR]) if subject.is_empty() else PackedStringArray([ACTOR, subject])
+		_event_log.record(EventLog.INTRIGUE_CLUE, next_clue_at, actors, {
 			"clue": key,
 			"number": clues_given,
 			"of": schedule.size(),
@@ -184,8 +224,22 @@ func _bring_clues(now: float) -> void:
 		_try_accuse(now)
 
 
+## Tells the introduction of everyone Jack has not met yet, one story at a time.
+## True once nobody on the list is a stranger.
+func _introduce(now: float) -> bool:
+	for person: SuspectDef in _def.suspects:
+		if is_introduced(person) or not _can_meet(person):
+			continue
+		if _stories.is_pending():
+			return false
+		_stories.start(person.intro_story, now, ACTOR)
+	return true
+
+
 func _try_accuse(now: float) -> void:
-	if _stories.is_pending() or _stories.used.has(ACCUSE_STORY_ID):
+	if accuse_at > 0.0 or _stories.is_pending() or _stories.used.has(ACCUSE_STORY_ID):
+		return
+	if not _introduce(now) or _stories.is_pending():
 		return
 	_stories.register(accusation())
 	_stories.start(_stories.find(ACCUSE_STORY_ID), now, ACTOR)
@@ -193,30 +247,16 @@ func _try_accuse(now: float) -> void:
 
 ## Built from the saved state, so a load mid-accusation shows the same question.
 func accusation() -> StoryDef:
-	var story := StoryDef.new()
-	story.id = ACCUSE_STORY_ID
-	story.kind = StoryDef.SCRIPT
-	var lines: Array[DialogueLineDef] = []
-	lines.append_array(_def.accuse_lines)
-	for key: String in given_clues():
-		lines.append(DialogueLineDef.make(_def.crew_speaker, clue_text(key)))
-	if boss_named:
-		lines.append(DialogueLineDef.make(_def.boss_speaker, _def.boss_name_line % rat_suspect().display_name))
-	story.lines = lines
-	var choices: Array[StoryChoiceDef] = []
-	for index: int in _def.suspects.size():
-		var person := _def.suspects[index]
-		var choice := StoryChoiceDef.new()
-		choice.label = person.accuse_label
-		choice.reply = person.guilty_reply if index == rat else person.innocent_reply
-		choices.append(choice)
-	story.choices = choices
-	return story
+	return IntrigueAccusation.build(self)
 
 
 func _accused(choice: int, now: float) -> void:
-	var accused := _def.suspects[clampi(choice, 0, _def.suspects.size() - 1)]
-	if choice == rat:
+	var names := accusable()
+	if choice < 0 or choice >= names.size():
+		_wait(now)
+		return
+	var accused := names[choice]
+	if accused == rat_suspect():
 		_suspicion.add(-_def.caught_relief)
 		_stories.shift(Stories.CREW, _def.caught_crew)
 		_raids.calm(now + _def.caught_calm_days * SimClock.GAME_SECONDS_PER_DAY)
@@ -231,6 +271,14 @@ func _accused(choice: int, now: float) -> void:
 	_stories.shift(Stories.VILLAGE, _def.wrong_village)
 	_raids.expect()
 	_finish(WRONG, accused.id, now)
+
+
+## No name tonight. The rat is still out there talking, and Reggie will ask again.
+func _wait(now: float) -> void:
+	_raids.expect()
+	_stories.forget(ACCUSE_STORY_ID)
+	accuse_at = now + _def.wait_hours * SimClock.GAME_SECONDS_PER_HOUR
+	_event_log.record(EventLog.INTRIGUE_STEP, now, PackedStringArray([ACTOR]), {"path": WAITED, "hours": _def.wait_hours})
 
 
 func _finish(outcome: String, accused_id: String, now: float) -> void:
@@ -250,6 +298,7 @@ func to_dict() -> Dictionary:
 		"clues_given": clues_given,
 		"next_clue_at": ExactFloat.encode(next_clue_at),
 		"boss_named": boss_named,
+		"accuse_at": ExactFloat.encode(accuse_at),
 		"seen_events": seen_events,
 	}
 
@@ -263,6 +312,7 @@ func load_dict(data: Dictionary) -> void:
 	clues_given = int(data["clues_given"])
 	next_clue_at = ExactFloat.decode(data["next_clue_at"])
 	boss_named = data["boss_named"] == true
+	accuse_at = ExactFloat.decode(data["accuse_at"]) if data.has("accuse_at") else 0.0
 	seen_events = int(data["seen_events"])
 	if phase == Phase.ACCUSING and _stories.used.has(ACCUSE_STORY_ID):
 		_stories.register(accusation())

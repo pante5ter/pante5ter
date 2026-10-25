@@ -18,6 +18,10 @@ const RETALIATE: int = 2
 ## The gang's boss names the rat; %s is the name.
 @export var boss_speaker: String = "Гаффер"
 @export var boss_name_line: String = ""
+## The last choice: nobody yet. Reggie asks again after `wait_hours`, and the rat keeps talking meanwhile.
+@export var wait_label: String = "Пока никого — нужно больше"
+@export var wait_reply: Array[DialogueLineDef] = []
+@export var wait_hours: float = 12.0
 
 @export_group("Consequences")
 @export var caught_calm_days: float = 5.0

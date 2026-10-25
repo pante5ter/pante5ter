@@ -81,7 +81,7 @@ static func rat_hunt(sim: SimState) -> String:
 	var intrigue := sim.intrigue
 	if intrigue.phase != Intrigue.Phase.INVESTIGATING:
 		return ""
-	return "Нас сдали «Молочным зубам». Улик собрано %d из %d — я приношу их сам. Когда сложим все, решим, кто крыса." % [intrigue.clues_given, intrigue.schedule.size()]
+	return "Нас сдали «Молочным зубам». Улик собрано %d из %d — я вешаю их на доску у компьютера в бункере. Когда сложим все, решим, кто крыса." % [intrigue.clues_given, intrigue.schedule.size()]
 
 
 static func summons(sim: SimState, underground: bool) -> String:
@@ -105,7 +105,7 @@ static func announcement(event: SimEvent, sim: SimState) -> String:
 	if event.type == EventLog.STORY_EXPIRED:
 		return "Лорд Эшкомб так и не дождался вас в поместье. Дворецкий передал, что милорд «не настаивает». Это хуже, чем если бы настаивал."
 	if event.type == EventLog.INTRIGUE_CLUE:
-		return "Улика %d из %d: %s" % [int(event.data["number"]), int(event.data["of"]), sim.intrigue.clue_text(String(event.data["clue"]))]
+		return ClueBoardText.announcement(event, sim)
 	if event.type != EventLog.DIRECTOR_EVENT:
 		return ""
 	match String(event.data["kind"]):

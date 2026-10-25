@@ -8,6 +8,9 @@ const TAB_COURIERS: int = 1
 const TAB_FARM: int = 2
 const TAB_SHOP: int = 3
 const TAB_PEOPLE: int = 4
+const TAB_CLUES: int = 5
+const TITLE: String = "Компьютер · ферма"
+const CLUES_TITLE: String = "Пробковая доска · улики"
 
 signal message(text: String)
 
@@ -20,6 +23,8 @@ var _couriers: VBoxContainer
 var _farm: VBoxContainer
 var _shop: VBoxContainer
 var _people: VBoxContainer
+var _clues: VBoxContainer
+var _title: Label
 var _refresh_left: float = 0.0
 
 
@@ -34,7 +39,8 @@ func _ready() -> void:
 	custom_minimum_size = SCREEN_SIZE
 	var rows := VBoxContainer.new()
 	add_child(rows)
-	rows.add_child(UiStyle.label("Компьютер · ферма", 18, Color(0.6, 0.95, 0.7)))
+	_title = UiStyle.label(TITLE, 18, Color(0.6, 0.95, 0.7))
+	rows.add_child(_title)
 	_tabs = TabContainer.new()
 	_tabs.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_tabs.get_tab_bar().focus_mode = Control.FOCUS_NONE
@@ -44,6 +50,8 @@ func _ready() -> void:
 	_farm = _add_tab("Ферма")
 	_shop = _add_tab("Магазин")
 	_people = _add_tab("Люди")
+	_clues = _add_tab("Улики")
+	_tabs.tab_changed.connect(_on_tab_changed)
 	if phone != null:
 		phone.message.connect(_on_phone_action.unbind(1))
 	rows.add_child(UiStyle.button("Отойти от компьютера  [Esc]", close))
@@ -67,6 +75,7 @@ func open(tab: int = -1) -> void:
 		_tabs.current_tab = tab
 	elif not Game.sim.orders.with_status(Order.Status.ACCEPTED).is_empty():
 		_tabs.current_tab = TAB_ORDERS
+	_on_tab_changed(_tabs.current_tab)
 	refresh()
 	position = (get_viewport_rect().size - SCREEN_SIZE) / 2.0
 
@@ -77,6 +86,10 @@ func close() -> void:
 
 func current_tab() -> int:
 	return _tabs.current_tab
+
+
+func _on_tab_changed(tab: int) -> void:
+	_title.text = CLUES_TITLE if tab == TAB_CLUES else TITLE
 
 
 func _process(delta: float) -> void:
@@ -93,6 +106,9 @@ func refresh() -> void:
 	UiRefresh.swap_if_changed(_orders, _fill_orders(sim))
 	UiRefresh.swap_if_changed(_couriers, _fill_couriers(sim))
 	UiRefresh.swap_if_changed(_farm, _fill_farm(sim))
+	var clues := VBoxContainer.new()
+	ClueBoardText.fill(clues, sim)
+	UiRefresh.swap_if_changed(_clues, clues)
 	if phone != null:
 		var shop := VBoxContainer.new()
 		PhoneShop.fill(shop, sim, phone)

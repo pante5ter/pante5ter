@@ -32,8 +32,16 @@ func _advance(state: SimState, hours: float) -> void:
 		elapsed += step
 
 
+## Jack already knows everyone on the list, so the hunt starts without introductions.
+func _meet_suspects(state: SimState) -> void:
+	for person: SuspectDef in state.config.intrigue.suspects:
+		if person.intro_story != null and not state.stories.used.has(person.intro_story.id):
+			state.stories.used.append(person.intro_story.id)
+
+
 ## The gang turns up and Jack pays them off: the raid is over and the questions begin.
 func _raid(state: SimState) -> void:
+	_meet_suspects(state)
 	state.raids.pending = true
 	state.raids.deadline = state.clock.elapsed_game_seconds + HOUR
 	assert_true(state.apply(RaidCommand.new(Raids.PAY)).ok)
@@ -56,7 +64,9 @@ func test_content_lays_fair_clues() -> void:
 	assert_gte(def.suspects.size(), 3)
 	for person: SuspectDef in def.suspects:
 		assert_false(person.alibi_clue.is_empty(), "%s can be cleared" % person.id)
-		assert_eq(person.guilty_clues.size(), 2, "%s leaves two traces when guilty" % person.id)
+		assert_false(person.herring_clue.is_empty(), "%s looks bad either way" % person.id)
+		assert_gte(person.guilty_clues.size(), 1, "%s leaves a harmless-looking trace with his name" % person.id)
+		assert_gte(person.trail_clues.size(), 1, "%s leaves a nameless trace at the raid" % person.id)
 		assert_false(person.guilty_reply.is_empty())
 		assert_false(person.innocent_reply.is_empty())
 	assert_string_contains(def.boss_name_line, "%s")
@@ -84,20 +94,25 @@ func test_investigation_brings_true_clues_and_ends_in_an_accusation() -> void:
 	assert_eq(clues.size(), state.intrigue.schedule.size())
 	var rat := state.intrigue.rat_suspect()
 	var guilty := 0
+	var herrings := 0
 	var cleared: Array[String] = []
 	for clue: SimEvent in clues:
 		var parts := Intrigue.clue_parts(String(clue.data["clue"]))
-		if parts[1] == Intrigue.GUILTY:
-			assert_eq(parts[0], rat.id, "only the rat leaves guilty traces")
-			guilty += 1
-		else:
-			assert_ne(parts[0], rat.id, "the rat never gets an alibi")
-			cleared.append(parts[0])
-	assert_eq(guilty, 2)
+		match parts[1]:
+			Intrigue.GUILTY, Intrigue.TRAIL:
+				assert_eq(parts[0], rat.id, "only the rat leaves real traces")
+				guilty += 1
+			Intrigue.HERRING:
+				herrings += 1
+			_:
+				assert_ne(parts[0], rat.id, "the rat never gets an alibi")
+				cleared.append(parts[0])
+	assert_eq(guilty, rat.guilty_clues.size() + rat.trail_clues.size())
+	assert_eq(herrings, state.config.intrigue.suspects.size(), "everyone, the rat included, has something that looks bad")
 	assert_eq(cleared.size(), state.config.intrigue.suspects.size() - 1, "everyone else is cleared: the answer can be worked out")
 	assert_eq(state.stories.pending_id, Intrigue.ACCUSE_STORY_ID)
 	var accusation := state.stories.pending()
-	assert_eq(accusation.choices.size(), state.config.intrigue.suspects.size())
+	assert_eq(accusation.choices.size(), state.config.intrigue.suspects.size() + 1, "every suspect and «nobody yet»")
 	var recap := "\n".join(accusation.lines.map(func(line: DialogueLineDef) -> String: return line.text))
 	for clue: SimEvent in clues:
 		assert_string_contains(recap, state.intrigue.clue_text(String(clue.data["clue"])), "the accusation recaps every clue")
@@ -233,11 +248,11 @@ func test_save_and_load_mid_hunt_and_mid_accusation() -> void:
 	assert_not_null(loaded)
 	assert_eq(loaded.intrigue.phase, Intrigue.Phase.INVESTIGATING)
 	for copy: SimState in [state, loaded]:
-		_advance(copy, copy.config.intrigue.clue_interval_hours * 4.0)
+		_advance(copy, copy.config.intrigue.clue_interval_hours * float(copy.intrigue.schedule.size()))
 	assert_eq(loaded.to_json(), state.to_json())
 	var accusing := SimState.from_json(state.to_json(), state.config)
 	assert_eq(accusing.stories.pending_id, Intrigue.ACCUSE_STORY_ID)
-	assert_eq(accusing.stories.pending().choices.size(), state.config.intrigue.suspects.size(), "the question is rebuilt after a load")
+	assert_eq(accusing.stories.pending().choices.size(), state.config.intrigue.suspects.size() + 1, "the question is rebuilt after a load")
 	assert_true(accusing.apply(ChooseCommand.new(Intrigue.ACCUSE_STORY_ID, accusing.intrigue.rat)).ok)
 	assert_eq(String(accusing.event_log.of_type(EventLog.INTRIGUE_RESOLVED)[0].data["outcome"]), Intrigue.CAUGHT)
 

@@ -17,6 +17,10 @@ const MANOR: String = "manor"
 @export var wait_hours: float = 6.0
 ## Lord relation change when Jack never turns up.
 @export var ignored_relation: int = -1
+## The director brings it only after all of these stories have been told...
+@export var after_stories: PackedStringArray = PackedStringArray()
+## ...and once suspicion has climbed this high.
+@export var min_suspicion: float = 0.0
 @export var lines: Array[DialogueLineDef] = []
 @export var choices: Array[StoryChoiceDef] = []
 
