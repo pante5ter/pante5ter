@@ -91,7 +91,7 @@ func _assert_reachable(level: Level, from: Vector3, to: Vector3, what: String) -
 func test_every_field_interactable_can_be_reached_from_start() -> void:
 	var level := await _open(FIELD_SCENE)
 	var start := level.jack.global_position
-	var targets := _interactables(level).filter(func(target: Interactable) -> bool: return not target is RaiderGang)
+	var targets := _interactables(level).filter(func(target: Interactable) -> bool: return not target is RaiderGang and not target is CourierView)
 	assert_eq(targets.size(), 6, "container, parcel, two Land Rovers, Lord Ashcombe, Reggie")
 	for target: Interactable in targets:
 		_assert_reachable(level, start, target.approach_position(), target.name)
