@@ -278,6 +278,27 @@ func learn(skill_id: String) -> void:
 	refresh()
 
 
+func hire_courier(courier_id: String) -> void:
+	var result := Game.sim.apply(HireCourierCommand.new(courier_id))
+	message.emit(("%s теперь возит товар." % UiText.courier_name(courier_id, Game.sim)) if result.ok else UiText.error(result.error))
+	refresh()
+
+
+func fire_courier(courier_id: String) -> void:
+	var result := Game.sim.apply(FireCourierCommand.new(courier_id))
+	message.emit(("%s больше не возит." % UiText.courier_name(courier_id, Game.sim)) if result.ok else UiText.error(result.error))
+	refresh()
+
+
+func set_ventilation(level: int) -> void:
+	var result := Game.sim.apply(SetVentilationCommand.new(level))
+	if result.ok:
+		message.emit("Вентиляция: %s." % Game.sim.climate.running().display_name)
+	else:
+		message.emit(UiText.error(result.error))
+	refresh()
+
+
 func _find_person(worker_id: String) -> WorkerDef:
 	var packer := Game.sim.config.find_packer(worker_id)
 	return packer if packer != null else Game.sim.config.find_worker(worker_id)

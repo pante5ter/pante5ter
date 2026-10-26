@@ -35,6 +35,8 @@ func _advance(state: SimState, hours: float) -> void:
 ## Jack already knows everyone on the list, so the hunt starts without introductions.
 func _meet_suspects(state: SimState) -> void:
 	for person: SuspectDef in state.config.intrigue.suspects:
+		if not person.courier_id.is_empty() and not state.couriers.hired.has(person.courier_id):
+			assert_true(state.apply(HireCourierCommand.new(person.courier_id)).ok, "courier suspects must be on the books")
 		if person.intro_story != null and not state.stories.used.has(person.intro_story.id):
 			state.stories.used.append(person.intro_story.id)
 

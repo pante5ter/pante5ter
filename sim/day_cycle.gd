@@ -97,9 +97,22 @@ func can_sleep(now: float) -> String:
 	if not is_home():
 		return CommandResult.NOT_AT_HOME
 	var hour := fmod(now, SimClock.GAME_SECONDS_PER_DAY) / SimClock.GAME_SECONDS_PER_HOUR
-	if hour < _def.sleep_from_hour and hour >= _def.wake_hour:
-		return CommandResult.TOO_EARLY_TO_SLEEP
-	return ""
+	# Reggie's evening call (or the same hour) means bedtime is open, even if sleep_from is later.
+	if hour >= _def.evening_hour or hour < _def.wake_hour or hour >= _def.sleep_from_hour:
+		return ""
+	if _evening_call_outstanding(now):
+		return ""
+	return CommandResult.TOO_EARLY_TO_SLEEP
+
+
+## Jack was told to go home tonight and has not slept since: the bed must accept him.
+func _evening_call_outstanding(now: float) -> bool:
+	for event: SimEvent in _event_log.of_type(EventLog.EVENING_CALL):
+		if event.game_time < day_started_at:
+			continue
+		if event.game_time <= now:
+			return true
+	return false
 
 
 func wake_time(now: float) -> float:

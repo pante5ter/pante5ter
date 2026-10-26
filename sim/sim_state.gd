@@ -49,6 +49,8 @@ var stash: Stash
 var planting: PlantingPlan
 var meetings: Meetings
 var hand_packing: HandPacking
+## One-shot mechanic tips Reggie already gave («обрезка», «фасовка»…).
+var tips_seen: Array[String] = []
 
 
 func _init(balance: BalanceConfig, seed_value: int) -> void:
@@ -378,6 +380,7 @@ func to_dict() -> Dictionary:
 		"stash": stash.to_dict(),
 		"planting_plan": planting.to_dict(),
 		"meetings": meetings.to_dict(),
+		"tips_seen": tips_seen.duplicate(),
 		"event_log": event_log.to_array(),
 	}
 
@@ -469,6 +472,9 @@ func _load_dict(data: Dictionary) -> void:
 		meetings.load_dict(data["meetings"] as Dictionary)
 	else:
 		meetings.meet_everyone()
+	tips_seen.clear()
+	for tip: Variant in data.get("tips_seen", []) as Array:
+		tips_seen.append(String(tip))
 
 
 ## Before v12 the bench and the shelf stood in the bunker; everything on them now waits at the stash.

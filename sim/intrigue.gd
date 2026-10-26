@@ -76,13 +76,18 @@ func given_clues() -> Array[String]:
 
 
 ## Jack has met him, or at least heard of him: his introduction story has been told.
+## A courier suspect only counts once Jack has actually hired him.
 func is_introduced(person: SuspectDef) -> bool:
+	if not person.courier_id.is_empty() and not _couriers.hired.has(person.courier_id):
+		return false
 	return person.intro_story == null or _stories.used.has(person.intro_story.id)
 
 
 ## Someone whose introduction cannot be told is left out of the hunt altogether.
 func _can_meet(person: SuspectDef) -> bool:
-	return is_introduced(person) or not person.intro_story.choices.is_empty()
+	if not person.courier_id.is_empty() and not _couriers.hired.has(person.courier_id):
+		return false
+	return is_introduced(person) or (person.intro_story != null and not person.intro_story.choices.is_empty())
 
 
 ## The names the accusation offers, in content order.

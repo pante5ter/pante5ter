@@ -40,13 +40,22 @@ func _advance(state: SimState, hours: float) -> void:
 		elapsed += step
 
 
+func _hire_courier_suspects(state: SimState) -> void:
+	for person: SuspectDef in state.config.intrigue.suspects:
+		if person.courier_id.is_empty() or state.couriers.hired.has(person.courier_id):
+			continue
+		assert_true(state.apply(HireCourierCommand.new(person.courier_id)).ok)
+
+
 func _meet_suspects(state: SimState) -> void:
+	_hire_courier_suspects(state)
 	for person: SuspectDef in state.config.intrigue.suspects:
 		if person.intro_story != null and not state.stories.used.has(person.intro_story.id):
 			state.stories.used.append(person.intro_story.id)
 
 
 func _raid(state: SimState) -> void:
+	_hire_courier_suspects(state)
 	state.raids.pending = true
 	state.raids.deadline = state.clock.elapsed_game_seconds + HOUR
 	assert_true(state.apply(RaidCommand.new(Raids.PAY)).ok)
@@ -258,7 +267,9 @@ func test_nobody_is_accusable_before_jack_has_heard_of_him() -> void:
 	for person: SuspectDef in state.intrigue.accusable():
 		names.append(person.id)
 	assert_false(names.has("liam"), "a stranger is not on the list")
-	assert_true(names.has("pete"), "Pete is on the courier list from day one")
+	assert_false(names.has("pete"), "Pete is not a suspect until hired")
+	assert_true(state.apply(HireCourierCommand.new("pete")).ok)
+	assert_true(state.intrigue.is_introduced(state.config.intrigue.suspect("pete")))
 	state.stories.used.append("reggie_cousin")
 	assert_true(state.intrigue.is_introduced(liam))
 

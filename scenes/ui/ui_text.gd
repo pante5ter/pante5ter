@@ -322,6 +322,8 @@ static func objective(sim: SimState, underground: bool = false) -> String:
 	for plot: Plot in sim.grow.plots():
 		if not plot.problem.is_empty():
 			var cure := Problems.cure_item(plot.problem)
+			if plot.problem == Problems.LAMP and sim.helper.exists() and sim.helper.knows(SkillDef.ELECTRICS) and sim.supplies.count(Supplies.LAMP) <= 0:
+				return "Сгорела лампа на грядке %d. %s умеет менять, но нужна запасная — телефон → «Магазин» → лампа, потом заберите посылку." % [plot_number(plot.id), _driver_name(sim)]
 			if not cure.is_empty() and sim.supplies.count(cure) <= 0:
 				return "Грядка %d: %s. На складе нет: %s — закажите в телефоне (Tab, «Магазин»), заберите посылку и займитесь грядкой." % [plot_number(plot.id), problem(plot.problem), item_name(cure, sim)]
 			return "Грядка %d: %s. Само не пройдёт — вылечите её на плантации, пока урожай цел." % [plot_number(plot.id), problem(plot.problem)]
@@ -395,6 +397,10 @@ static func announcement(event: SimEvent, sim: SimState) -> String:
 		EventLog.HELPER_SKILL_LEARNED:
 			var learned := sim.config.find_skill(String(event.data["skill_id"]))
 			return "%s вернулся с курсов: «%s» теперь на нём." % [_driver_name(sim), learned.display_name if learned != null else "?"]
+		EventLog.HELPER_NEEDS_SUPPLY:
+			if String(event.data.get("item", "")) == Supplies.LAMP:
+				return "%s готов менять лампы, но запасной нет и денег не хватает. Телефон → «Магазин» → лампа." % _driver_name(sim)
+			return "%s просит привезти со склада: %s." % [_driver_name(sim), item_name(String(event.data.get("item", "")), sim)]
 		EventLog.HELPER_SAVED:
 			if String(event.data["kind"]) == Helper.SAVED_LIGHTS:
 				return "%s сам выключил свет и вентиляцию — проверка вот-вот. Включит, когда уедут." % _driver_name(sim)
@@ -437,7 +443,7 @@ static func announcement(event: SimEvent, sim: SimState) -> String:
 			return "Новый уровень — «%s». Неплохо, мистер Кэллоуэй. %s" % [reached.title, reached.description]
 		EventLog.PLOT_PROBLEM:
 			if String(event.data["problem"]) == Problems.MOLD and sim.climate.exists():
-				return "Грядка %d: плесень. В бункере сыро — уберите плесень и прибавьте вентиляцию, иначе вернётся." % plot_number(int(event.data["plot_id"]))
+				return "Грядка %d: плесень. Уберите её на грядке, затем на компьютере (вкладка «Ферма») или в телефоне поднимите вентиляцию — иначе снова отсыреет." % plot_number(int(event.data["plot_id"]))
 			if String(event.data["problem"]) == Problems.PESTS:
 				return "Грядка %d: вредители. Пока их не вытравить, они едят будущий урожай." % plot_number(int(event.data["plot_id"]))
 			return "Грядка %d: %s. Лучше заняться сейчас, чем объяснять потом." % [plot_number(int(event.data["plot_id"])), problem(String(event.data["problem"]))]

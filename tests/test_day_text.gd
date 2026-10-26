@@ -143,5 +143,8 @@ func test_the_crew_in_the_people_app() -> void:
 	var again := VBoxContainer.new()
 	add_child_autofree(again)
 	PhonePeople.fill(again, state, phone)
-	var hires := again.find_children("*", "Button", true, false).filter(func(node: Node) -> bool: return (node as Button).text.begins_with("Нанять"))
-	assert_eq(hires.size(), 2, "Dave's place is free, and the packer")
+	var crew_hires := again.find_children("*", "Button", true, false).filter(func(node: Node) -> bool:
+		var text := (node as Button).text
+		return text.begins_with("Нанять") and not text.begins_with("Нанять за")
+	)
+	assert_eq(crew_hires.size(), 2, "Dave's place is free, and the packer")

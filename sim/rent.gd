@@ -17,6 +17,8 @@ const PROMISED: String = "promised"
 var next_due_at: float = INF
 var missed: int = 0
 var evicted: bool = false
+## Unpaid rent from earlier misses (plus late fees); the lord takes it when Jack next has the money.
+var arrears: int = 0
 ## Paid ahead to the lord; comes off the next payments.
 var credit: int = 0
 ## About the payment due at next_due_at: "" until the lord rings, then CALLED or PROMISED.
@@ -41,9 +43,9 @@ func amount() -> int:
 	return _def.amount if _def != null else 0
 
 
-## What the next payment actually takes once the credit is counted.
+## What the next payment actually takes once the credit is counted, plus any arrears.
 func owed() -> int:
-	return maxi(amount() - credit, 0)
+	return maxi(amount() - credit, 0) + maxi(arrears, 0)
 
 
 func max_missed() -> int:
@@ -170,17 +172,22 @@ func _settle(at: float) -> void:
 
 func _paid() -> void:
 	credit = maxi(credit - _def.amount, 0)
+	arrears = 0
 	missed = 0
 
 
 func _miss(at: float, promised: bool) -> void:
 	missed += 1
+	var fee := maxi(_def.late_fee, 0)
+	arrears += amount() + fee
 	_suspicion.add(_def.missed_suspicion)
 	var data := {
 		"amount": _def.amount,
 		"money": _economy.money,
 		"missed": missed,
 		"evict_after": _def.evict_after_missed,
+		"arrears": arrears,
+		"late_fee": fee,
 	}
 	if promised:
 		data["promised"] = true
@@ -196,6 +203,7 @@ func to_dict() -> Dictionary:
 		"next_due_at": ExactFloat.encode(next_due_at),
 		"missed": missed,
 		"evicted": evicted,
+		"arrears": arrears,
 		"credit": credit,
 		"call_stage": call_stage,
 	}
@@ -205,6 +213,7 @@ func load_dict(data: Dictionary) -> void:
 	next_due_at = ExactFloat.decode(data["next_due_at"])
 	missed = int(data["missed"])
 	evicted = data["evicted"] == true
+	arrears = int(data.get("arrears", 0))
 	credit = int(data.get("credit", 0))
 	var stage := String(data.get("call_stage", ""))
 	call_stage = stage if stage == CALLED or stage == PROMISED else ""

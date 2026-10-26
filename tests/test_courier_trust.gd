@@ -48,6 +48,8 @@ func _advance(state: SimState, hours: float) -> void:
 
 func _raid(state: SimState) -> void:
 	for person: SuspectDef in state.config.intrigue.suspects:
+		if not person.courier_id.is_empty() and not state.couriers.hired.has(person.courier_id):
+			assert_true(state.apply(HireCourierCommand.new(person.courier_id)).ok)
 		if person.intro_story != null and not state.stories.used.has(person.intro_story.id):
 			state.stories.used.append(person.intro_story.id)
 	state.raids.pending = true
@@ -105,7 +107,7 @@ func test_a_proven_rat_who_never_drove_for_jack_is_still_never_hired() -> void:
 	var state := SimState.new(_config(), 2)
 	var pete := _pete_index(state)
 	_accuse(state, pete, pete)
-	assert_eq(state.event_log.of_type(EventLog.COURIER_FIRED).size(), 0, "nothing to fire")
+	assert_eq(state.event_log.of_type(EventLog.COURIER_FIRED).size(), 1, "hired for the hunt, fired as the rat — never drove a load")
 	assert_eq(state.apply(HireCourierCommand.new("pete")).error, CommandResult.COURIER_BANNED)
 
 

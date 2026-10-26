@@ -171,7 +171,27 @@ static func harvest_text(harvested: SimEvent, sim: SimState) -> String:
 
 func _run(level: Level, command: SimCommand, success_text: String) -> void:
 	var result := Game.sim.apply(command)
-	level.show_message(success_text if result.ok else UiText.error(result.error))
+	if not result.ok:
+		level.show_message(UiText.error(result.error))
+		return
+	var tip := _tip_for(command)
+	level.show_message(success_text if tip.is_empty() else "%s\n%s" % [success_text, tip])
+
+
+func _tip_for(command: SimCommand) -> String:
+	var kind := ""
+	if command is WaterCommand:
+		kind = "water"
+	elif command is FertilizeCommand:
+		kind = "fertilize"
+	elif command is PruneCommand:
+		kind = "prune"
+	elif command is PlantCommand:
+		kind = "plant"
+	var tip := Advice.first_tip(Game.sim, kind)
+	if not tip.is_empty():
+		Advice.mark_tip(Game.sim, kind)
+	return tip
 
 
 func _growth_scale(plot: Plot) -> float:

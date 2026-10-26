@@ -106,10 +106,12 @@ func test_payment_after_a_miss_resets_the_counter() -> void:
 	var state := SimState.new(_calm(0), 1)
 	_advance_hours(state, _first_due(), 0.25)
 	assert_eq(state.rent.missed, 1)
-	state.economy.earn(_rent().amount)
+	assert_eq(state.rent.arrears, _rent().amount + _rent().late_fee, "missed rent becomes a debt")
+	state.economy.earn(state.rent.owed())
 	_advance_hours(state, _period(), 0.25)
 	assert_eq(state.event_log.of_type(EventLog.RENT_PAID).size(), 1)
 	assert_eq(state.rent.missed, 0)
+	assert_eq(state.rent.arrears, 0)
 	assert_eq(state.economy.money, 0)
 
 
@@ -117,10 +119,10 @@ func test_misses_must_be_consecutive_to_evict() -> void:
 	var state := SimState.new(_calm(0), 1)
 	_advance_hours(state, _first_due() + _period() * float(_rent().evict_after_missed - 2), 0.25)
 	assert_eq(state.rent.missed, _rent().evict_after_missed - 1)
-	state.economy.earn(_rent().amount)
+	state.economy.earn(state.rent.owed())
 	_advance_hours(state, _period() * float(_rent().evict_after_missed), 0.25)
 	assert_false(state.rent.evicted)
-	assert_eq(state.rent.missed, _rent().evict_after_missed - 1)
+	assert_eq(state.rent.missed, _rent().evict_after_missed - 1, "the streak restarted after the arrears were paid")
 
 
 func test_eviction_after_consecutive_misses_blocks_commands() -> void:

@@ -248,12 +248,36 @@ func _lights_back_on(now: float) -> void:
 
 ## He is Jack's right hand, not a gardener: on the farm he only deals with trouble on a bed.
 func _start_next_task(now: float) -> void:
+	_order_spare_lamp_if_needed(now)
 	var taken: Array[int] = farmhand.busy_plot_ids() if farmhand != null else []
 	var target := Workers.pick_plot(_grow, Workers.Task.TREAT, _def.water_below_hours, taken, _can_do)
 	if target != null:
 		_start(Workers.Task.TREAT, target.id, now)
 		return
 	next_check_at = now + _def.idle_check_minutes * 60.0
+
+
+## Electrics course done but no spare lamp: say so once; Jack orders from the shop.
+func _order_spare_lamp_if_needed(now: float) -> void:
+	if not knows(SkillDef.ELECTRICS):
+		return
+	if _supplies.stock_and_coming(Supplies.LAMP) > 0:
+		return
+	var needs_lamp := false
+	for plot: Plot in _grow.plots():
+		if plot.problem == Problems.LAMP:
+			needs_lamp = true
+			break
+	if not needs_lamp:
+		return
+	if not _event_log.of_type(EventLog.HELPER_NEEDS_SUPPLY).is_empty():
+		var last: SimEvent = _event_log.of_type(EventLog.HELPER_NEEDS_SUPPLY)[-1]
+		if String(last.data.get("item", "")) == Supplies.LAMP and last.game_time >= now - SimClock.GAME_SECONDS_PER_HOUR:
+			return
+	_event_log.record(EventLog.HELPER_NEEDS_SUPPLY, now, PackedStringArray([ACTOR]), {
+		"item": Supplies.LAMP,
+		"reason": "lamp",
+	})
 
 
 func _can_do(_kind: Workers.Task, target: Plot) -> bool:

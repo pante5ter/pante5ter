@@ -123,7 +123,7 @@ innocent_reply = Array[ExtResource("3_line")]([SubResource("Line_11"), SubResour
 [sub_resource type="Resource" id="Line_13"]
 script = ExtResource("3_line")
 speaker = ""
-text = "Вечер. Реджи стоит у пробковой доски. Булавки, нитки, пять чашек остывшего чая."
+text = "Реджи стоит у пробковой доски. Булавки, нитки, пять чашек остывшего чая."
 
 [sub_resource type="Resource" id="Line_14"]
 script = ExtResource("3_line")

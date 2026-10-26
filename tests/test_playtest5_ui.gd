@@ -219,8 +219,11 @@ func test_the_computer_has_a_people_tab_that_hires_gardeners() -> void:
 	bunker.hud.open_computer()
 	computer.open(ComputerScreen.TAB_PEOPLE)
 	await wait_process_frames(2)
-	var hire := _buttons(computer, "Нанять")
-	assert_gt(hire.size(), 0)
+	var hire: Array[Button] = []
+	for button: Button in _buttons(computer, "Нанять"):
+		if button.text.contains("первый день") or button.text.contains("вперёд"):
+			hire.append(button)
+	assert_gt(hire.size(), 0, "gardener hire buttons on the People tab")
 	hire[0].pressed.emit()
 	assert_eq(Game.sim.workers.gardeners().size(), 1)
 
@@ -231,7 +234,8 @@ func test_couriers_tab_points_gardeners_to_the_people_tab() -> void:
 	bunker.hud.open_computer()
 	computer.open(ComputerScreen.TAB_COURIERS)
 	await wait_process_frames(2)
-	assert_string_contains(_texts(computer), "«Люди»")
+	assert_eq(computer.current_tab(), ComputerScreen.TAB_PEOPLE, "couriers live under People now")
+	assert_string_contains(_texts(computer), "Курьеры")
 
 
 func test_crew_line_says_where_to_hire_while_there_are_no_gardeners() -> void:
@@ -263,7 +267,7 @@ func test_no_courier_line_names_the_couriers_tab() -> void:
 	computer.open(ComputerScreen.TAB_ORDERS)
 	assert_eq(state.couriers.drivers().size(), 0)
 	assert_not_null(order)
-	assert_string_contains(_texts(computer), "«Курьеры»")
+	assert_string_contains(_texts(computer), "«Люди»")
 
 
 # --- 4. What the restock buys
