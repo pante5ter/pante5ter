@@ -47,6 +47,7 @@ const UNKNOWN_PLACE: String = "unknown_place"
 const ON_THE_ROAD: String = "on_the_road"
 const NOT_AT_HOME: String = "not_at_home"
 const NOT_AT_FARM: String = "not_at_farm"
+const NOT_AT_STASH: String = "not_at_stash"
 const TOO_EARLY_TO_SLEEP: String = "too_early_to_sleep"
 
 var ok: bool = false

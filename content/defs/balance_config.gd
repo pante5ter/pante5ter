@@ -39,6 +39,8 @@ extends Resource
 @export var stash: StashDef
 ## The people Jack meets and their backstories. Null: no intros.
 @export var cast: CastDef
+## «Весы» at the stash bench. Null: packing is only the timed job.
+@export var hand_packing: HandPackingDef
 
 @export_group("Care")
 @export var fertilizer_price: int = 0
