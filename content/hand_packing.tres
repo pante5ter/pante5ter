@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="HandPackingDef" format=3]
+
+[ext_resource type="Script" path="res://content/defs/hand_packing_def.gd" id="1_hand_packing"]
+
+[resource]
+script = ExtResource("1_hand_packing")
+target_grams = 28.0
+scale_max_grams = 40.0
+fill_seconds_min = 1.6
+fill_seconds_max = 2.6
+min_bags = 3
+max_bags = 5
+perfect_grams = 0.5
+good_grams = 1.5
+fair_grams = 3.0
+good_points = 0.5
+sloppy_points = -1.0
+max_quality_bonus = 3
+max_quality_penalty = 1
+quality_ceiling = 100

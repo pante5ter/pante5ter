@@ -68,6 +68,7 @@ const ERRORS: Dictionary[String, String] = {
 	CommandResult.ON_THE_ROAD: "Джек уже в дороге.",
 	CommandResult.NOT_AT_HOME: "Спать — только дома.",
 	CommandResult.NOT_AT_FARM: "Ящики на ферме, а Джек — нет.",
+	CommandResult.NOT_AT_STASH: "Весы стоят в тайнике — сначала доберись туда.",
 	CommandResult.TOO_EARLY_TO_SLEEP: "Рано спать — день ещё не кончился.",
 	CommandResult.CREW_FULL: "Садовников и так полный комплект — сначала кого-нибудь уволь.",
 	CommandResult.NO_PARCEL: "Посылок нет.",

@@ -48,6 +48,7 @@ var day: DayCycle
 var stash: Stash
 var planting: PlantingPlan
 var meetings: Meetings
+var hand_packing: HandPacking
 
 
 func _init(balance: BalanceConfig, seed_value: int) -> void:
@@ -96,6 +97,7 @@ func _init(balance: BalanceConfig, seed_value: int) -> void:
 	stash = Stash.new(balance, inventory, packing, suspicion, rng, event_log)
 	stash.attach(helper, packer)
 	meetings = Meetings.new(balance, event_log)
+	hand_packing = HandPacking.new(balance.hand_packing, packing, inventory, day, event_log)
 	progress.update(empire_value(), clock.elapsed_game_seconds)
 	# Whatever the start logged is not news to the intrigue; a refused first command must change nothing.
 	intrigue.seen_events = event_log.size()
@@ -162,6 +164,8 @@ func _apply(command: SimCommand) -> CommandResult:
 		return couriers.fire((command as FireCourierCommand).courier_id, now, command.actor)
 	if command is PackCommand:
 		return packing.start(now, command.actor)
+	if command is PackByHandCommand:
+		return hand_packing.pack(now, command.actor, (command as PackByHandCommand).misses)
 	if command is PickUpParcelCommand:
 		return supplies.pick_up(now, command.actor)
 	if command is RaidCommand:
