@@ -67,6 +67,11 @@ static func from_event(event: SimEvent, sim: SimState) -> Alert:
 			return call
 		EventLog.ORDER_PAID:
 			return make(Severity.GOOD, PAID, PhoneGlyphs.MONEY, "Заказ оплачен", news)
+		EventLog.COURIER_HIRED:
+			var hired := make(Severity.INFO, COURIER, PhoneGlyphs.PEOPLE, "%s на месте" % UiText.courier_name(String(event.data["courier_id"]), sim), "%s ждёт у дороги у поля — видно с пшеницы, к контейнеру не подпускаем. Подойдите и поговорите." % UiText.courier_name(String(event.data["courier_id"]), sim))
+			hired.action = SHOW
+			hired.seconds = 12.0
+			return hired
 		EventLog.COURIER_STOLE:
 			return make(Severity.DANGER, COURIER, PhoneGlyphs.DANGER, "Курьер сбежал с товаром", news)
 		EventLog.DELIVERY_STOPPED:
@@ -99,6 +104,8 @@ static func is_live(alert_topic: String, sim: SimState) -> bool:
 			return not sim.orders.with_status(Order.Status.OFFERED).is_empty()
 		HOME:
 			return not sim.day.is_home() and not sim.day.travelling()
+		COURIER:
+			return not sim.couriers.hired.is_empty()
 	return true
 
 
@@ -115,6 +122,8 @@ static func topic_title(alert_topic: String) -> String:
 			return "Проверка"
 		PARCEL:
 			return "Посылка"
+		COURIER:
+			return "Курьер"
 	return ""
 
 

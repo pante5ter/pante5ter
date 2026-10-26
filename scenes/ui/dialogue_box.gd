@@ -27,6 +27,7 @@ var _choices: PackedStringArray = PackedStringArray()
 var _enabled: Array[bool] = []
 var _choice_row: HBoxContainer
 var _hint: Label
+var _voice: AudioStreamPlayer
 
 
 func _ready() -> void:
@@ -38,6 +39,10 @@ func _ready() -> void:
 	_choice_row.add_theme_constant_override("separation", 16)
 	_choice_row.visible = false
 	speaker_label.get_parent().add_child(_choice_row)
+	_voice = AudioStreamPlayer.new()
+	_voice.name = "Voice"
+	_voice.bus = "Master"
+	add_child(_voice)
 
 
 func play(lines: Array[DialogueLineDef], choices: PackedStringArray = PackedStringArray()) -> void:
@@ -97,6 +102,7 @@ func choose(index: int) -> void:
 func advance() -> void:
 	if not is_open() or is_choosing():
 		return
+	_stop_voice()
 	_index += 1
 	if _index >= _lines.size():
 		_finish()
@@ -108,6 +114,7 @@ func advance() -> void:
 func skip() -> void:
 	if not is_open():
 		return
+	_stop_voice()
 	if _choices.is_empty():
 		_finish()
 		return
@@ -123,6 +130,23 @@ func _show_line() -> void:
 	text_label.text = line.text
 	text_label.add_theme_color_override("font_color", NARRATION_COLOR if line.speaker.is_empty() else LINE_COLOR)
 	_refresh_choices()
+	_play_voice(line)
+
+
+func _play_voice(line: DialogueLineDef) -> void:
+	_stop_voice()
+	if line.speaker.is_empty() or line.text.is_empty():
+		return
+	var stream: AudioStream = VoiceBank.stream_for(line.speaker, line.text)
+	if stream == null:
+		return
+	_voice.stream = stream
+	_voice.play()
+
+
+func _stop_voice() -> void:
+	if _voice != null and _voice.playing:
+		_voice.stop()
 
 
 func _refresh_choices() -> void:
@@ -142,6 +166,7 @@ func _refresh_choices() -> void:
 
 
 func _finish() -> void:
+	_stop_voice()
 	visible = false
 	_lines = []
 	_choices = PackedStringArray()

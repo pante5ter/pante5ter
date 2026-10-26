@@ -404,19 +404,19 @@ func test_hired_couriers_wait_at_the_drop_point_off_the_farm_and_walk_the_road_w
 	await wait_process_frames(2)
 	var container := level.get_node("NavRegion/Container") as Node3D
 	assert_true(courier.visible, "an idle courier stands about")
-	assert_string_contains(courier.name_label.text, "Курьер Гарри · ждёт")
+	assert_string_contains(courier.name_label.text, "Гарри · ждёт у дороги у поля")
 	var drop := level.get_node("Routes/CourierIdle") as Node3D
 	assert_lt(_flat_distance(courier.global_position, drop.global_position), 2.0, "he waits at the drop point")
-	assert_gt(_flat_distance(courier.global_position, container.global_position), 100.0, "couriers must not learn where the farm is")
+	assert_gt(_flat_distance(courier.global_position, container.global_position), 25.0, "couriers must not learn where the farm is")
 	assert_false((level.get_node("CourierB") as CourierView).visible)
 	Game.sim.apply(DispatchCommand.new(order.id, "harry"))
 	Game.sim.apply(AdvanceTimeCommand.new(_hours_to_real(Game.sim.couriers.trip_seconds("harry") * 0.5 / SimClock.GAME_SECONDS_PER_HOUR)))
 	await wait_process_frames(2)
 	assert_true(courier.visible)
-	assert_string_contains(courier.name_label.text, "Гарри везёт заказ")
+	assert_string_contains(courier.name_label.text, "Гарри · везёт заказ")
 	var road_z := (level.get_node("SpawnPoints/road_west") as Node3D).global_position.z
 	assert_almost_eq(courier.global_position.z, road_z, 0.5, "half way out he is walking the main road")
-	assert_gt(_flat_distance(courier.global_position, container.global_position), 100.0, "the trip never passes the farm")
+	assert_gt(_flat_distance(courier.global_position, container.global_position), 25.0, "the trip never passes the farm")
 
 
 func test_estate_is_large_with_the_lord_at_the_manor() -> void:

@@ -1,0 +1,28 @@
+{
+  "model_id": "eleven_multilingual_v2",
+  "output_format": "mp3_44100_128",
+  "voice_settings": {
+    "stability": 0.42,
+    "similarity_boost": 0.78,
+    "style": 0.15,
+    "use_speaker_boost": true
+  },
+  "speakers": {
+    "Вивьен": {
+      "id": "vivienne",
+      "voice_id": "D5RRIJYa9pFwxiSpbGbR"
+    },
+    "Джек": {
+      "id": "jack",
+      "voice_id": "gJEfHTTiifXEDmO687lC"
+    },
+    "Реджи": {
+      "id": "reggie",
+      "voice_id": "Vl27Cllkuw8BhyPqus2n"
+    },
+    "Лорд Эшкомб": {
+      "id": "lord",
+      "voice_id": "RUB3PhT3UqHowKru61Ns"
+    }
+  }
+}
