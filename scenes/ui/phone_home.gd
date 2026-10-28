@@ -32,6 +32,7 @@ func _ready() -> void:
 		var icon := PhoneAppIcon.make(app, Phone.APP_TITLES[app], Phone.APP_GLYPHS[app], Phone.APP_COLORS[app])
 		icon.name = "App%d" % app
 		icon.pressed.connect(app_chosen.emit.bind(app))
+		icon.visible = not Phone.FOLDED.has(app)
 		grid.add_child(icon)
 		_icons.append(icon)
 	var spacer := Control.new()
@@ -76,11 +77,11 @@ static func badge(app: int, sim: SimState, unread: int) -> String:
 			return _count(sim.orders.with_status(Order.Status.OFFERED).size())
 		Phone.APP_MESSAGES:
 			return _count(unread)
-		Phone.APP_STOCK:
+		Phone.APP_SHOP, Phone.APP_STOCK:
 			return "1" if not sim.supplies.parcel().is_empty() else ""
 		Phone.APP_PEOPLE:
 			return "!" if sim.helper.exists() and sim.helper.wage_debt > 0 else ""
-		Phone.APP_EMPIRE:
+		Phone.APP_EMPIRE, Phone.APP_FINANCE:
 			return "!" if sim.rent.missed > 0 or sim.suspicion.inspection_pending() else ""
 		Phone.APP_MAP:
 			return "!" if sim.raids.pending else ""

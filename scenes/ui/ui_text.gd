@@ -308,6 +308,9 @@ static func objective(sim: SimState, underground: bool = false) -> String:
 	var summons := StoryText.summons(sim, underground)
 	if not summons.is_empty():
 		return summons
+	var guide := GuideText.objective(sim, underground)
+	if not guide.is_empty():
+		return guide
 	var lesson := StoryText.lesson(sim, underground)
 	if not lesson.is_empty():
 		return lesson

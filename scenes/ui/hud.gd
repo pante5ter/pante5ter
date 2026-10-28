@@ -10,6 +10,8 @@ const MESSAGE_SECONDS: float = 4.0
 const MESSAGE_FADE_SECONDS: float = 0.6
 const HOVER_OFFSET: Vector2 = Vector2(18.0, 14.0)
 const MAX_NEWS_LINES: int = 3
+## Routine news waits this long and comes out as one line.
+const DIGEST_SECONDS: float = 5.0
 ## Bottom left, just above the speed buttons: where a map keeps its «back to me» button.
 const JACK_BUTTON_RECT: Rect2 = Rect2(12.0, -128.0, 60.0, 60.0)
 
@@ -45,7 +47,11 @@ var place: String = ""
 var speed_buttons: Array[Button] = []
 ## Under the clock: what Jack has to do himself by a set hour.
 var tasks_label: Label
+var phone_button: Button
+var guide_marker: GuideMarker
+var news_digest: NewsDigest = NewsDigest.new()
 
+var _digest_left: float = DIGEST_SECONDS
 var _message_left: float = 0.0
 var _watched_sim: SimState
 var _seen_events: int = 0
@@ -63,8 +69,11 @@ func _ready() -> void:
 	message_label.modulate.a = 0.0
 	hover_label.visible = false
 	_add_tasks_label()
-	_add_corner_button("Телефон  [Tab]", toggle_phone, Vector2(1.0, 1.0), Rect2(-190.0, -60.0, 176.0, 44.0))
+	phone_button = _add_corner_button("Телефон  [Tab]", toggle_phone, Vector2(1.0, 1.0), Rect2(-190.0, -60.0, 176.0, 44.0))
 	_add_corner_button("Меню  [Esc]", toggle_pause, Vector2(1.0, 0.0), Rect2(-150.0, 12.0, 136.0, 36.0))
+	guide_marker = GuideMarker.new()
+	guide_marker.hud = self
+	add_child(guide_marker)
 	jack_button = JackButton.new()
 	jack_button.anchor_top = 1.0
 	jack_button.anchor_bottom = 1.0
@@ -147,6 +156,7 @@ func _add_tasks_label() -> void:
 func _exit_tree() -> void:
 	if _watched_sim == null:
 		return
+	flush_digest()
 	_carried_sim_id = _watched_sim.get_instance_id()
 	_carried_seen = _seen_events
 	_carried_text = message_label.text if _message_left > 0.0 else ""
@@ -168,7 +178,7 @@ func _take_carried_message() -> void:
 	show_message(carried if _message_left <= 0.0 else carried + "\n" + message_label.text)
 
 
-func _add_corner_button(text: String, on_pressed: Callable, anchor: Vector2, rect: Rect2) -> void:
+func _add_corner_button(text: String, on_pressed: Callable, anchor: Vector2, rect: Rect2) -> Button:
 	var button := UiStyle.button(text, on_pressed)
 	button.anchor_left = anchor.x
 	button.anchor_right = anchor.x
@@ -179,6 +189,7 @@ func _add_corner_button(text: String, on_pressed: Callable, anchor: Vector2, rec
 	button.offset_right = rect.end.x
 	button.offset_bottom = rect.end.y
 	add_child(button)
+	return button
 
 
 func _process(delta: float) -> void:
@@ -195,6 +206,9 @@ func _process(delta: float) -> void:
 	tasks_label.visible = not tasks_label.text.is_empty()
 	phone.underground = underground
 	_announce_new_events(sim)
+	_digest_left -= delta
+	if _digest_left <= 0.0:
+		flush_digest()
 	for index: int in speed_buttons.size():
 		speed_buttons[index].set_pressed_no_signal(is_equal_approx(Game.time_scale, Game.SPEEDS[index]))
 	_message_left = maxf(_message_left - delta, 0.0)
@@ -208,6 +222,7 @@ func _announce_new_events(sim: SimState) -> void:
 		_watched_sim = sim
 		_seen_events = sim.event_log.size()
 		alert_banner.clear()
+		news_digest.clear()
 		return
 	var news := PackedStringArray()
 	for event: SimEvent in sim.event_log.since(_seen_events):
@@ -217,6 +232,11 @@ func _announce_new_events(sim: SimState) -> void:
 			if alert.topic == Alert.CALL and not (dialogue_box.is_open() or computer.visible or pause_menu.visible):
 				action_menu.close()
 				phone.ring()
+			continue
+		var tip := MechanicTips.tip(event, sim)
+		if not tip.is_empty():
+			news.append(tip)
+		if news_digest.add(event):
 			continue
 		var text := UiText.announcement(event, sim)
 		if not text.is_empty() and not news.has(text):
@@ -230,6 +250,16 @@ func _announce_new_events(sim: SimState) -> void:
 func skip_news() -> void:
 	_seen_events = Game.sim.event_log.size()
 	_message_left = 0.0
+	news_digest.clear()
+
+
+## The routine news gathered so far, as one line under whatever is on screen.
+func flush_digest() -> void:
+	_digest_left = DIGEST_SECONDS
+	var line := news_digest.flush()
+	if line.is_empty():
+		return
+	show_message(line if _message_left <= 0.0 else message_label.text + "\n" + line)
 
 
 func show_message(text: String) -> void:

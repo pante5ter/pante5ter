@@ -23,6 +23,8 @@ const APP_TITLES: PackedStringArray = ["Звонки", "Реджи", "Магаз
 const APP_GLYPHS: PackedStringArray = [PhoneGlyphs.CALLS, PhoneGlyphs.MESSAGES, PhoneGlyphs.SHOP, PhoneGlyphs.STOCK, PhoneGlyphs.PEOPLE, PhoneGlyphs.EMPIRE, PhoneGlyphs.MAP, PhoneGlyphs.MONEY]
 ## plant_mid, brass, container_red, oak, camel_coat, hazard_yellow, grass_light, money_green
 const APP_COLORS: PackedColorArray = [Color("5A8A45"), Color("B08D4A"), Color("A14A35"), Color("7A5A3A"), Color("A88A62"), Color("C9A23A"), Color("7A8F5C"), Color("6E8F5E")]
+## Apps folded into another: no icon of their own, and opening one opens its host.
+const FOLDED: Dictionary[int, int] = {APP_STOCK: APP_SHOP, APP_FINANCE: APP_EMPIRE}
 
 ## Set by the HUD: Reggie phrases directions from where Jack stands.
 var underground: bool = false
@@ -155,12 +157,17 @@ func app_icon(app: int) -> PhoneAppIcon:
 	return _home.icon(app)
 
 
-func _show(app: int) -> void:
+static func host_app(app: int) -> int:
+	return FOLDED.get(app, app)
+
+
+func _show(requested: int) -> void:
+	var app := host_app(requested)
 	_app = app
 	_home.visible = app == HOME
 	_app_view.visible = app != HOME
 	if app != HOME:
-		_app_view.show_app(APP_TITLES[app], APP_COLORS[app])
+		_app_view.show_app(APP_TITLES[app], APP_COLORS[app], AppHeaders.phone(app))
 	if app == APP_MESSAGES:
 		_news.mark_read()
 	refresh()
@@ -191,16 +198,16 @@ func refresh() -> void:
 			_news.fill(fresh, sim, underground)
 		APP_SHOP:
 			PhoneShop.fill(fresh, sim, self)
-		APP_STOCK:
+			fresh.add_child(PhoneKit.label("На складе", PhoneKit.TITLE_SIZE, PhoneKit.MUTED))
 			PhoneStock.fill(fresh, sim)
 		APP_PEOPLE:
 			PhonePeople.fill(fresh, sim, self)
 		APP_EMPIRE:
+			PhoneFinance.fill(fresh, sim)
+			fresh.add_child(PhoneKit.label("Империя", PhoneKit.TITLE_SIZE, PhoneKit.MUTED))
 			PhoneStock.fill_empire(fresh, sim)
 		APP_MAP:
 			PhoneMap.fill(fresh, sim)
-		APP_FINANCE:
-			PhoneFinance.fill(fresh, sim)
 	_app_view.fill(fresh)
 
 
@@ -266,6 +273,18 @@ func fire(worker_id: String) -> void:
 		message.emit("%s %s." % [person.display_name, PeopleText.fired_word(person)])
 	else:
 		message.emit(UiText.error(result.error))
+	refresh()
+
+
+func hire_courier(courier_id: String) -> void:
+	var result := Game.sim.apply(HireCourierCommand.new(courier_id))
+	message.emit(("%s теперь возит товар." % UiText.courier_name(courier_id, Game.sim)) if result.ok else UiText.error(result.error))
+	refresh()
+
+
+func fire_courier(courier_id: String) -> void:
+	var result := Game.sim.apply(FireCourierCommand.new(courier_id))
+	message.emit(("%s больше не работает на вас." % UiText.courier_name(courier_id, Game.sim)) if result.ok else UiText.error(result.error))
 	refresh()
 
 

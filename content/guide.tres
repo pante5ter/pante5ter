@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="GuideDef" format=3]
+
+[ext_resource type="Script" path="res://content/defs/guide_def.gd" id="1_guide"]
+
+[resource]
+script = ExtResource("1_guide")
+rent_warning_hours = 12.0
+high_suspicion = 45.0
+spare_money = 300

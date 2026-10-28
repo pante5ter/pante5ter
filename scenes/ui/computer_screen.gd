@@ -4,6 +4,7 @@ extends PanelContainer
 const REFRESH_SECONDS: float = 0.5
 const SCREEN_SIZE: Vector2 = Vector2(620.0, 520.0)
 const TAB_ORDERS: int = 0
+## Folded into «Люди»: the tab is hidden and opening it opens the couriers there.
 const TAB_COURIERS: int = 1
 const TAB_FARM: int = 2
 const TAB_SHOP: int = 3
@@ -25,7 +26,9 @@ var _shop: VBoxContainer
 var _people: VBoxContainer
 var _clues: VBoxContainer
 var _title: Label
+var _about: Label
 var _refresh_left: float = 0.0
+var _show_couriers: bool = false
 
 
 func _ready() -> void:
@@ -41,6 +44,10 @@ func _ready() -> void:
 	add_child(rows)
 	_title = UiStyle.label(TITLE, 18, Color(0.6, 0.95, 0.7))
 	rows.add_child(_title)
+	_about = UiStyle.label("", 13, UiStyle.MUTED)
+	_about.name = "About"
+	_about.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	rows.add_child(_about)
 	_tabs = TabContainer.new()
 	_tabs.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_tabs.get_tab_bar().focus_mode = Control.FOCUS_NONE
@@ -51,6 +58,7 @@ func _ready() -> void:
 	_shop = _add_tab("Магазин")
 	_people = _add_tab("Люди")
 	_clues = _add_tab("Улики")
+	_tabs.set_tab_hidden(TAB_COURIERS, true)
 	_tabs.tab_changed.connect(_on_tab_changed)
 	if phone != null:
 		phone.message.connect(_on_phone_action.unbind(1))
@@ -71,6 +79,9 @@ func _add_tab(title: String) -> VBoxContainer:
 
 func open(tab: int = -1) -> void:
 	visible = true
+	_show_couriers = tab == TAB_COURIERS
+	if _show_couriers:
+		tab = TAB_PEOPLE
 	if tab >= 0:
 		_tabs.current_tab = tab
 	elif not Game.sim.orders.with_status(Order.Status.ACCEPTED).is_empty():
@@ -90,11 +101,14 @@ func current_tab() -> int:
 
 func _on_tab_changed(tab: int) -> void:
 	_title.text = CLUES_TITLE if tab == TAB_CLUES else TITLE
+	_about.text = AppHeaders.computer(tab)
 
 
 func _process(delta: float) -> void:
 	if not visible:
 		return
+	if _show_couriers:
+		_scroll_to_couriers()
 	_refresh_left -= delta
 	if _refresh_left <= 0.0:
 		refresh()
@@ -104,7 +118,6 @@ func refresh() -> void:
 	_refresh_left = REFRESH_SECONDS
 	var sim := Game.sim
 	UiRefresh.swap_if_changed(_orders, _fill_orders(sim))
-	UiRefresh.swap_if_changed(_couriers, _fill_couriers(sim))
 	UiRefresh.swap_if_changed(_farm, _fill_farm(sim))
 	var clues := VBoxContainer.new()
 	ClueBoardText.fill(clues, sim)
@@ -116,6 +129,15 @@ func refresh() -> void:
 		var people := VBoxContainer.new()
 		PhonePeople.fill(people, sim, phone)
 		UiRefresh.swap_if_changed(_people, people)
+
+
+## Once the people tab is laid out, its couriers section is scrolled to the top.
+func _scroll_to_couriers() -> void:
+	var section := _people.find_child(PhonePeople.COURIERS_SECTION, false, false) as Control
+	if section == null or section.size.y <= 0.0:
+		return
+	(_people.get_parent() as ScrollContainer).scroll_vertical = roundi(section.position.y)
+	_show_couriers = false
 
 
 func _on_phone_action() -> void:
@@ -210,32 +232,9 @@ func _order_row(order: Order, sim: SimState, now: float) -> VBoxContainer:
 		button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		buttons.add_child(button)
 	if buttons.get_child_count() == 0:
-		row.add_child(UiStyle.label("Везти некому — наймите курьера во вкладке «Курьеры».", 13, UiStyle.MUTED))
+		row.add_child(UiStyle.label("Везти некому — наймите курьера во вкладке «Люди», раздел «Курьеры».", 13, UiStyle.MUTED))
 	row.add_child(buttons)
 	return row
-
-
-func _fill_couriers(sim: SimState) -> VBoxContainer:
-	var box := VBoxContainer.new()
-	var now := sim.clock.elapsed_game_seconds
-	var intro := "Риск в дороге растёт вместе с подозрением."
-	if sim.helper.exists():
-		intro += " %s возит бесплатно, риск %d%%, но пока он в дороге, ферма без него." % [sim.helper.definition().display_name, roundi(sim.couriers.trip_risk(Helper.ACTOR) * 100.0)]
-	box.add_child(UiStyle.label(intro, 14, UiStyle.MUTED))
-	box.add_child(UiStyle.label("Садовников и фасовщика нанимают во вкладке «Люди» — или в телефоне, Tab → «Люди».", 14, UiStyle.ACCENT))
-	for courier: CourierDef in sim.config.courier_candidates:
-		var row := VBoxContainer.new()
-		var hired := sim.couriers.hired.has(courier.id)
-		var status := ""
-		if hired:
-			status = " — в дороге" if not sim.couriers.is_free(courier.id, now) else " — свободен"
-		row.add_child(UiStyle.label("%s%s\n%s\nБерёт %d%% с заказа, риск %d%%, скорость ×%.1f." % [courier.display_name, status, courier.description, roundi(courier.cut * 100.0), roundi(sim.couriers.trip_risk(courier.id) * 100.0), courier.speed]))
-		if hired:
-			row.add_child(_button("Уволить", fire.bind(courier.id), sim.couriers.is_free(courier.id, now)))
-		else:
-			row.add_child(_button("Нанять за %s" % UiText.money(courier.hire_fee), hire.bind(courier.id), sim.economy.money >= courier.hire_fee))
-		box.add_child(row)
-	return box
 
 
 func _fill_farm(sim: SimState) -> VBoxContainer:

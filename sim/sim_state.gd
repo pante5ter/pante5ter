@@ -203,7 +203,21 @@ func _apply(command: SimCommand) -> CommandResult:
 		return planting.set_beds(plan.strain_id, plan.beds, now, command.actor)
 	if command is MeetCommand:
 		return meetings.meet((command as MeetCommand).character_id, now, command.actor)
+	if command is EnterBunkerCommand:
+		return _enter_bunker(now, command.actor)
+	if command is SkipGuideCommand:
+		return first_day.guide.skip(now, command.actor)
 	return CommandResult.failure(CommandResult.UNKNOWN_COMMAND)
+
+
+## Only the first trip down is news; afterwards the lift is just the lift.
+func _enter_bunker(now: float, actor: String) -> CommandResult:
+	if day.place != DayCycle.FARM:
+		return CommandResult.failure(CommandResult.NOT_AT_FARM)
+	if not event_log.of_type(EventLog.BUNKER_ENTERED).is_empty():
+		return CommandResult.success()
+	event_log.record(EventLog.BUNKER_ENTERED, now, PackedStringArray([actor]), {})
+	return CommandResult.success()
 
 
 func _buy_plot(now: float, actor: String) -> CommandResult:

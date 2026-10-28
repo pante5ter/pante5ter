@@ -1,8 +1,13 @@
 class_name PhonePeople
 extends RefCounted
 
+## The «Люди» app, on the phone and on the computer: the crew, the couriers and the packer.
+
+const COURIERS_SECTION: String = "CouriersSection"
+
 
 static func fill(box: VBoxContainer, sim: SimState, phone: Phone) -> void:
+	box.add_child(_section("Бригада"))
 	_add_helper(box, sim, phone)
 	var crew := sim.workers
 	box.add_child(PhoneKit.label("Садовники на грядки — %d из %d" % [crew.gardeners().size(), crew.capacity()], PhoneKit.TITLE_SIZE, PhoneKit.MUTED))
@@ -10,11 +15,39 @@ static func fill(box: VBoxContainer, sim: SimState, phone: Phone) -> void:
 	for person: WorkerDef in sim.config.candidates():
 		var hired := crew.is_hired(person.id)
 		_add_candidate(box, sim, phone, person, hired or crew_full, person if hired else null)
+	_add_couriers(box, sim, phone)
 	if not sim.config.packer_candidates.is_empty():
-		box.add_child(PhoneKit.label("На фасовку в тайнике", PhoneKit.TITLE_SIZE, PhoneKit.MUTED))
+		box.add_child(_section("Фасовщик — в тайнике"))
 		for person: WorkerDef in sim.config.packer_candidates:
 			_add_candidate(box, sim, phone, person, sim.packer.hired, sim.packer.definition())
-	box.add_child(PhoneKit.label("Курьеры — на компьютере (в бункере или в тайнике), вкладка «Курьеры».", PhoneKit.SMALL_SIZE, PhoneKit.MUTED))
+
+
+static func _section(title: String) -> Label:
+	return PhoneKit.label(title.to_upper(), PhoneKit.SMALL_SIZE, PhoneKit.GOLD)
+
+
+static func _add_couriers(box: VBoxContainer, sim: SimState, phone: Phone) -> void:
+	var heading := _section("Курьеры")
+	heading.name = COURIERS_SECTION
+	box.add_child(heading)
+	var now := sim.clock.elapsed_game_seconds
+	var intro := "Возят заказы клиентам. Риск в дороге растёт вместе с подозрением."
+	if sim.helper.exists():
+		intro += " %s возит бесплатно, риск %d%%, но пока он в дороге, ферма без него." % [sim.helper.definition().display_name, roundi(sim.couriers.trip_risk(Helper.ACTOR) * 100.0)]
+	box.add_child(PhoneKit.label(intro, PhoneKit.SMALL_SIZE, PhoneKit.MUTED))
+	for courier: CourierDef in sim.config.courier_candidates:
+		var hired := sim.couriers.hired.has(courier.id)
+		var card := PhoneKit.card(box, Phone.APP_COLORS[Phone.APP_PEOPLE] if hired else PhoneKit.CARD)
+		var status := ""
+		if hired:
+			status = " · в дороге" if not sim.couriers.is_free(courier.id, now) else " · свободен"
+		PhoneKit.heading(card, courier.display_name + status, "%d%%" % roundi(courier.cut * 100.0))
+		card.add_child(PhoneKit.label(courier.description, PhoneKit.SMALL_SIZE, PhoneKit.MUTED))
+		card.add_child(PhoneKit.label("Берёт %d%% с заказа, риск %d%%, скорость ×%.1f." % [roundi(courier.cut * 100.0), roundi(sim.couriers.trip_risk(courier.id) * 100.0), courier.speed], PhoneKit.SMALL_SIZE))
+		if hired:
+			card.add_child(PhoneKit.danger("Уволить", phone.fire_courier.bind(courier.id), sim.couriers.is_free(courier.id, now)))
+		else:
+			card.add_child(PhoneKit.primary("Нанять за %s" % UiText.money(courier.hire_fee), phone.hire_courier.bind(courier.id), sim.economy.money >= courier.hire_fee))
 
 
 static func _add_helper(box: VBoxContainer, sim: SimState, phone: Phone) -> void:

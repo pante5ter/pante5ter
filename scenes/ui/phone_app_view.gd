@@ -7,6 +7,8 @@ signal home_requested
 
 var _title: Label
 var _strip: ColorRect
+## What the app is for, in one line.
+var _about: Label
 var _scroll: ScrollContainer
 var _content: VBoxContainer
 
@@ -30,6 +32,9 @@ func _ready() -> void:
 	_strip = ColorRect.new()
 	_strip.custom_minimum_size = Vector2(0.0, 3.0)
 	add_child(_strip)
+	_about = PhoneKit.label("", PhoneKit.SMALL_SIZE, PhoneKit.MUTED)
+	_about.name = "About"
+	add_child(_about)
 	_scroll = ScrollContainer.new()
 	_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -40,9 +45,11 @@ func _ready() -> void:
 	_scroll.add_child(_content)
 
 
-func show_app(title: String, colour: Color) -> void:
+func show_app(title: String, colour: Color, about: String = "") -> void:
 	_title.text = title
 	_strip.color = colour
+	_about.text = about
+	_about.visible = not about.is_empty()
 	_scroll.scroll_vertical = 0
 
 

@@ -27,6 +27,9 @@ extends Resource
 ## null plays without the first-day script / without the event director.
 @export var first_day: FirstDayDef
 @export var director: DirectorDef
+## The first-minutes guide inside the first-day script, and Reggie's advice after it.
+## Null: no guide, and the advice keeps its default thresholds.
+@export var guide: GuideDef
 ## null plays without the rat hunt after the first raid.
 @export var intrigue: IntrigueDef
 ## Reggie's call after a courier steals; %s in the texts is the thief's name. Null: no call.

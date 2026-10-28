@@ -102,15 +102,7 @@ func title() -> String:
 
 
 func hover_text() -> String:
-	var plot := Game.sim.grow.plot(plot_id)
-	match plot.stage:
-		Plot.Stage.EMPTY:
-			return "%s — посадить" % title()
-		Plot.Stage.READY:
-			return "%s — собрать урожай" % title()
-	if not plot.problem.is_empty():
-		return "%s — %s, вылечить" % [title(), UiText.problem(plot.problem)]
-	return "%s — уход" % title()
+	return BedHints.hover(Game.sim.grow.plot(plot_id), title(), Game.sim)
 
 
 func interact(level: Level) -> void:

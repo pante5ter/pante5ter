@@ -33,6 +33,8 @@ func _ready() -> void:
 	Game.is_running = true
 	hud.underground = place == DayCycle.FARM and not _is_opening_level()
 	hud.place = place
+	if hud.underground and not observing():
+		Game.sim.apply(EnterBunkerCommand.new())
 	if _is_opening_level() and Game.take_fresh_start():
 		hud.intros.play_opening((load(PROLOGUE_PATH) as DialogueDef).lines)
 

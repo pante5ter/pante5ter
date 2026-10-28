@@ -11,6 +11,8 @@ var step: Step = Step.DONE
 var call_at: float = INF
 var order_id: int = -1
 var trouble_plot_id: int = -1
+## Small goals for the first minutes, ticked off by the event log alongside the script.
+var guide: Guide
 
 var _def: FirstDayDef
 var _config: BalanceConfig
@@ -31,6 +33,7 @@ func _init(config: BalanceConfig, grow: Grow, inventory: Inventory, orders: Orde
 	_problems = problems
 	_stories = stories
 	_event_log = event_log
+	guide = Guide.new(config, event_log)
 	if _def != null:
 		step = Step.PLANT
 	_sync_calls()
@@ -78,6 +81,7 @@ func script_order() -> Order:
 ## An old save arrives mid-game: no lesson for it.
 func skip() -> void:
 	step = Step.DONE
+	guide.finish()
 	_sync_calls()
 
 
@@ -94,6 +98,7 @@ func next_event_time() -> float:
 
 
 func update(now: float) -> void:
+	guide.update(now)
 	while active() and _advance(now):
 		pass
 	_sync_calls()
@@ -192,6 +197,7 @@ func to_dict() -> Dictionary:
 		"call_at": ExactFloat.encode(call_at),
 		"order_id": order_id,
 		"trouble_plot_id": trouble_plot_id,
+		"guide": guide.to_dict(),
 	}
 
 
@@ -200,4 +206,9 @@ func load_dict(data: Dictionary) -> void:
 	call_at = ExactFloat.decode(data["call_at"])
 	order_id = int(data["order_id"])
 	trouble_plot_id = int(data["trouble_plot_id"])
+	# A save from before the guide is a game already under way.
+	if data.has("guide"):
+		guide.load_dict(data["guide"] as Dictionary)
+	else:
+		guide.finish()
 	_sync_calls()

@@ -1,11 +1,12 @@
 class_name PauseMenu
 extends PanelContainer
 
-const CONTROLS_TEXT: String = "Управление\n\nЛКМ — идти / выбрать действие\nЗажать ЛКМ и тянуть — двигать камеру\nWASD — двигать камеру\nКолесо — приблизить / отдалить\nQ / E — повернуть камеру\nTab — телефон (магазин, склад, империя)\nКомпьютер на плантации — звонки, заказы, курьеры\n1 / 2 / 3 — скорость времени x1 / x2 / x4\nF5 / F9 — быстрое сохранение / загрузка\nEsc — это меню"
+const CONTROLS_TEXT: String = "Управление\n\nЛКМ — идти / выбрать действие\nЗажать ЛКМ и тянуть — двигать камеру\nWASD — двигать камеру\nКолесо — приблизить / отдалить\nQ / E — повернуть камеру\nTab — телефон (звонки, магазин, люди, империя)\nКомпьютер в бункере и в тайнике — заказы и отправка\n1 / 2 / 3 — скорость времени x1 / x2 / x4\nF5 / F9 — быстрое сохранение / загрузка\nEsc — это меню"
 
 signal message(text: String)
 
 var _controls: Label
+var _skip_guide: Button
 var _was_running: bool = false
 
 
@@ -23,6 +24,9 @@ func _ready() -> void:
 	rows.add_child(UiStyle.button("Сохранить", _save))
 	rows.add_child(UiStyle.button("Загрузить", _load))
 	rows.add_child(UiStyle.button("Управление", _toggle_controls))
+	_skip_guide = UiStyle.button("Пропустить обучение", _on_skip_guide)
+	_skip_guide.visible = false
+	rows.add_child(_skip_guide)
 	rows.add_child(UiStyle.button("Выйти из игры", _quit))
 	_controls = UiStyle.label(CONTROLS_TEXT, 14, UiStyle.MUTED)
 	_controls.visible = false
@@ -39,6 +43,7 @@ func toggle() -> void:
 func open() -> void:
 	_was_running = Game.is_running
 	Game.is_running = false
+	_skip_guide.visible = Game.sim != null and Game.sim.first_day.guide.active()
 	visible = true
 	reset_size()
 	position = (get_viewport_rect().size - size) / 2.0
@@ -58,6 +63,12 @@ func _save() -> void:
 
 func _load() -> void:
 	message.emit("Игра загружена." if Game.load_game() == OK else "Сохранения нет или оно повреждено.")
+	close()
+
+
+func _on_skip_guide() -> void:
+	var result := Game.sim.apply(SkipGuideCommand.new())
+	message.emit("Обучение пропущено. Совет — у Реджи: кликните по нему, «Что делать?»." if result.ok else UiText.error(result.error))
 	close()
 
 
