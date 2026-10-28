@@ -52,6 +52,8 @@ func _press_key(level: Level, keycode: Key) -> void:
 
 func _plain(money: int = 1000) -> SimState:
 	var config := _balance.duplicate() as BalanceConfig
+	config.shop = null
+	config.opportunities = null
 	config.starting_money = money
 	config.first_day = null
 	config.director = _balance.director.duplicate() as DirectorDef
@@ -170,6 +172,8 @@ func test_an_ignored_summons_expires_and_the_lord_takes_offence() -> void:
 
 func test_the_first_day_moves_on_when_the_lord_is_ignored() -> void:
 	var config := _balance.duplicate() as BalanceConfig
+	config.shop = null
+	config.opportunities = null
 	config.director = null
 	var state := SimState.new(config, 3)
 	state.apply(PlantCommand.new(0))
@@ -199,6 +203,8 @@ func _ready_plot(state: SimState, plot_id: int, strain_id: String, fertilize: bo
 
 func _rich_grower() -> SimState:
 	var config := _balance.duplicate() as BalanceConfig
+	config.shop = null
+	config.opportunities = null
 	config.starting_money = 100000
 	config.first_day = null
 	config.director = null

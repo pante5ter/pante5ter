@@ -27,6 +27,8 @@ func after_each() -> void:
 
 func _calm(money: int = 1000) -> BalanceConfig:
 	var config := _balance.duplicate() as BalanceConfig
+	config.shop = null
+	config.opportunities = null
 	config.starting_money = money
 	config.first_day = null
 	config.director = null
@@ -171,6 +173,8 @@ func test_without_a_retail_share_calls_are_as_before() -> void:
 
 func test_scripted_and_urgent_calls_have_no_kind() -> void:
 	var config := _balance.duplicate() as BalanceConfig
+	config.shop = null
+	config.opportunities = null
 	config.first_day = null
 	var state := SimState.new(config, 5)
 	state.director._trigger(Director.URGENT_ORDER, 0.0)

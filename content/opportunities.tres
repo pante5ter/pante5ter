@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="OpportunitiesDef" format=3]
+
+[ext_resource type="Script" path="res://content/defs/opportunities_def.gd" id="1_opportunities"]
+
+[resource]
+script = ExtResource("1_opportunities")
+gossip_stride = 5
+gossip_kinds = Array[String](["sale", "lead", "", "", "sale", "party", "party", "sale", ""])
+gossip_notes = Array[String](["Фэрфаксы тихо распродают оранжерею", "Полковник Добсон по уши в долгах у банка — его поле может скоро уйти", "", "", "Харкорты распродают имущество", "В гольф-клубе затевают вечер и спрашивают, чем ты занимаешься", "Леди Эшкомб снова в жемчуге — в поместье званый вечер", "Мистер Тиббет избавляется от оборудования теплицы, пока соседи не добились проверки", ""])
+start_day = 2
+open_hour = 7.0
+sale_discount = 0.4
+sale_hours = 15.0
+lead_days = 5.0
+party_quantity_min = 8
+party_quantity_max = 14
+party_min_quality = 55
+party_price_multiplier = 2.0
+party_answer_hours = 6.0
+party_deadline_hours = 30.0

@@ -13,3 +13,6 @@ extends Resource
 @export var fine: int = 0
 @export var relief_when_hidden: float = 0.0
 @export var relief_when_caught: float = 0.0
+## Paying off the tip so the inspection never arrives.
+@export var bribe_cost: int = 150
+@export var bribe_suspicion_relief: float = 10.0

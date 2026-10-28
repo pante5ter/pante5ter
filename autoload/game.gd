@@ -41,7 +41,8 @@ func set_speed(index: int) -> void:
 
 
 func new_game(seed_value: int, fresh_start: bool = false) -> void:
-	sim = SimState.new(_get_balance(), seed_value)
+	# Duplicate so a test (or a future mutator) cannot wipe shop/day off the shared .tres.
+	sim = SimState.new(_get_balance().duplicate(true) as BalanceConfig, seed_value)
 	_seen_events = sim.event_log.size()
 	_fresh_start = fresh_start
 

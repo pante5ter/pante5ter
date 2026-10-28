@@ -11,6 +11,8 @@ func before_all() -> void:
 
 func _rich(money: int = 10000) -> BalanceConfig:
 	var copy := _balance.duplicate() as BalanceConfig
+	copy.shop = null
+	copy.opportunities = null
 	copy.starting_money = money
 	return copy
 

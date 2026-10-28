@@ -13,3 +13,5 @@ warning_hours = 1.5
 fine = 400
 relief_when_hidden = 35.0
 relief_when_caught = 25.0
+bribe_cost = 180
+bribe_suspicion_relief = 12.0

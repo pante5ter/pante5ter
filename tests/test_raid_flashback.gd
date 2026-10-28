@@ -29,6 +29,8 @@ func after_each() -> void:
 
 func _calm_game() -> void:
 	var config := (load("res://content/balance.tres") as BalanceConfig).duplicate() as BalanceConfig
+	config.shop = null
+	config.opportunities = null
 	config.raids = config.raids.duplicate() as RaidsDef
 	config.raids.chance_per_night = 0.0
 	config.problems = config.problems.duplicate() as ProblemsDef

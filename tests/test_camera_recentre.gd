@@ -9,6 +9,7 @@ const GLIDE_TIMEOUT: float = 3.0
 func before_each() -> void:
 	Game.new_game(42)
 	Game.sim.first_day.skip()
+
 	Game.is_running = false
 
 

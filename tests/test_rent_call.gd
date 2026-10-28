@@ -27,6 +27,8 @@ func after_each() -> void:
 
 func _calm(money: int) -> BalanceConfig:
 	var calm := _balance.duplicate() as BalanceConfig
+	calm.shop = null
+	calm.opportunities = null
 	calm.starting_money = money
 	calm.problems = _balance.problems.duplicate() as ProblemsDef
 	calm.problems.chance_per_hour = 0.0
@@ -243,13 +245,20 @@ func _open_field() -> Level:
 	return level
 
 
+func _answer_rent_banner(level: Level) -> void:
+	assert_true(level.hud.alert_banner.topics().has(Alert.RENT_CALL), "the lord rings first")
+	level.hud._on_alert_action(Alert.RENT_CALL)
+	await wait_process_frames(2)
+
+
 func test_the_call_opens_by_itself_and_paying_now_reaches_the_sim() -> void:
 	_calm_game(5000)
 	_advance_hours(Game.sim, _call_hour() + 0.25)
 	var level := await _open_field()
 	await wait_process_frames(3)
+	await _answer_rent_banner(level)
 	var box := level.hud.dialogue_box
-	assert_true(level.hud.is_dialogue_open(), "the lord's call opens like a story")
+	assert_true(level.hud.is_dialogue_open(), "answering the banner opens the call")
 	box.skip()
 	assert_eq(box.choice_buttons().size(), 2)
 	box.choice_buttons()[0].pressed.emit()
@@ -263,6 +272,7 @@ func test_short_of_money_jack_promises_to_visit_and_pays_at_the_manor() -> void:
 	_advance_hours(Game.sim, _call_hour() + 0.25)
 	var level := await _open_field()
 	await wait_process_frames(3)
+	await _answer_rent_banner(level)
 	var box := level.hud.dialogue_box
 	box.skip()
 	assert_true(box.choice_buttons()[0].disabled, "paying now is greyed out")

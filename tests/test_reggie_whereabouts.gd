@@ -15,6 +15,8 @@ func before_all() -> void:
 
 func _config(courier_trouble: bool = false) -> BalanceConfig:
 	var config := _balance.duplicate() as BalanceConfig
+	config.shop = null
+	config.opportunities = null
 	config.first_day = null
 	config.starting_money = 5000
 	config.problems = _balance.problems.duplicate() as ProblemsDef

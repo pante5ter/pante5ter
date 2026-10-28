@@ -34,8 +34,9 @@ var alert_banner: AlertBanner
 var road_panel: RoadPanel
 var edge_markers: EdgeMarkers
 var jack_button: JackButton
-var day_card: DayCard
 var night: NightFlow
+## «Развилки» from the pause menu: every fork of the story so far.
+var story_tree: StoryTreeScreen
 var remote_bar: RemoteBar
 var raid_recap: RaidRecap
 ## Set by the level: Reggie phrases directions from where Jack stands.
@@ -75,9 +76,6 @@ func _ready() -> void:
 	jack_button.centre_requested.connect(jack_focus_requested.emit.bind(false))
 	jack_button.follow_requested.connect(jack_focus_requested.emit.bind(true))
 	add_child(jack_button)
-	day_card = DayCard.new()
-	day_card.hud = self
-	add_child(day_card)
 	edge_markers = EdgeMarkers.new()
 	add_child(edge_markers)
 	alert_banner = AlertBanner.new()
@@ -100,7 +98,11 @@ func _ready() -> void:
 	add_child(computer)
 	pause_menu = PauseMenu.new()
 	pause_menu.message.connect(show_message)
+	pause_menu.forks_requested.connect(open_story_tree)
 	add_child(pause_menu)
+	story_tree = StoryTreeScreen.new()
+	story_tree.next_pressed.connect(close_story_tree)
+	add_child(story_tree)
 	for index: int in Game.SPEEDS.size():
 		var button := UiStyle.button("x%d" % roundi(Game.SPEEDS[index]), set_speed.bind(index))
 		button.toggle_mode = true
@@ -209,19 +211,18 @@ func _announce_new_events(sim: SimState) -> void:
 		_seen_events = sim.event_log.size()
 		alert_banner.clear()
 		return
-	var news := PackedStringArray()
+	var batch: Array[SimEvent] = []
 	for event: SimEvent in sim.event_log.since(_seen_events):
 		var alert := Alert.from_event(event, sim)
 		if alert != null:
 			alert_banner.push(alert)
-			if alert.topic == Alert.CALL and not (dialogue_box.is_open() or computer.visible or pause_menu.visible):
+			if _rings(alert.topic) and not (dialogue_box.is_open() or computer.visible or pause_menu.visible):
 				action_menu.close()
 				phone.ring()
 			continue
-		var text := UiText.announcement(event, sim)
-		if not text.is_empty() and not news.has(text):
-			news.append(text)
+		batch.append(event)
 	_seen_events = sim.event_log.size()
+	var news := NewsDigest.compress(batch, sim)
 	if not news.is_empty():
 		show_message("\n".join(news.slice(maxi(news.size() - MAX_NEWS_LINES, 0))))
 
@@ -238,7 +239,7 @@ func show_message(text: String) -> void:
 
 
 func set_hover(text: String) -> void:
-	var blocked := action_menu.visible or phone.visible or pause_menu.visible or computer.visible or dialogue_box.is_open() or night.is_open()
+	var blocked := action_menu.visible or phone.visible or pause_menu.visible or computer.visible or dialogue_box.is_open() or night.is_open() or story_tree.visible
 	hover_label.text = text
 	hover_label.visible = not text.is_empty() and not blocked
 
@@ -252,7 +253,7 @@ func close_actions() -> void:
 
 
 func is_blocking_world() -> bool:
-	return action_menu.visible or pause_menu.visible or computer.visible or dialogue_box.is_open() or night.is_open()
+	return action_menu.visible or pause_menu.visible or computer.visible or dialogue_box.is_open() or night.is_open() or story_tree.visible
 
 
 ## Phone buttons fire on mouse down and may rebuild the screen under the cursor before the GUI
@@ -335,10 +336,30 @@ func _choice_input(event: InputEvent) -> void:
 
 
 ## A call opens the phone on it; anything with a place on the map swings the camera there.
+func _rings(topic: String) -> bool:
+	return topic == Alert.CALL or topic == Alert.RENT_CALL or topic == Alert.SUMMONS or topic == Alert.STORY_CALL
+
+
 func _on_alert_action(topic: String) -> void:
 	if topic == Alert.CALL:
 		action_menu.close()
 		phone.open(Phone.APP_CALLS)
+		return
+	if topic == Alert.RENT_CALL:
+		action_menu.close()
+		story_presenter.answer_rent_call()
+		return
+	if topic == Alert.SUMMONS:
+		action_menu.close()
+		_answer_butler()
+		return
+	if topic == Alert.STORY_CALL:
+		action_menu.close()
+		story_presenter.answer_phone_story()
+		return
+	if topic == Alert.INSPECTION:
+		action_menu.close()
+		_prepare_inspection()
 		return
 	if topic == Alert.HOME:
 		action_menu.close()
@@ -356,10 +377,63 @@ func _on_alert_action(topic: String) -> void:
 		rig.focus(target.global_position)
 
 
+func _answer_butler() -> void:
+	var story := Game.sim.stories.pending()
+	if story == null or story.place != StoryDef.MANOR:
+		return
+	var lines: Array[DialogueLineDef] = [
+		DialogueLineDef.make("", "Звонит телефон. Дворецкий лорда Эшкомба."),
+		DialogueLineDef.make("Дворецкий", "Милорд просит вас заехать в поместье, сэр. Когда будет удобно — но лучше сегодня."),
+		DialogueLineDef.make(UiText.REGGIE, "Поместье у поля. Подойдите к лорду — сам он к контейнеру не сунется."),
+	]
+	play_dialogue(lines)
+
+
+func _prepare_inspection() -> void:
+	if not Game.sim.suspicion.inspection_pending():
+		return
+	var bribe := Game.sim.config.suspicion.bribe_cost
+	var lines: Array[DialogueLineDef] = [
+		DialogueLineDef.make(UiText.REGGIE, "Проверка едет. Как встретим, мистер Кэллоуэй?"),
+	]
+	var choices := PackedStringArray([
+		"Затихнуть: свет и курьеры стоп",
+		"Взятка %s — отменить проверку" % UiText.money(bribe),
+		"Ничего не делать",
+	])
+	play_dialogue(lines, choices)
+	dialogue_box.chosen.connect(_on_inspection_choice, CONNECT_ONE_SHOT)
+
+
+func _on_inspection_choice(index: int) -> void:
+	match index:
+		0:
+			var quiet := Game.sim.apply(LieLowCommand.new(true))
+			show_message("Ферма затихла. Проверка, надеюсь, пройдёт мимо." if quiet.ok else UiText.error(quiet.error))
+		1:
+			var paid := Game.sim.apply(PrepareInspectionCommand.new(PrepareInspectionCommand.BRIBE))
+			show_message("Констебль «не заметил» контейнер. Дорого, но тихо." if paid.ok else UiText.error(paid.error))
+		_:
+			show_message("Пусть едут. Разберёмся на месте.")
+
+
 func open_computer() -> void:
 	action_menu.close()
 	phone.close()
 	computer.open()
+
+
+func open_story_tree() -> void:
+	action_menu.close()
+	phone.close()
+	story_tree.show_all(Game.sim)
+
+
+func close_story_tree() -> void:
+	if not story_tree.visible:
+		return
+	story_tree.close()
+	pause_menu.resume()
 
 
 func set_speed(index: int) -> void:
@@ -391,7 +465,9 @@ func _input(event: InputEvent) -> void:
 		KEY_TAB:
 			toggle_phone()
 		KEY_ESCAPE:
-			if action_menu.visible:
+			if story_tree.visible:
+				close_story_tree()
+			elif action_menu.visible:
 				action_menu.close()
 			elif computer.visible:
 				computer.close()

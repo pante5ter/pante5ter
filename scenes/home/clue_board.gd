@@ -1,7 +1,8 @@
 class_name ClueBoard
 extends Interactable
 
-## Cork board on the bunker wall by the computer: one paper note per clue Reggie has pinned up.
+## Cork board on the study wall at home: one paper note per clue Reggie has pinned up.
+## Only the crew comes to the farm; case talks with Reggie happen here, by the board.
 @export var notes: Node3D
 
 var _seen_sim: SimState

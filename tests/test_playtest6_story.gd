@@ -3,7 +3,7 @@ extends GutTest
 ## Playtest round 6: the clue board, fairer clues, no strangers in the line-up, a slower reporter.
 
 const BALANCE_PATH: String = "res://content/balance.tres"
-const PLANTATION_SCENE: String = "res://scenes/plantation/plantation.tscn"
+const HOME_SCENE: String = "res://scenes/home/home.tscn"
 const HOUR: float = SimClock.GAME_SECONDS_PER_HOUR
 const STEP_HOURS: float = 0.25
 const VERDICT_WORDS: Array[String] = ["крыс", "сдал", "наводчик", "предател", "это он"]
@@ -17,6 +17,8 @@ func before_all() -> void:
 
 func _config(with_director: bool = false) -> BalanceConfig:
 	var config := _balance.duplicate() as BalanceConfig
+	config.shop = null
+	config.opportunities = null
 	config.starting_money = 5000
 	config.first_day = null
 	config.director = null
@@ -155,15 +157,16 @@ func test_an_empty_board_says_so() -> void:
 	box.free()
 
 
-func test_the_bunker_board_opens_the_clues_on_the_computer() -> void:
+func test_the_study_board_opens_the_clues_on_the_computer() -> void:
 	Game.new_game(31)
 	Game.sim.first_day.skip()
 	Game.is_running = false
-	var level := (load(PLANTATION_SCENE) as PackedScene).instantiate() as Level
+	Game.sim.apply(TravelCommand.new(DayCycle.HOME))
+	var level := (load(HOME_SCENE) as PackedScene).instantiate() as Level
 	add_child_autoqfree(level)
 	await wait_process_frames(2)
 	var board := level.find_child("ClueBoard", true, false) as ClueBoard
-	assert_not_null(board, "the cork board hangs in the bunker")
+	assert_not_null(board, "the cork board hangs in the study at home")
 	assert_string_contains(board.hover_text(), "Пробковая доска")
 	board.interact(level)
 	assert_true(level.hud.computer.visible)

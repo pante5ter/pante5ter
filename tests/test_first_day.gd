@@ -14,6 +14,8 @@ func before_all() -> void:
 ## The script alone: no random trouble, no director, no inspections.
 func _config() -> BalanceConfig:
 	var config := _balance.duplicate() as BalanceConfig
+	config.shop = null
+	config.opportunities = null
 	config.problems = _balance.problems.duplicate() as ProblemsDef
 	config.problems.chance_per_hour = 0.0
 	config.raids = _balance.raids.duplicate() as RaidsDef

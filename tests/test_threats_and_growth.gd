@@ -11,6 +11,8 @@ func before_all() -> void:
 
 func _config(money: int = 500, problems: float = 0.0, raids: float = 0.0) -> BalanceConfig:
 	var config := _balance.duplicate() as BalanceConfig
+	config.shop = null
+	config.opportunities = null
 	config.starting_money = money
 	config.problems = _balance.problems.duplicate() as ProblemsDef
 	config.problems.chance_per_hour = problems

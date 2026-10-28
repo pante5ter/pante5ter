@@ -47,7 +47,9 @@ func _ring() -> void:
 func _deliver_parcel() -> void:
 	Game.sim.economy.earn(1000)
 	Game.sim.apply(BuyCommand.new(Supplies.FERTILIZER, 1))
-	Game.sim.apply(AdvanceTimeCommand.new(_hours_to_real(Game.sim.config.delivery_hours + 0.1)))
+	var arrives := Game.sim.supplies.arrival_for(Game.sim.clock.elapsed_game_seconds)
+	var wait := (arrives - Game.sim.clock.elapsed_game_seconds) / SimClock.GAME_SECONDS_PER_HOUR + 0.1
+	Game.sim.apply(AdvanceTimeCommand.new(_hours_to_real(wait)))
 
 
 func _press_key(level: Level, keycode: Key) -> void:

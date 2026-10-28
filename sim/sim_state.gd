@@ -49,6 +49,9 @@ var stash: Stash
 var planting: PlantingPlan
 var meetings: Meetings
 var hand_packing: HandPacking
+var upgrades: Upgrades
+var demand: Demand
+var opportunities: Opportunities
 ## One-shot mechanic tips Reggie already gave («обрезка», «фасовка»…).
 var tips_seen: Array[String] = []
 
@@ -100,6 +103,13 @@ func _init(balance: BalanceConfig, seed_value: int) -> void:
 	stash.attach(helper, packer)
 	meetings = Meetings.new(balance, event_log)
 	hand_packing = HandPacking.new(balance.hand_packing, packing, inventory, day, event_log)
+	upgrades = Upgrades.new(balance.shop, economy, suspicion, progress, supplies, event_log)
+	upgrades.attach(grow, raids)
+	grow.upgrades = upgrades
+	climate.upgrades = upgrades
+	demand = Demand.new(balance.orders, inventory, event_log)
+	orders.demand = demand
+	opportunities = Opportunities.new(balance.opportunities, rng, upgrades, orders, event_log)
 	progress.update(empire_value(), clock.elapsed_game_seconds)
 	# Whatever the start logged is not news to the intrigue; a refused first command must change nothing.
 	intrigue.seen_events = event_log.size()
@@ -125,7 +135,7 @@ func empire_value() -> int:
 		value += economy.price_of(product)
 	for order: Order in orders.with_status(Order.Status.IN_TRANSIT):
 		value += order.reward
-	return value + stash.value(economy)
+	return value + stash.value(economy) + upgrades.value()
 
 
 func _apply(command: SimCommand) -> CommandResult:
@@ -154,6 +164,8 @@ func _apply(command: SimCommand) -> CommandResult:
 		return problems.treat((command as TreatCommand).plot_id, now, command.actor)
 	if command is LieLowCommand:
 		return suspicion.lie_low((command as LieLowCommand).on, now, command.actor)
+	if command is PrepareInspectionCommand:
+		return _prepare_inspection(command as PrepareInspectionCommand, now, command.actor)
 	if command is AnswerOrderCommand:
 		var answer := command as AnswerOrderCommand
 		return orders.answer(answer.order_id, answer.choice, now, command.actor)
@@ -186,7 +198,13 @@ func _apply(command: SimCommand) -> CommandResult:
 		return supplies.set_auto_reorder(rule.item, rule.keep, now, command.actor)
 	if command is BuyCommand:
 		var buy := command as BuyCommand
+		if buy.in_village:
+			if not in_village():
+				return CommandResult.failure(CommandResult.NOT_IN_VILLAGE)
+			return supplies.buy_in_village(buy.item, buy.quantity, now, command.actor)
 		return supplies.buy(buy.item, buy.quantity, now, command.actor)
+	if command is BuyUpgradeCommand:
+		return upgrades.buy((command as BuyUpgradeCommand).upgrade_id, now, command.actor)
 	if command is BuySensorCommand:
 		return climate.buy_sensor(now, command.actor)
 	if command is SetVentilationCommand:
@@ -249,6 +267,17 @@ func _haul(driver: String, now: float, actor: String) -> CommandResult:
 	return loaded
 
 
+func _prepare_inspection(command: PrepareInspectionCommand, now: float, actor: String) -> CommandResult:
+	match command.choice:
+		PrepareInspectionCommand.QUIET:
+			return suspicion.lie_low(true, now, actor)
+		PrepareInspectionCommand.BRIBE:
+			return suspicion.bribe_off(now, actor)
+		PrepareInspectionCommand.NOTHING:
+			return CommandResult.success()
+	return CommandResult.failure(CommandResult.UNKNOWN_CHOICE)
+
+
 ## Sleep runs the night through to the morning; a farm alarm stops it on the spot.
 ## The result value is the alarm's event seq, or -1 when Jack slept through.
 func _sleep(now: float, actor: String) -> CommandResult:
@@ -293,7 +322,12 @@ func _next_event_time() -> float:
 	next = minf(next, minf(first_day.next_event_time(), director.next_event_time()))
 	next = minf(next, minf(intrigue.next_event_time(), stories.next_event_time()))
 	next = minf(next, minf(day.next_event_time(), stash.next_event_time()))
+	next = minf(next, minf(upgrades.next_event_time(), opportunities.next_event_time()))
 	return minf(next, raids.next_event_time())
+
+
+func in_village() -> bool:
+	return day.enabled() and day.place == DayCycle.STASH and not day.travelling()
 
 
 func _process_events(now: float) -> void:
@@ -306,6 +340,8 @@ func _process_events(now: float) -> void:
 	couriers.process(now)
 	packing.process(now)
 	raids.process(now)
+	upgrades.process(now)
+	opportunities.process(now)
 	suspicion.process(now)
 	workers.process(now)
 	helper.process(now)
@@ -380,6 +416,8 @@ func to_dict() -> Dictionary:
 		"stash": stash.to_dict(),
 		"planting_plan": planting.to_dict(),
 		"meetings": meetings.to_dict(),
+		"upgrades": upgrades.to_dict(),
+		"opportunities": opportunities.to_dict(),
 		"tips_seen": tips_seen.duplicate(),
 		"event_log": event_log.to_array(),
 	}
@@ -472,6 +510,11 @@ func _load_dict(data: Dictionary) -> void:
 		meetings.load_dict(data["meetings"] as Dictionary)
 	else:
 		meetings.meet_everyone()
+	upgrades.load_dict(data.get("upgrades", {}) as Dictionary)
+	if data.has("opportunities"):
+		opportunities.load_dict(data["opportunities"] as Dictionary)
+	else:
+		opportunities.start_at(clock.elapsed_game_seconds)
 	tips_seen.clear()
 	for tip: Variant in data.get("tips_seen", []) as Array:
 		tips_seen.append(String(tip))

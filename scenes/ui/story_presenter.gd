@@ -20,17 +20,48 @@ func presenting() -> String:
 
 func _process(_delta: float) -> void:
 	var sim := Game.sim
-	if sim == null or hud.is_dialogue_open():
+	if sim == null:
+		return
+	# Missed rings (rent already due when the level loaded, prologue open, etc.) still need a banner.
+	_ensure_call_alerts(sim)
+	if hud.is_dialogue_open() or hud.night.is_open():
 		return
 	var story := sim.stories.pending()
 	if story == null:
 		_story_id = ""
-	# Only Jack's people know where the farm is: the lord's talks wait for Jack at the manor.
-	elif story.place != StoryDef.MANOR:
-		_present(story)
 		return
-	if sim.rent.call_pending() and not hud.night.is_open():
-		_present_rent(RentTalk.CALL)
+	# Manor, phone and the study cork-board wait for Jack; they do not barge in.
+	if story.place != StoryDef.MANOR and story.place != StoryDef.CALL and not waits_for_study(story):
+		_present(story)
+
+
+## Reggie puts the rat question to Jack at the cork board in the study at home, nowhere else.
+func waits_for_study(story: StoryDef) -> bool:
+	return story.id == Intrigue.ACCUSE_STORY_ID and Game.sim.day.enabled() and hud.place != DayCycle.HOME
+
+
+func _ensure_call_alerts(sim: SimState) -> void:
+	if hud.night.is_open():
+		return
+	var banner := hud.alert_banner
+	if sim.rent.call_pending() and not banner.topics().has(Alert.RENT_CALL):
+		_push_ring(banner, Alert.make(Alert.Severity.WARNING, Alert.RENT_CALL, PhoneGlyphs.CALLS, "Звонит лорд Эшкомб", "Аренда %s. Ответьте." % UiText.money(sim.rent.owed())))
+	var pending := sim.stories.pending()
+	if pending == null:
+		return
+	if pending.place == StoryDef.MANOR and not banner.topics().has(Alert.SUMMONS):
+		_push_ring(banner, Alert.make(Alert.Severity.WARNING, Alert.SUMMONS, PhoneGlyphs.CALLS, "Звонит дворецкий", "Лорд Эшкомб просит заехать в поместье."))
+	elif pending.place == StoryDef.CALL and not banner.topics().has(Alert.STORY_CALL):
+		var who := pending.lines[0].speaker if not pending.lines.is_empty() and not pending.lines[0].speaker.is_empty() else "Неизвестный"
+		_push_ring(banner, Alert.make(Alert.Severity.INFO, Alert.STORY_CALL, PhoneGlyphs.CALLS, "Звонит %s" % who, "Возьмите трубку — «Ответить» или Tab."))
+
+
+func _push_ring(banner: AlertBanner, alert: Alert) -> void:
+	alert.action = Alert.ANSWER
+	alert.sticky = true
+	banner.push(alert)
+	if not hud.phone.visible:
+		hud.phone.ring()
 
 
 ## Called by the lord when Jack walks up to him; false when the lord has nothing to discuss.
@@ -43,6 +74,20 @@ func present_at_manor() -> bool:
 		return false
 	_present(story)
 	return true
+
+
+## From the ringing rent banner: take the lord's call.
+func answer_rent_call() -> void:
+	if Game.sim.rent.call_pending() and not hud.night.is_open():
+		_present_rent(RentTalk.CALL)
+
+
+## From the ringing story banner (vicar and the like).
+func answer_phone_story() -> void:
+	var story := Game.sim.stories.pending()
+	if story == null or story.place != StoryDef.CALL:
+		return
+	_present(story)
 
 
 func _present(story: StoryDef) -> void:

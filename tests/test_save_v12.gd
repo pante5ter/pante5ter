@@ -13,6 +13,8 @@ func before_all() -> void:
 
 func _config() -> BalanceConfig:
 	var config := _balance.duplicate() as BalanceConfig
+	config.shop = null
+	config.opportunities = null
 	config.first_day = null
 	config.director = null
 	var helper := _balance.helper.duplicate() as WorkerDef

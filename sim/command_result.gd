@@ -49,6 +49,10 @@ const NOT_AT_HOME: String = "not_at_home"
 const NOT_AT_FARM: String = "not_at_farm"
 const NOT_AT_STASH: String = "not_at_stash"
 const TOO_EARLY_TO_SLEEP: String = "too_early_to_sleep"
+const UPGRADE_LOCKED: String = "upgrade_locked"
+const NEEDS_UPGRADE: String = "needs_upgrade"
+const NOT_IN_VILLAGE: String = "not_in_village"
+const NOT_SOLD_IN_VILLAGE: String = "not_sold_in_village"
 
 var ok: bool = false
 var error: String = ""

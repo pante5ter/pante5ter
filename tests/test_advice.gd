@@ -5,6 +5,8 @@ extends GutTest
 
 func _state() -> SimState:
 	var config := (load("res://content/balance.tres") as BalanceConfig).duplicate() as BalanceConfig
+	config.shop = null
+	config.opportunities = null
 	config.first_day = null
 	config.director = null
 	config.problems = config.problems.duplicate() as ProblemsDef

@@ -11,6 +11,8 @@ func before_all() -> void:
 
 func _config(money: int = 5000, base_risk: float = 0.0, haggle: float = 0.5) -> BalanceConfig:
 	var config := _balance.duplicate() as BalanceConfig
+	config.shop = null
+	config.opportunities = null
 	config.starting_money = money
 	config.orders = _balance.orders.duplicate() as OrdersDef
 	config.orders.base_trip_risk = base_risk

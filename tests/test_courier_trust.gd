@@ -15,6 +15,8 @@ func before_all() -> void:
 
 func _config(pete_greed: float = -1.0) -> BalanceConfig:
 	var config := _balance.duplicate() as BalanceConfig
+	config.shop = null
+	config.opportunities = null
 	config.starting_money = 5000
 	config.first_day = null
 	config.director = null

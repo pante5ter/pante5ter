@@ -10,6 +10,7 @@ var _old_screen: Vector2i = Vector2i.ZERO
 func before_each() -> void:
 	Game.new_game(31)
 	Game.sim.first_day.skip()
+
 	Game.is_running = false
 	_old_screen = get_tree().root.size
 	get_tree().root.size = SCREEN

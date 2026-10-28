@@ -7,6 +7,7 @@ const SETTLE_FRAMES: int = 3
 func before_each() -> void:
 	Game.new_game(42)
 	Game.sim.first_day.skip()
+
 	Game.is_running = false
 
 

@@ -15,6 +15,8 @@ func before_all() -> void:
 ## The director alone; only_kind keeps a single kind of event in play.
 func _config(only_kind: String = "", quiet_real_seconds: float = -1.0) -> BalanceConfig:
 	var config := _balance.duplicate() as BalanceConfig
+	config.shop = null
+	config.opportunities = null
 	config.first_day = null
 	config.problems = _balance.problems.duplicate() as ProblemsDef
 	config.problems.chance_per_hour = 0.0
@@ -206,6 +208,8 @@ func test_nothing_applicable_means_no_event() -> void:
 
 func test_one_big_step_equals_many_small_steps() -> void:
 	var config := _balance.duplicate() as BalanceConfig
+	config.shop = null
+	config.opportunities = null
 	config.first_day = null
 	var big := SimState.new(config, 31)
 	var small := SimState.new(config, 31)

@@ -28,6 +28,8 @@ func after_each() -> void:
 
 func _config() -> BalanceConfig:
 	var config := _balance.duplicate() as BalanceConfig
+	config.shop = null
+	config.opportunities = null
 	config.starting_money = 1000
 	config.problems = _balance.problems.duplicate() as ProblemsDef
 	config.problems.chance_per_hour = 0.0
@@ -206,6 +208,7 @@ func test_the_bonus_is_in_the_money_ledger() -> void:
 
 func test_vivienne_has_a_different_word_on_different_mornings() -> void:
 	var state := SimState.new(_config(), 1)
+	Game.sim = state
 	_night_at_home(state, 0.0)
 	var first := Vivienne.morning_lines(state.event_log.of_type(EventLog.HOME_NIGHT)[0])
 	assert_between(first.size(), 1, 2)
@@ -223,11 +226,34 @@ func test_after_the_briefing_vivienne_has_a_word_over_breakfast() -> void:
 	Game.sim.suspicion.add(20.0)
 	var level := await _open(HOME_SCENE)
 	(level.get_node("NavRegion/Bed") as Bed).interact(level)
-	var card := level.hud.night.card
-	card.next_pressed.emit()
-	assert_string_contains(card.body_text(), "Ночь дома")
-	assert_string_contains(card.body_text(), "одозрение −")
-	card.next_pressed.emit()
-	assert_false(level.hud.night.is_open())
+	var night := level.hud.night
+	assert_true(night.is_open())
+	assert_eq(night.page(), NightFlow.PAGE_SUMMARY)
+	while night.is_open() and night.page() != NightFlow.PAGE_BRIEFING:
+		night.turn_page()
+	assert_eq(night.page(), NightFlow.PAGE_BRIEFING)
+	assert_string_contains(night.card.body_text(), "Ночь дома")
+	assert_string_contains(night.card.body_text(), "одозрение −")
+	night.turn_page()
+	assert_false(night.is_open())
 	assert_true(level.hud.is_dialogue_open(), "Vivienne speaks over breakfast")
 	assert_eq(level.hud.dialogue_box.current_line().speaker, UiText.VIVIENNE)
+
+
+func test_vivienne_keeps_to_the_rooms_by_the_clock() -> void:
+	_calm_game()
+	Game.sim.apply(TravelCommand.new(DayCycle.HOME))
+	_advance_to_hour(Game.sim, 8.0)
+	assert_eq(Vivienne.room_for(Game.sim), Vivienne.BREAKFAST)
+	_advance_to_hour(Game.sim, 14.0)
+	assert_eq(Vivienne.room_for(Game.sim), Vivienne.STUDY)
+	_advance_to_hour(Game.sim, Game.sim.config.day.evening_hour + 0.1)
+	assert_eq(Vivienne.room_for(Game.sim), Vivienne.FIRESIDE)
+	_advance_to_hour(Game.sim, Game.sim.config.day.late_hour + 0.1)
+	assert_eq(Vivienne.room_for(Game.sim), Vivienne.BEDROOM)
+	var level := await _open(HOME_SCENE)
+	var her := level.get_node("NavRegion/Vivienne") as Vivienne
+	assert_not_null(her.spots)
+	assert_not_null(her.spot(Vivienne.BEDROOM))
+	assert_eq(her.room, Vivienne.BEDROOM)
+	assert_not_null(level.find_child("ClueBoard", true, false), "the cork board hangs in the study")

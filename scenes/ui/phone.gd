@@ -216,7 +216,7 @@ func answer(order_id: int, choice: String) -> void:
 func buy(item: String, quantity: int) -> void:
 	var result := Game.sim.apply(BuyCommand.new(item, quantity))
 	if result.ok:
-		message.emit("Заказано за %s. Доставка в ящик у двери контейнера через %s." % [UiText.money(result.value), _delivery_time()])
+		message.emit("Заказано за %s. Доставка в ящик у двери контейнера %s." % [UiText.money(result.value), _delivery_time()])
 	else:
 		message.emit(UiText.error(result.error))
 	refresh()
@@ -225,7 +225,7 @@ func buy(item: String, quantity: int) -> void:
 func restock() -> void:
 	var result := Game.sim.apply(RestockCommand.new())
 	if result.ok:
-		message.emit("Запас пополнен на %s. Посылка будет у двери контейнера через %s." % [UiText.money(result.value), _delivery_time()])
+		message.emit("Запас пополнен на %s. Посылка будет у двери контейнера %s." % [UiText.money(result.value), _delivery_time()])
 	else:
 		message.emit(UiText.error(result.error))
 	refresh()
@@ -305,4 +305,19 @@ func _find_person(worker_id: String) -> WorkerDef:
 
 
 func _delivery_time() -> String:
-	return UiText.real_duration(Game.sim.config.delivery_hours * SimClock.GAME_SECONDS_PER_HOUR, Game.sim)
+	return PhoneShop.delivery_text(Game.sim)
+
+
+func buy_in_village(item: String, quantity: int) -> void:
+	var result := Game.sim.apply(BuyCommand.new(item, quantity, true))
+	message.emit(("Куплено в лавке за %s — уже в руках." % UiText.money(result.value)) if result.ok else UiText.error(result.error))
+	refresh()
+
+
+func buy_upgrade(upgrade_id: String) -> void:
+	var result := Game.sim.apply(BuyUpgradeCommand.new(upgrade_id))
+	if result.ok:
+		message.emit("«%s» заказано за %s. Привезут и поставят с поставкой — %s." % [EconText.upgrade_name(upgrade_id, Game.sim), UiText.money(result.value), PhoneShop.delivery_text(Game.sim)])
+	else:
+		message.emit(UiText.error(result.error))
+	refresh()

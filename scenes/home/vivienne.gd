@@ -2,6 +2,23 @@ class_name Vivienne
 extends Interactable
 ## Jack's wife. A word for the hour, and the village news over breakfast after a night at home.
 ## She never says the same line twice in one day or twice running.
+## She keeps to the house by the clock: breakfast in the living room, auction catalogues in the study,
+## the fire in the evening, bed at night; she walks from room to room.
+
+const BREAKFAST: String = "breakfast"
+const STUDY: String = "study"
+const FIRESIDE: String = "fireside"
+const BEDROOM: String = "bedroom"
+const WALK_SPEED: float = 1.4
+## Bedtime when the day cycle does not say.
+const DEFAULT_LATE_HOUR: float = 23.0
+
+## Marker3D per room, named after the constants above; their rotation turns her approach spot.
+@export var spots: Node3D
+
+var room: String = ""
+var _path: PackedVector3Array = PackedVector3Array()
+var _path_index: int = 0
 
 ## Village news: in the morning, over breakfast or when Jack asks.
 const GOSSIP: PackedStringArray = [
@@ -51,6 +68,84 @@ static var _said_today: PackedStringArray = PackedStringArray()
 static var _last_said: String = ""
 
 
+func _ready() -> void:
+	if spots != null and Game.sim != null:
+		_settle(room_for(Game.sim))
+
+
+func _physics_process(delta: float) -> void:
+	if spots == null or Game.sim == null:
+		return
+	var wanted := room_for(Game.sim)
+	if wanted != room:
+		_set_off(wanted)
+	_walk(delta)
+
+
+static func room_for(sim: SimState) -> String:
+	var hour := sim.clock.hour_of_day()
+	var def := sim.day.definition()
+	var late := def.late_hour if def != null else DEFAULT_LATE_HOUR
+	if hour < MORNING_FROM_HOUR or hour >= late:
+		return BEDROOM
+	if hour < MORNING_TO_HOUR:
+		return BREAKFAST
+	if def != null and hour >= def.evening_hour:
+		return FIRESIDE
+	return STUDY
+
+
+func spot(name_of_room: String) -> Marker3D:
+	return spots.get_node_or_null(name_of_room) as Marker3D
+
+
+func is_walking() -> bool:
+	return _path_index < _path.size()
+
+
+func _settle(name_of_room: String) -> void:
+	var marker := spot(name_of_room)
+	room = name_of_room
+	_path = PackedVector3Array()
+	_path_index = 0
+	if marker == null:
+		return
+	global_position = marker.global_position
+	global_rotation = marker.global_rotation
+
+
+## Along the navigation mesh when it is ready; before that she is simply there.
+func _set_off(name_of_room: String) -> void:
+	var marker := spot(name_of_room)
+	var map := get_world_3d().navigation_map
+	if marker == null or NavigationServer3D.map_get_iteration_id(map) == 0:
+		_settle(name_of_room)
+		return
+	room = name_of_room
+	_path = NavigationServer3D.map_get_path(map, global_position, marker.global_position, true)
+	_path.append(marker.global_position)
+	_path_index = 0
+
+
+func _walk(delta: float) -> void:
+	if not is_walking():
+		return
+	var step := WALK_SPEED * delta
+	while step > 0.0 and is_walking():
+		var target := _path[_path_index]
+		var offset := Vector3(target.x - global_position.x, 0.0, target.z - global_position.z)
+		if offset.length() <= step:
+			global_position = Vector3(target.x, global_position.y, target.z)
+			step -= offset.length()
+			_path_index += 1
+			continue
+		global_position += offset.normalized() * step
+		global_rotation = Vector3(0.0, atan2(offset.x, offset.z), 0.0)
+		step = 0.0
+	if not is_walking():
+		_settle(room)
+
+
 func hover_text() -> String:
 	return "%s — поговорить" % UiText.VIVIENNE
 
@@ -75,13 +170,32 @@ static func pool_for(sim: SimState) -> PackedStringArray:
 
 
 ## Breakfast after a night at home: the village news, and what the evening at the bridge table brought.
+## If «Молочные зубы» сняли клип за ночь — она говорит об этом первой, до сплетен.
 static func morning_lines(home_night: SimEvent) -> Array[DialogueLineDef]:
 	var morning := floori(home_night.game_time / SimClock.GAME_SECONDS_PER_DAY)
-	var said: Array[DialogueLineDef] = [DialogueLineDef.make(UiText.VIVIENNE, say(GOSSIP, morning))]
+	var said: Array[DialogueLineDef] = []
+	var clip := overnight_clip_line(home_night)
+	if not clip.is_empty():
+		said.append(DialogueLineDef.make(UiText.VIVIENNE, clip))
+	said.append(DialogueLineDef.make(UiText.VIVIENNE, say(GOSSIP, morning)))
 	var bonus := int(home_night.data.get("bonus", 0))
 	if bonus > 0:
 		said.append(DialogueLineDef.make(UiText.VIVIENNE, "И да: вчера в бридж я обыграла жену викария на %s. Положила в кассу. Она играет, как молится, — с надеждой." % UiText.money(bonus)))
 	return said
+
+
+## The drill clip on every phone after a night the gang hit the container.
+static func overnight_clip_line(home_night: SimEvent) -> String:
+	var sim := Game.sim
+	if sim == null:
+		return ""
+	var from := home_night.game_time
+	var to := sim.clock.elapsed_game_seconds
+	for type: String in [EventLog.RAID_STARTED, EventLog.RAID_RESOLVED]:
+		for event: SimEvent in sim.event_log.of_type(type):
+			if event.game_time >= from and event.game_time <= to:
+				return "Утром в клубе все смотрели какой-то клип: балаклавы, бит, контейнер на пшенице. Я сказала — дурацкая реклама удобрений. Не смейся, Джек."
+	return ""
 
 
 ## The next line of the pool she has not said today and did not say last.

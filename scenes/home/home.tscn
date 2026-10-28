@@ -8,6 +8,8 @@
 [ext_resource type="Script" path="res://scenes/common/travel_car.gd" id="6_travel_car"]
 [ext_resource type="PackedScene" path="res://assets/models/field/land_rover.glb" id="7_land_rover"]
 [ext_resource type="PackedScene" path="res://scenes/ui/hud.tscn" id="8_hud"]
+[ext_resource type="Script" path="res://scenes/home/clue_board.gd" id="9_clue_board"]
+[ext_resource type="Script" path="res://scenes/home/story_guest.gd" id="10_story_guest"]
 
 [sub_resource type="Environment" id="env_home"]
 background_mode = 1
@@ -26,15 +28,102 @@ agent_height = 1.5
 agent_max_climb = 0.25
 geometry_collision_mask = 3
 
+[sub_resource type="StandardMaterial3D" id="mat_oak"]
+albedo_color = Color(0.478, 0.353, 0.227, 1)
+roughness = 0.9
+
+[sub_resource type="StandardMaterial3D" id="mat_plaster"]
+albedo_color = Color(0.847, 0.812, 0.745, 1)
+roughness = 0.9
+
+[sub_resource type="StandardMaterial3D" id="mat_timber"]
+albedo_color = Color(0.29, 0.227, 0.173, 1)
+roughness = 0.9
+
+[sub_resource type="StandardMaterial3D" id="mat_shirt_cream"]
+albedo_color = Color(0.914, 0.886, 0.816, 1)
+roughness = 0.9
+
+[sub_resource type="StandardMaterial3D" id="mat_tie_burgundy"]
+albedo_color = Color(0.431, 0.169, 0.2, 1)
+roughness = 0.9
+
+[sub_resource type="StandardMaterial3D" id="mat_window_frame"]
+albedo_color = Color(0.902, 0.878, 0.824, 1)
+roughness = 0.9
+
+[sub_resource type="StandardMaterial3D" id="mat_brick"]
+albedo_color = Color(0.541, 0.29, 0.227, 1)
+roughness = 0.9
+
+[sub_resource type="StandardMaterial3D" id="mat_lamp_warm_glow"]
+albedo_color = Color(0.949, 0.769, 0.42, 1)
+roughness = 0.9
+emission_enabled = true
+emission = Color(0.949, 0.769, 0.42, 1)
+emission_energy_multiplier = 2.0
+
+[sub_resource type="StandardMaterial3D" id="mat_door_green"]
+albedo_color = Color(0.18, 0.29, 0.243, 1)
+roughness = 0.9
+
+[sub_resource type="StandardMaterial3D" id="mat_skin_2"]
+albedo_color = Color(0.878, 0.69, 0.549, 1)
+roughness = 0.9
+
+[sub_resource type="StandardMaterial3D" id="mat_skin_1"]
+albedo_color = Color(0.945, 0.824, 0.714, 1)
+roughness = 0.9
+
+[sub_resource type="StandardMaterial3D" id="mat_hair_fair"]
+albedo_color = Color(0.722, 0.584, 0.369, 1)
+roughness = 0.9
+
+[sub_resource type="StandardMaterial3D" id="mat_hair_dark"]
+albedo_color = Color(0.165, 0.141, 0.125, 1)
+roughness = 0.9
+
+[sub_resource type="StandardMaterial3D" id="mat_gravel"]
+albedo_color = Color(0.549, 0.529, 0.486, 1)
+roughness = 0.9
+
+[sub_resource type="StandardMaterial3D" id="mat_navy_suit"]
+albedo_color = Color(0.173, 0.204, 0.275, 1)
+roughness = 0.9
+
+[sub_resource type="StandardMaterial3D" id="mat_charcoal"]
+albedo_color = Color(0.227, 0.227, 0.239, 1)
+roughness = 0.9
+
+[sub_resource type="StandardMaterial3D" id="mat_camel_coat"]
+albedo_color = Color(0.659, 0.541, 0.384, 1)
+roughness = 0.95
+
+[sub_resource type="StandardMaterial3D" id="mat_alert_red"]
+albedo_color = Color(0.722, 0.227, 0.196, 1)
+roughness = 0.9
+
+[sub_resource type="StandardMaterial3D" id="mat_tweed_brown"]
+albedo_color = Color(0.42, 0.337, 0.251, 1)
+roughness = 0.9
+
+[sub_resource type="StandardMaterial3D" id="mat_tweed_green"]
+albedo_color = Color(0.353, 0.373, 0.267, 1)
+roughness = 0.9
+
+[sub_resource type="StandardMaterial3D" id="mat_black"]
+albedo_color = Color(0.11, 0.11, 0.118, 1)
+roughness = 0.9
+
+[sub_resource type="StandardMaterial3D" id="mat_white"]
+albedo_color = Color(0.929, 0.922, 0.902, 1)
+roughness = 0.9
+
 [sub_resource type="BoxShape3D" id="shape_Floor"]
 size = Vector3(16, 1, 12)
 
 [sub_resource type="BoxMesh" id="mesh_Floor"]
 size = Vector3(16, 1, 12)
-
-[sub_resource type="StandardMaterial3D" id="mat_oak"]
-albedo_color = Color(0.478, 0.353, 0.227, 1)
-roughness = 0.9
 
 [sub_resource type="BoxShape3D" id="shape_WallNorth"]
 size = Vector3(17, 3, 0.5)
@@ -42,19 +131,11 @@ size = Vector3(17, 3, 0.5)
 [sub_resource type="BoxMesh" id="mesh_WallNorth"]
 size = Vector3(17, 3, 0.5)
 
-[sub_resource type="StandardMaterial3D" id="mat_plaster"]
-albedo_color = Color(0.847, 0.812, 0.745, 1)
-roughness = 0.9
-
 [sub_resource type="BoxShape3D" id="shape_WallWest"]
 size = Vector3(0.5, 3, 12)
 
 [sub_resource type="BoxMesh" id="mesh_WallWest"]
 size = Vector3(0.5, 3, 12)
-
-[sub_resource type="StandardMaterial3D" id="mat_plaster"]
-albedo_color = Color(0.847, 0.812, 0.745, 1)
-roughness = 0.9
 
 [sub_resource type="BoxShape3D" id="shape_CurbSouth"]
 size = Vector3(17, 0.5, 0.5)
@@ -62,47 +143,83 @@ size = Vector3(17, 0.5, 0.5)
 [sub_resource type="BoxMesh" id="mesh_CurbSouth"]
 size = Vector3(17, 0.5, 0.5)
 
-[sub_resource type="StandardMaterial3D" id="mat_plaster"]
-albedo_color = Color(0.847, 0.812, 0.745, 1)
-roughness = 0.9
+[sub_resource type="BoxShape3D" id="shape_WallEastNorth"]
+size = Vector3(0.5, 0.5, 6.4)
+
+[sub_resource type="BoxMesh" id="mesh_WallEastNorth"]
+size = Vector3(0.5, 0.5, 6.4)
+
+[sub_resource type="BoxShape3D" id="shape_WallEastSouth"]
+size = Vector3(0.5, 0.5, 3.4)
+
+[sub_resource type="BoxMesh" id="mesh_WallEastSouth"]
+size = Vector3(0.5, 0.5, 3.4)
+
+[sub_resource type="BoxShape3D" id="shape_PartitionBedroomWest"]
+size = Vector3(2.7, 1.1, 0.24)
+
+[sub_resource type="BoxMesh" id="mesh_PartitionBedroomWest"]
+size = Vector3(2.7, 1.1, 0.24)
+
+[sub_resource type="BoxMesh" id="mesh_CapBedroomWest"]
+size = Vector3(2.7, 0.06, 0.32)
+
+[sub_resource type="BoxShape3D" id="shape_PartitionMiddle"]
+size = Vector3(4.7, 1.1, 0.24)
+
+[sub_resource type="BoxMesh" id="mesh_PartitionMiddle"]
+size = Vector3(4.7, 1.1, 0.24)
+
+[sub_resource type="BoxMesh" id="mesh_CapMiddle"]
+size = Vector3(4.7, 0.06, 0.32)
+
+[sub_resource type="BoxShape3D" id="shape_PartitionStudyEast"]
+size = Vector3(4.6, 1.1, 0.24)
+
+[sub_resource type="BoxMesh" id="mesh_PartitionStudyEast"]
+size = Vector3(4.6, 1.1, 0.24)
+
+[sub_resource type="BoxMesh" id="mesh_CapStudyEast"]
+size = Vector3(4.6, 0.06, 0.32)
+
+[sub_resource type="BoxShape3D" id="shape_PartitionBedroomStudy"]
+size = Vector3(0.24, 1.1, 5.5)
+
+[sub_resource type="BoxMesh" id="mesh_PartitionBedroomStudy"]
+size = Vector3(0.24, 1.1, 5.5)
+
+[sub_resource type="BoxMesh" id="mesh_CapBedroomStudy"]
+size = Vector3(0.32, 0.06, 5.5)
+
+[sub_resource type="BoxMesh" id="mesh_rug_living"]
+size = Vector3(4.0, 0.02, 2.8)
+
+[sub_resource type="BoxMesh" id="mesh_rug_study"]
+size = Vector3(3.4, 0.02, 2.2)
+
+[sub_resource type="BoxMesh" id="mesh_rug_bedroom"]
+size = Vector3(2.6, 0.02, 1.6)
+
+[sub_resource type="BoxMesh" id="mesh_window"]
+size = Vector3(1.6, 1.1, 0.04)
 
 [sub_resource type="BoxShape3D" id="shape_Bed"]
 size = Vector3(2.4, 0.8, 3.0)
 
-[sub_resource type="BoxMesh" id="mesh_NavRegion_Bed_Frame"]
+[sub_resource type="BoxMesh" id="mesh_Bed_Frame"]
 size = Vector3(2.4, 0.5, 3.0)
 
-[sub_resource type="StandardMaterial3D" id="mat_timber"]
-albedo_color = Color(0.29, 0.227, 0.173, 1)
-roughness = 0.9
-
-[sub_resource type="BoxMesh" id="mesh_NavRegion_Bed_Mattress"]
+[sub_resource type="BoxMesh" id="mesh_Bed_Mattress"]
 size = Vector3(2.2, 0.26, 2.6)
 
-[sub_resource type="StandardMaterial3D" id="mat_shirt_cream"]
-albedo_color = Color(0.914, 0.886, 0.816, 1)
-roughness = 0.9
-
-[sub_resource type="BoxMesh" id="mesh_NavRegion_Bed_Blanket"]
+[sub_resource type="BoxMesh" id="mesh_Bed_Blanket"]
 size = Vector3(2.26, 0.06, 1.7)
 
-[sub_resource type="StandardMaterial3D" id="mat_tie_burgundy"]
-albedo_color = Color(0.431, 0.169, 0.2, 1)
-roughness = 0.9
-
-[sub_resource type="BoxMesh" id="mesh_NavRegion_Bed_Pillow"]
+[sub_resource type="BoxMesh" id="mesh_Bed_Pillow"]
 size = Vector3(1.6, 0.16, 0.5)
 
-[sub_resource type="StandardMaterial3D" id="mat_window_frame"]
-albedo_color = Color(0.902, 0.878, 0.824, 1)
-roughness = 0.9
-
-[sub_resource type="BoxMesh" id="mesh_NavRegion_Bed_Headboard"]
+[sub_resource type="BoxMesh" id="mesh_Bed_Headboard"]
 size = Vector3(2.4, 1.5, 0.12)
-
-[sub_resource type="StandardMaterial3D" id="mat_timber"]
-albedo_color = Color(0.29, 0.227, 0.173, 1)
-roughness = 0.9
 
 [sub_resource type="BoxShape3D" id="shape_Nightstand"]
 size = Vector3(0.6, 0.6, 0.6)
@@ -110,9 +227,47 @@ size = Vector3(0.6, 0.6, 0.6)
 [sub_resource type="BoxMesh" id="mesh_Nightstand"]
 size = Vector3(0.6, 0.6, 0.6)
 
-[sub_resource type="StandardMaterial3D" id="mat_oak"]
-albedo_color = Color(0.478, 0.353, 0.227, 1)
-roughness = 0.9
+[sub_resource type="BoxShape3D" id="shape_Wardrobe"]
+size = Vector3(0.8, 2.0, 1.6)
+
+[sub_resource type="BoxMesh" id="mesh_Wardrobe"]
+size = Vector3(0.8, 2.0, 1.6)
+
+[sub_resource type="BoxShape3D" id="shape_Desk"]
+size = Vector3(2.2, 0.78, 1.0)
+
+[sub_resource type="BoxMesh" id="mesh_Desk"]
+size = Vector3(2.2, 0.78, 1.0)
+
+[sub_resource type="BoxMesh" id="mesh_DeskLamp"]
+size = Vector3(0.18, 0.3, 0.18)
+
+[sub_resource type="BoxMesh" id="mesh_Papers"]
+size = Vector3(0.5, 0.03, 0.35)
+
+[sub_resource type="BoxShape3D" id="shape_Bookshelf"]
+size = Vector3(1.8, 2.2, 0.5)
+
+[sub_resource type="BoxMesh" id="mesh_Bookshelf"]
+size = Vector3(1.8, 2.2, 0.5)
+
+[sub_resource type="BoxMesh" id="mesh_Books"]
+size = Vector3(1.6, 0.32, 0.06)
+
+[sub_resource type="BoxShape3D" id="shape_ClueBoard"]
+size = Vector3(0.5, 1.4, 1.6)
+
+[sub_resource type="BoxMesh" id="mesh_board_frame"]
+size = Vector3(0.06, 1.1, 1.5)
+
+[sub_resource type="BoxMesh" id="mesh_cork"]
+size = Vector3(0.04, 0.96, 1.36)
+
+[sub_resource type="BoxMesh" id="mesh_note"]
+size = Vector3(0.015, 0.22, 0.2)
+
+[sub_resource type="BoxMesh" id="mesh_pin"]
+size = Vector3(0.04, 0.04, 0.04)
 
 [sub_resource type="BoxShape3D" id="shape_Hearth"]
 size = Vector3(0.8, 1.6, 2.4)
@@ -120,26 +275,35 @@ size = Vector3(0.8, 1.6, 2.4)
 [sub_resource type="BoxMesh" id="mesh_Hearth"]
 size = Vector3(0.8, 1.6, 2.4)
 
-[sub_resource type="StandardMaterial3D" id="mat_brick"]
-albedo_color = Color(0.541, 0.29, 0.227, 1)
-roughness = 0.9
-
-[sub_resource type="BoxMesh" id="mesh_NavRegion_Hearth_Fire"]
+[sub_resource type="BoxMesh" id="mesh_Hearth_Fire"]
 size = Vector3(0.12, 0.5, 1.2)
 
-[sub_resource type="StandardMaterial3D" id="mat_lamp_warm_glow"]
-albedo_color = Color(0.949, 0.769, 0.42, 1)
-roughness = 0.9
-emission_enabled = true
-emission = Color(0.949, 0.769, 0.42, 1)
-emission_energy_multiplier = 2.0
-
-[sub_resource type="BoxMesh" id="mesh_NavRegion_Hearth_Mantel"]
+[sub_resource type="BoxMesh" id="mesh_Hearth_Mantel"]
 size = Vector3(1.0, 0.12, 2.8)
 
-[sub_resource type="StandardMaterial3D" id="mat_oak"]
-albedo_color = Color(0.478, 0.353, 0.227, 1)
-roughness = 0.9
+[sub_resource type="BoxShape3D" id="shape_Sofa"]
+size = Vector3(1.0, 0.7, 2.6)
+
+[sub_resource type="BoxMesh" id="mesh_Sofa"]
+size = Vector3(1.0, 0.5, 2.6)
+
+[sub_resource type="BoxMesh" id="mesh_SofaBack"]
+size = Vector3(0.25, 0.5, 2.6)
+
+[sub_resource type="BoxShape3D" id="shape_CoffeeTable"]
+size = Vector3(0.7, 0.4, 1.2)
+
+[sub_resource type="BoxMesh" id="mesh_CoffeeTable"]
+size = Vector3(0.7, 0.4, 1.2)
+
+[sub_resource type="BoxShape3D" id="shape_Armchair"]
+size = Vector3(0.9, 0.8, 0.9)
+
+[sub_resource type="BoxMesh" id="mesh_ArmchairSeat"]
+size = Vector3(0.9, 0.45, 0.9)
+
+[sub_resource type="BoxMesh" id="mesh_ArmchairBack"]
+size = Vector3(0.2, 0.5, 0.9)
 
 [sub_resource type="BoxShape3D" id="shape_Table"]
 size = Vector3(2.6, 0.8, 1.4)
@@ -147,158 +311,43 @@ size = Vector3(2.6, 0.8, 1.4)
 [sub_resource type="BoxMesh" id="mesh_Table"]
 size = Vector3(2.6, 0.8, 1.4)
 
-[sub_resource type="StandardMaterial3D" id="mat_oak"]
-albedo_color = Color(0.478, 0.353, 0.227, 1)
-roughness = 0.9
-
-[sub_resource type="BoxMesh" id="mesh_NavRegion_Table_Teapot"]
+[sub_resource type="BoxMesh" id="mesh_Teapot"]
 size = Vector3(0.25, 0.22, 0.25)
 
-[sub_resource type="StandardMaterial3D" id="mat_window_frame"]
-albedo_color = Color(0.902, 0.878, 0.824, 1)
-roughness = 0.9
-
-[sub_resource type="BoxMesh" id="mesh_NavRegion_Table_Papers"]
-size = Vector3(0.5, 0.03, 0.35)
-
-[sub_resource type="StandardMaterial3D" id="mat_shirt_cream"]
-albedo_color = Color(0.914, 0.886, 0.816, 1)
-roughness = 0.9
-
-[sub_resource type="BoxShape3D" id="shape_Chair0"]
+[sub_resource type="BoxShape3D" id="shape_Chair"]
 size = Vector3(0.6, 0.5, 0.6)
 
-[sub_resource type="BoxMesh" id="mesh_Chair0"]
+[sub_resource type="BoxMesh" id="mesh_Chair"]
 size = Vector3(0.6, 0.5, 0.6)
-
-[sub_resource type="StandardMaterial3D" id="mat_timber"]
-albedo_color = Color(0.29, 0.227, 0.173, 1)
-roughness = 0.9
-
-[sub_resource type="BoxShape3D" id="shape_Chair1"]
-size = Vector3(0.6, 0.5, 0.6)
-
-[sub_resource type="BoxMesh" id="mesh_Chair1"]
-size = Vector3(0.6, 0.5, 0.6)
-
-[sub_resource type="StandardMaterial3D" id="mat_timber"]
-albedo_color = Color(0.29, 0.227, 0.173, 1)
-roughness = 0.9
-
-[sub_resource type="BoxShape3D" id="shape_Chair2"]
-size = Vector3(0.6, 0.5, 0.6)
-
-[sub_resource type="BoxMesh" id="mesh_Chair2"]
-size = Vector3(0.6, 0.5, 0.6)
-
-[sub_resource type="StandardMaterial3D" id="mat_timber"]
-albedo_color = Color(0.29, 0.227, 0.173, 1)
-roughness = 0.9
-
-[sub_resource type="BoxShape3D" id="shape_Dresser"]
-size = Vector3(2.6, 1.4, 0.7)
-
-[sub_resource type="BoxMesh" id="mesh_Dresser"]
-size = Vector3(2.6, 1.4, 0.7)
-
-[sub_resource type="StandardMaterial3D" id="mat_oak"]
-albedo_color = Color(0.478, 0.353, 0.227, 1)
-roughness = 0.9
-
-[sub_resource type="BoxShape3D" id="shape_Sofa"]
-size = Vector3(2.6, 0.7, 1.0)
-
-[sub_resource type="BoxMesh" id="mesh_Sofa"]
-size = Vector3(2.6, 0.7, 1.0)
-
-[sub_resource type="StandardMaterial3D" id="mat_door_green"]
-albedo_color = Color(0.18, 0.29, 0.243, 1)
-roughness = 0.9
-
-[sub_resource type="BoxMesh" id="mesh_rug"]
-size = Vector3(4.0, 0.02, 2.8)
-
-[sub_resource type="StandardMaterial3D" id="mat_tie_burgundy"]
-albedo_color = Color(0.431, 0.169, 0.2, 1)
-roughness = 0.9
-
-[sub_resource type="BoxMesh" id="mesh_NavRegion_WallNorth_Window0"]
-size = Vector3(1.6, 1.1, 0.04)
-
-[sub_resource type="StandardMaterial3D" id="mat_lamp_warm_glow"]
-albedo_color = Color(0.949, 0.769, 0.42, 1)
-roughness = 0.9
-emission_enabled = true
-emission = Color(0.949, 0.769, 0.42, 1)
-emission_energy_multiplier = 2.0
-
-[sub_resource type="BoxMesh" id="mesh_NavRegion_WallNorth_Window1"]
-size = Vector3(1.6, 1.1, 0.04)
-
-[sub_resource type="StandardMaterial3D" id="mat_lamp_warm_glow"]
-albedo_color = Color(0.949, 0.769, 0.42, 1)
-roughness = 0.9
-emission_enabled = true
-emission = Color(0.949, 0.769, 0.42, 1)
-emission_energy_multiplier = 2.0
 
 [sub_resource type="CapsuleShape3D" id="shape_vivienne"]
 radius = 0.35
 height = 1.8
 
-[sub_resource type="CapsuleMesh" id="mesh_viv_coat"]
+[sub_resource type="CapsuleMesh" id="mesh_coat"]
 radius = 0.3
 height = 1.5
 
-[sub_resource type="StandardMaterial3D" id="mat_tie_burgundy"]
-albedo_color = Color(0.431, 0.169, 0.2, 1)
-roughness = 0.9
+[sub_resource type="CapsuleMesh" id="mesh_seated"]
+radius = 0.28
+height = 0.95
 
-[sub_resource type="SphereMesh" id="mesh_viv_head"]
+[sub_resource type="SphereMesh" id="mesh_head"]
 radius = 0.18
 height = 0.36
 
-[sub_resource type="StandardMaterial3D" id="mat_skin_2"]
-albedo_color = Color(0.878, 0.69, 0.549, 1)
-roughness = 0.9
-
-[sub_resource type="SphereMesh" id="mesh_viv_hair"]
+[sub_resource type="SphereMesh" id="mesh_hair"]
 radius = 0.2
 height = 0.3
 
-[sub_resource type="StandardMaterial3D" id="mat_hair_fair"]
-albedo_color = Color(0.722, 0.584, 0.369, 1)
-roughness = 0.9
+[sub_resource type="BoxMesh" id="mesh_collar"]
+size = Vector3(0.14, 0.06, 0.04)
 
 [sub_resource type="BoxMesh" id="mesh_Drive"]
 size = Vector3(6.0, 0.02, 12.0)
 
-[sub_resource type="StandardMaterial3D" id="mat_gravel"]
-albedo_color = Color(0.549, 0.529, 0.486, 1)
-roughness = 0.9
-
 [sub_resource type="BoxShape3D" id="shape_DriveGround"]
 size = Vector3(6.0, 1, 12.0)
-
-[sub_resource type="BoxShape3D" id="shape_WallEastNorth"]
-size = Vector3(0.5, 0.5, 5.0)
-
-[sub_resource type="BoxMesh" id="mesh_WallEastNorth"]
-size = Vector3(0.5, 0.5, 5.0)
-
-[sub_resource type="StandardMaterial3D" id="mat_timber"]
-albedo_color = Color(0.29, 0.227, 0.173, 1)
-roughness = 0.9
-
-[sub_resource type="BoxShape3D" id="shape_WallEastSouth"]
-size = Vector3(0.5, 0.5, 4.0)
-
-[sub_resource type="BoxMesh" id="mesh_WallEastSouth"]
-size = Vector3(0.5, 0.5, 4.0)
-
-[sub_resource type="StandardMaterial3D" id="mat_timber"]
-albedo_color = Color(0.29, 0.227, 0.173, 1)
-roughness = 0.9
 
 [sub_resource type="BoxShape3D" id="shape_Car"]
 size = Vector3(2.0, 2.0, 4.4)
@@ -325,11 +374,9 @@ collision_layer = 1
 collision_mask = 0
 
 [node name="Shape" type="CollisionShape3D" parent="NavRegion/Floor"]
-position = Vector3(0, 0, 0)
 shape = SubResource("shape_Floor")
 
 [node name="Mesh" type="MeshInstance3D" parent="NavRegion/Floor"]
-position = Vector3(0, 0, 0)
 mesh = SubResource("mesh_Floor")
 surface_material_override/0 = SubResource("mat_oak")
 
@@ -339,13 +386,21 @@ collision_layer = 1
 collision_mask = 0
 
 [node name="Shape" type="CollisionShape3D" parent="NavRegion/WallNorth"]
-position = Vector3(0, 0, 0)
 shape = SubResource("shape_WallNorth")
 
 [node name="Mesh" type="MeshInstance3D" parent="NavRegion/WallNorth"]
-position = Vector3(0, 0, 0)
 mesh = SubResource("mesh_WallNorth")
 surface_material_override/0 = SubResource("mat_plaster")
+
+[node name="WindowBedroom" type="MeshInstance3D" parent="NavRegion/WallNorth"]
+position = Vector3(-6.2, 0.3, 0.27)
+mesh = SubResource("mesh_window")
+surface_material_override/0 = SubResource("mat_lamp_warm_glow")
+
+[node name="WindowStudy" type="MeshInstance3D" parent="NavRegion/WallNorth"]
+position = Vector3(3.0, 0.3, 0.27)
+mesh = SubResource("mesh_window")
+surface_material_override/0 = SubResource("mat_lamp_warm_glow")
 
 [node name="WallWest" type="StaticBody3D" parent="NavRegion"]
 position = Vector3(-8.25, 1.5, 0)
@@ -353,11 +408,9 @@ collision_layer = 1
 collision_mask = 0
 
 [node name="Shape" type="CollisionShape3D" parent="NavRegion/WallWest"]
-position = Vector3(0, 0, 0)
 shape = SubResource("shape_WallWest")
 
 [node name="Mesh" type="MeshInstance3D" parent="NavRegion/WallWest"]
-position = Vector3(0, 0, 0)
 mesh = SubResource("mesh_WallWest")
 surface_material_override/0 = SubResource("mat_plaster")
 
@@ -367,28 +420,147 @@ collision_layer = 1
 collision_mask = 0
 
 [node name="Shape" type="CollisionShape3D" parent="NavRegion/CurbSouth"]
-position = Vector3(0, 0, 0)
 shape = SubResource("shape_CurbSouth")
 
 [node name="Mesh" type="MeshInstance3D" parent="NavRegion/CurbSouth"]
-position = Vector3(0, 0, 0)
 mesh = SubResource("mesh_CurbSouth")
 surface_material_override/0 = SubResource("mat_plaster")
 
-[node name="Jack" parent="." instance=ExtResource("2_jack")]
+[node name="WallEastNorth" type="StaticBody3D" parent="NavRegion"]
+position = Vector3(8.25, 0.25, -2.8)
+collision_layer = 1
+collision_mask = 0
 
-[node name="CameraRig" type="Node3D" parent="." node_paths=PackedStringArray("camera")]
-rotation = Vector3(0, 0.785398, 0)
-script = ExtResource("3_iso_camera_rig")
-camera = NodePath("Camera")
-distance = 26.0
-zoom_min = 12.0
-zoom_max = 44.0
-bounds = Rect2(-8, -6, 22, 12)
+[node name="Shape" type="CollisionShape3D" parent="NavRegion/WallEastNorth"]
+shape = SubResource("shape_WallEastNorth")
 
-[node name="Camera" type="Camera3D" parent="CameraRig"]
+[node name="Mesh" type="MeshInstance3D" parent="NavRegion/WallEastNorth"]
+mesh = SubResource("mesh_WallEastNorth")
+surface_material_override/0 = SubResource("mat_timber")
 
-[node name="SpawnPoints" type="Node3D" parent="."]
+[node name="WallEastSouth" type="StaticBody3D" parent="NavRegion"]
+position = Vector3(8.25, 0.25, 4.3)
+collision_layer = 1
+collision_mask = 0
+
+[node name="Shape" type="CollisionShape3D" parent="NavRegion/WallEastSouth"]
+shape = SubResource("shape_WallEastSouth")
+
+[node name="Mesh" type="MeshInstance3D" parent="NavRegion/WallEastSouth"]
+mesh = SubResource("mesh_WallEastSouth")
+surface_material_override/0 = SubResource("mat_timber")
+
+[node name="PartitionBedroomWest" type="StaticBody3D" parent="NavRegion"]
+position = Vector3(-6.65, 0.55, -0.5)
+collision_layer = 1
+collision_mask = 0
+
+[node name="Shape" type="CollisionShape3D" parent="NavRegion/PartitionBedroomWest"]
+shape = SubResource("shape_PartitionBedroomWest")
+
+[node name="Mesh" type="MeshInstance3D" parent="NavRegion/PartitionBedroomWest"]
+mesh = SubResource("mesh_PartitionBedroomWest")
+surface_material_override/0 = SubResource("mat_plaster")
+
+[node name="Cap" type="MeshInstance3D" parent="NavRegion/PartitionBedroomWest"]
+position = Vector3(0, 0.58, 0)
+mesh = SubResource("mesh_CapBedroomWest")
+surface_material_override/0 = SubResource("mat_timber")
+
+[node name="PartitionMiddle" type="StaticBody3D" parent="NavRegion"]
+position = Vector3(-0.95, 0.55, -0.5)
+collision_layer = 1
+collision_mask = 0
+
+[node name="Shape" type="CollisionShape3D" parent="NavRegion/PartitionMiddle"]
+shape = SubResource("shape_PartitionMiddle")
+
+[node name="Mesh" type="MeshInstance3D" parent="NavRegion/PartitionMiddle"]
+mesh = SubResource("mesh_PartitionMiddle")
+surface_material_override/0 = SubResource("mat_plaster")
+
+[node name="Cap" type="MeshInstance3D" parent="NavRegion/PartitionMiddle"]
+position = Vector3(0, 0.58, 0)
+mesh = SubResource("mesh_CapMiddle")
+surface_material_override/0 = SubResource("mat_timber")
+
+[node name="PartitionStudyEast" type="StaticBody3D" parent="NavRegion"]
+position = Vector3(5.7, 0.55, -0.5)
+collision_layer = 1
+collision_mask = 0
+
+[node name="Shape" type="CollisionShape3D" parent="NavRegion/PartitionStudyEast"]
+shape = SubResource("shape_PartitionStudyEast")
+
+[node name="Mesh" type="MeshInstance3D" parent="NavRegion/PartitionStudyEast"]
+mesh = SubResource("mesh_PartitionStudyEast")
+surface_material_override/0 = SubResource("mat_plaster")
+
+[node name="Cap" type="MeshInstance3D" parent="NavRegion/PartitionStudyEast"]
+position = Vector3(0, 0.58, 0)
+mesh = SubResource("mesh_CapStudyEast")
+surface_material_override/0 = SubResource("mat_timber")
+
+[node name="PartitionBedroomStudy" type="StaticBody3D" parent="NavRegion"]
+position = Vector3(-1.0, 0.55, -3.25)
+collision_layer = 1
+collision_mask = 0
+
+[node name="Shape" type="CollisionShape3D" parent="NavRegion/PartitionBedroomStudy"]
+shape = SubResource("shape_PartitionBedroomStudy")
+
+[node name="Mesh" type="MeshInstance3D" parent="NavRegion/PartitionBedroomStudy"]
+mesh = SubResource("mesh_PartitionBedroomStudy")
+surface_material_override/0 = SubResource("mat_plaster")
+
+[node name="Cap" type="MeshInstance3D" parent="NavRegion/PartitionBedroomStudy"]
+position = Vector3(0, 0.58, 0)
+mesh = SubResource("mesh_CapBedroomStudy")
+surface_material_override/0 = SubResource("mat_timber")
+
+[node name="Rooms" type="Node3D" parent="."]
+
+[node name="BedroomRug" type="MeshInstance3D" parent="Rooms"]
+position = Vector3(-4.6, 0.012, -1.9)
+mesh = SubResource("mesh_rug_bedroom")
+surface_material_override/0 = SubResource("mat_tweed_green")
+
+[node name="StudyRug" type="MeshInstance3D" parent="Rooms"]
+position = Vector3(4.0, 0.012, -2.8)
+mesh = SubResource("mesh_rug_study")
+surface_material_override/0 = SubResource("mat_navy_suit")
+
+[node name="LivingRug" type="MeshInstance3D" parent="Rooms"]
+position = Vector3(-4.8, 0.012, 2.6)
+mesh = SubResource("mesh_rug_living")
+surface_material_override/0 = SubResource("mat_tie_burgundy")
+
+[node name="BedroomLabel" type="Label3D" parent="Rooms"]
+position = Vector3(-2.6, 0.05, -1.4)
+rotation = Vector3(-1.5708, 0, 0)
+pixel_size = 0.01
+modulate = Color(0.902, 0.878, 0.824, 0.55)
+text = "Спальня"
+font_size = 48
+outline_size = 0
+
+[node name="StudyLabel" type="Label3D" parent="Rooms"]
+position = Vector3(1.6, 0.05, -1.4)
+rotation = Vector3(-1.5708, 0, 0)
+pixel_size = 0.01
+modulate = Color(0.902, 0.878, 0.824, 0.55)
+text = "Кабинет"
+font_size = 48
+outline_size = 0
+
+[node name="LivingLabel" type="Label3D" parent="Rooms"]
+position = Vector3(-0.6, 0.05, 5.2)
+rotation = Vector3(-1.5708, 0, 0)
+pixel_size = 0.01
+modulate = Color(0.902, 0.878, 0.824, 0.55)
+text = "Гостиная"
+font_size = 48
+outline_size = 0
 
 [node name="Bed" type="StaticBody3D" parent="NavRegion" node_paths=PackedStringArray("approach")]
 position = Vector3(-5.5, 0, -4.2)
@@ -403,27 +575,27 @@ shape = SubResource("shape_Bed")
 
 [node name="Frame" type="MeshInstance3D" parent="NavRegion/Bed"]
 position = Vector3(0, 0.25, 0)
-mesh = SubResource("mesh_NavRegion_Bed_Frame")
+mesh = SubResource("mesh_Bed_Frame")
 surface_material_override/0 = SubResource("mat_timber")
 
 [node name="Mattress" type="MeshInstance3D" parent="NavRegion/Bed"]
 position = Vector3(0, 0.62, 0.1)
-mesh = SubResource("mesh_NavRegion_Bed_Mattress")
+mesh = SubResource("mesh_Bed_Mattress")
 surface_material_override/0 = SubResource("mat_shirt_cream")
 
 [node name="Blanket" type="MeshInstance3D" parent="NavRegion/Bed"]
 position = Vector3(0, 0.77, 0.5)
-mesh = SubResource("mesh_NavRegion_Bed_Blanket")
+mesh = SubResource("mesh_Bed_Blanket")
 surface_material_override/0 = SubResource("mat_tie_burgundy")
 
 [node name="Pillow" type="MeshInstance3D" parent="NavRegion/Bed"]
 position = Vector3(0, 0.82, -1.0)
-mesh = SubResource("mesh_NavRegion_Bed_Pillow")
+mesh = SubResource("mesh_Bed_Pillow")
 surface_material_override/0 = SubResource("mat_window_frame")
 
 [node name="Headboard" type="MeshInstance3D" parent="NavRegion/Bed"]
 position = Vector3(0, 0.75, -1.45)
-mesh = SubResource("mesh_NavRegion_Bed_Headboard")
+mesh = SubResource("mesh_Bed_Headboard")
 surface_material_override/0 = SubResource("mat_timber")
 
 [node name="Label" type="Label3D" parent="NavRegion/Bed"]
@@ -452,14 +624,256 @@ position = Vector3(0, 0.3, 0)
 mesh = SubResource("mesh_Nightstand")
 surface_material_override/0 = SubResource("mat_oak")
 
+[node name="Wardrobe" type="StaticBody3D" parent="NavRegion"]
+position = Vector3(-7.4, 0, -1.9)
+collision_layer = 1
+collision_mask = 0
+
+[node name="Shape" type="CollisionShape3D" parent="NavRegion/Wardrobe"]
+position = Vector3(0, 1.0, 0)
+shape = SubResource("shape_Wardrobe")
+
+[node name="Mesh" type="MeshInstance3D" parent="NavRegion/Wardrobe"]
+position = Vector3(0, 1.0, 0)
+mesh = SubResource("mesh_Wardrobe")
+surface_material_override/0 = SubResource("mat_timber")
+
 [node name="BedsideLamp" type="OmniLight3D" parent="."]
 position = Vector3(-3.6, 1.2, -5.3)
 light_color = Color(0.949, 0.769, 0.42, 1)
 light_energy = 0.8
 omni_range = 4.0
 
+[node name="Desk" type="StaticBody3D" parent="NavRegion"]
+position = Vector3(4.0, 0, -4.4)
+collision_layer = 1
+collision_mask = 0
+
+[node name="Shape" type="CollisionShape3D" parent="NavRegion/Desk"]
+position = Vector3(0, 0.39, 0)
+shape = SubResource("shape_Desk")
+
+[node name="Mesh" type="MeshInstance3D" parent="NavRegion/Desk"]
+position = Vector3(0, 0.39, 0)
+mesh = SubResource("mesh_Desk")
+surface_material_override/0 = SubResource("mat_oak")
+
+[node name="Lamp" type="MeshInstance3D" parent="NavRegion/Desk"]
+position = Vector3(0.75, 0.93, -0.25)
+mesh = SubResource("mesh_DeskLamp")
+surface_material_override/0 = SubResource("mat_lamp_warm_glow")
+
+[node name="Papers" type="MeshInstance3D" parent="NavRegion/Desk"]
+position = Vector3(-0.3, 0.8, 0.1)
+rotation = Vector3(0, 0.2, 0)
+mesh = SubResource("mesh_Papers")
+surface_material_override/0 = SubResource("mat_shirt_cream")
+
+[node name="DeskChair" type="StaticBody3D" parent="NavRegion"]
+position = Vector3(4.0, 0, -5.4)
+collision_layer = 1
+collision_mask = 0
+
+[node name="Shape" type="CollisionShape3D" parent="NavRegion/DeskChair"]
+position = Vector3(0, 0.25, 0)
+shape = SubResource("shape_Chair")
+
+[node name="Mesh" type="MeshInstance3D" parent="NavRegion/DeskChair"]
+position = Vector3(0, 0.25, 0)
+mesh = SubResource("mesh_Chair")
+surface_material_override/0 = SubResource("mat_tie_burgundy")
+
+[node name="Bookshelf" type="StaticBody3D" parent="NavRegion"]
+position = Vector3(0.2, 0, -5.65)
+collision_layer = 1
+collision_mask = 0
+
+[node name="Shape" type="CollisionShape3D" parent="NavRegion/Bookshelf"]
+position = Vector3(0, 1.1, 0)
+shape = SubResource("shape_Bookshelf")
+
+[node name="Mesh" type="MeshInstance3D" parent="NavRegion/Bookshelf"]
+position = Vector3(0, 1.1, 0)
+mesh = SubResource("mesh_Bookshelf")
+surface_material_override/0 = SubResource("mat_timber")
+
+[node name="Books0" type="MeshInstance3D" parent="NavRegion/Bookshelf"]
+position = Vector3(0, 0.55, 0.25)
+mesh = SubResource("mesh_Books")
+surface_material_override/0 = SubResource("mat_tie_burgundy")
+
+[node name="Books1" type="MeshInstance3D" parent="NavRegion/Bookshelf"]
+position = Vector3(0, 1.15, 0.25)
+mesh = SubResource("mesh_Books")
+surface_material_override/0 = SubResource("mat_door_green")
+
+[node name="Books2" type="MeshInstance3D" parent="NavRegion/Bookshelf"]
+position = Vector3(0, 1.75, 0.25)
+mesh = SubResource("mesh_Books")
+surface_material_override/0 = SubResource("mat_navy_suit")
+
+[node name="ClueBoard" type="StaticBody3D" parent="NavRegion" node_paths=PackedStringArray("notes", "approach")]
+position = Vector3(6.6, 0, -5.85)
+rotation = Vector3(0, -1.5708, 0)
+collision_layer = 2
+collision_mask = 0
+script = ExtResource("9_clue_board")
+notes = NodePath("Notes")
+approach = NodePath("Approach")
+
+[node name="Shape" type="CollisionShape3D" parent="NavRegion/ClueBoard"]
+position = Vector3(0, 1.5, 0)
+shape = SubResource("shape_ClueBoard")
+
+[node name="Frame" type="MeshInstance3D" parent="NavRegion/ClueBoard"]
+position = Vector3(0, 1.55, 0)
+mesh = SubResource("mesh_board_frame")
+surface_material_override/0 = SubResource("mat_oak")
+
+[node name="Cork" type="MeshInstance3D" parent="NavRegion/ClueBoard"]
+position = Vector3(0.04, 1.55, 0)
+mesh = SubResource("mesh_cork")
+surface_material_override/0 = SubResource("mat_camel_coat")
+
+[node name="Notes" type="Node3D" parent="NavRegion/ClueBoard"]
+position = Vector3(0.07, 0, 0)
+
+[node name="Note0" type="MeshInstance3D" parent="NavRegion/ClueBoard/Notes"]
+visible = false
+position = Vector3(0, 1.85, -0.45)
+rotation = Vector3(0.08, 0, 0)
+mesh = SubResource("mesh_note")
+surface_material_override/0 = SubResource("mat_plaster")
+
+[node name="Pin" type="MeshInstance3D" parent="NavRegion/ClueBoard/Notes/Note0"]
+position = Vector3(0.02, 0.08, 0)
+mesh = SubResource("mesh_pin")
+surface_material_override/0 = SubResource("mat_alert_red")
+
+[node name="Note1" type="MeshInstance3D" parent="NavRegion/ClueBoard/Notes"]
+visible = false
+position = Vector3(0, 1.82, -0.1)
+rotation = Vector3(-0.06, 0, 0)
+mesh = SubResource("mesh_note")
+surface_material_override/0 = SubResource("mat_plaster")
+
+[node name="Pin" type="MeshInstance3D" parent="NavRegion/ClueBoard/Notes/Note1"]
+position = Vector3(0.02, 0.08, 0)
+mesh = SubResource("mesh_pin")
+surface_material_override/0 = SubResource("mat_alert_red")
+
+[node name="Note2" type="MeshInstance3D" parent="NavRegion/ClueBoard/Notes"]
+visible = false
+position = Vector3(0, 1.86, 0.25)
+rotation = Vector3(0.05, 0, 0)
+mesh = SubResource("mesh_note")
+surface_material_override/0 = SubResource("mat_plaster")
+
+[node name="Pin" type="MeshInstance3D" parent="NavRegion/ClueBoard/Notes/Note2"]
+position = Vector3(0.02, 0.08, 0)
+mesh = SubResource("mesh_pin")
+surface_material_override/0 = SubResource("mat_alert_red")
+
+[node name="Note3" type="MeshInstance3D" parent="NavRegion/ClueBoard/Notes"]
+visible = false
+position = Vector3(0, 1.5, -0.3)
+rotation = Vector3(-0.1, 0, 0)
+mesh = SubResource("mesh_note")
+surface_material_override/0 = SubResource("mat_plaster")
+
+[node name="Pin" type="MeshInstance3D" parent="NavRegion/ClueBoard/Notes/Note3"]
+position = Vector3(0.02, 0.08, 0)
+mesh = SubResource("mesh_pin")
+surface_material_override/0 = SubResource("mat_alert_red")
+
+[node name="Note4" type="MeshInstance3D" parent="NavRegion/ClueBoard/Notes"]
+visible = false
+position = Vector3(0, 1.52, 0.1)
+rotation = Vector3(0.07, 0, 0)
+mesh = SubResource("mesh_note")
+surface_material_override/0 = SubResource("mat_plaster")
+
+[node name="Pin" type="MeshInstance3D" parent="NavRegion/ClueBoard/Notes/Note4"]
+position = Vector3(0.02, 0.08, 0)
+mesh = SubResource("mesh_pin")
+surface_material_override/0 = SubResource("mat_alert_red")
+
+[node name="Note5" type="MeshInstance3D" parent="NavRegion/ClueBoard/Notes"]
+visible = false
+position = Vector3(0, 1.48, 0.48)
+rotation = Vector3(-0.04, 0, 0)
+mesh = SubResource("mesh_note")
+surface_material_override/0 = SubResource("mat_plaster")
+
+[node name="Pin" type="MeshInstance3D" parent="NavRegion/ClueBoard/Notes/Note5"]
+position = Vector3(0.02, 0.08, 0)
+mesh = SubResource("mesh_pin")
+surface_material_override/0 = SubResource("mat_alert_red")
+
+[node name="Note6" type="MeshInstance3D" parent="NavRegion/ClueBoard/Notes"]
+visible = false
+position = Vector3(0, 1.2, -0.05)
+rotation = Vector3(0.09, 0, 0)
+mesh = SubResource("mesh_note")
+surface_material_override/0 = SubResource("mat_plaster")
+
+[node name="Pin" type="MeshInstance3D" parent="NavRegion/ClueBoard/Notes/Note6"]
+position = Vector3(0.02, 0.08, 0)
+mesh = SubResource("mesh_pin")
+surface_material_override/0 = SubResource("mat_alert_red")
+
+[node name="Label" type="Label3D" parent="NavRegion/ClueBoard"]
+position = Vector3(0, 2.6, 0)
+pixel_size = 0.008
+billboard = 1
+no_depth_test = true
+text = "Доска улик"
+font_size = 36
+outline_size = 10
+
+[node name="Approach" type="Marker3D" parent="NavRegion/ClueBoard"]
+position = Vector3(1.4, 0, 0)
+
+[node name="StudyLamp" type="OmniLight3D" parent="."]
+position = Vector3(4.6, 1.5, -4.4)
+light_color = Color(0.949, 0.769, 0.42, 1)
+light_energy = 0.9
+omni_range = 5.0
+
+[node name="ReggieAtBoard" type="Node3D" parent="."]
+visible = false
+position = Vector3(7.6, 0, -4.9)
+rotation = Vector3(0, -2.4, 0)
+script = ExtResource("10_story_guest")
+story_id = "intrigue_accuse"
+
+[node name="Coat" type="MeshInstance3D" parent="ReggieAtBoard"]
+position = Vector3(0, 0.75, 0)
+mesh = SubResource("mesh_coat")
+surface_material_override/0 = SubResource("mat_charcoal")
+
+[node name="Head" type="MeshInstance3D" parent="ReggieAtBoard"]
+position = Vector3(0, 1.65, 0)
+mesh = SubResource("mesh_head")
+surface_material_override/0 = SubResource("mat_skin_1")
+
+[node name="Hair" type="MeshInstance3D" parent="ReggieAtBoard"]
+position = Vector3(0, 1.74, -0.04)
+mesh = SubResource("mesh_hair")
+surface_material_override/0 = SubResource("mat_hair_dark")
+
+[node name="Label" type="Label3D" parent="ReggieAtBoard"]
+position = Vector3(0, 2.3, 0)
+pixel_size = 0.008
+billboard = 1
+no_depth_test = true
+text = "Реджи"
+font_size = 36
+outline_size = 10
+modulate = Color(0.96, 0.84, 0.45, 1)
+
 [node name="Hearth" type="StaticBody3D" parent="NavRegion"]
-position = Vector3(-7.6, 0, 1.0)
+position = Vector3(-7.6, 0, 2.6)
 collision_layer = 1
 collision_mask = 0
 
@@ -474,22 +888,116 @@ surface_material_override/0 = SubResource("mat_brick")
 
 [node name="Fire" type="MeshInstance3D" parent="NavRegion/Hearth"]
 position = Vector3(0.35, 0.45, 0)
-mesh = SubResource("mesh_NavRegion_Hearth_Fire")
+mesh = SubResource("mesh_Hearth_Fire")
 surface_material_override/0 = SubResource("mat_lamp_warm_glow")
 
 [node name="Mantel" type="MeshInstance3D" parent="NavRegion/Hearth"]
 position = Vector3(0.1, 1.65, 0)
-mesh = SubResource("mesh_NavRegion_Hearth_Mantel")
+mesh = SubResource("mesh_Hearth_Mantel")
 surface_material_override/0 = SubResource("mat_oak")
 
 [node name="FireLight" type="OmniLight3D" parent="."]
-position = Vector3(-6.6, 1.0, 1.0)
+position = Vector3(-6.6, 1.0, 2.6)
 light_color = Color(0.949, 0.6, 0.3, 1)
 light_energy = 1.6
 omni_range = 6.0
 
+[node name="Sofa" type="StaticBody3D" parent="NavRegion"]
+position = Vector3(-3.0, 0, 2.6)
+collision_layer = 1
+collision_mask = 0
+
+[node name="Shape" type="CollisionShape3D" parent="NavRegion/Sofa"]
+position = Vector3(0, 0.35, 0)
+shape = SubResource("shape_Sofa")
+
+[node name="Mesh" type="MeshInstance3D" parent="NavRegion/Sofa"]
+position = Vector3(0, 0.25, 0)
+mesh = SubResource("mesh_Sofa")
+surface_material_override/0 = SubResource("mat_door_green")
+
+[node name="Back" type="MeshInstance3D" parent="NavRegion/Sofa"]
+position = Vector3(0.38, 0.75, 0)
+mesh = SubResource("mesh_SofaBack")
+surface_material_override/0 = SubResource("mat_door_green")
+
+[node name="CoffeeTable" type="StaticBody3D" parent="NavRegion"]
+position = Vector3(-5.0, 0, 2.6)
+collision_layer = 1
+collision_mask = 0
+
+[node name="Shape" type="CollisionShape3D" parent="NavRegion/CoffeeTable"]
+position = Vector3(0, 0.2, 0)
+shape = SubResource("shape_CoffeeTable")
+
+[node name="Mesh" type="MeshInstance3D" parent="NavRegion/CoffeeTable"]
+position = Vector3(0, 0.2, 0)
+mesh = SubResource("mesh_CoffeeTable")
+surface_material_override/0 = SubResource("mat_oak")
+
+[node name="Teapot" type="MeshInstance3D" parent="NavRegion/CoffeeTable"]
+position = Vector3(0, 0.51, 0.2)
+mesh = SubResource("mesh_Teapot")
+surface_material_override/0 = SubResource("mat_window_frame")
+
+[node name="GuestArmchair" type="StaticBody3D" parent="NavRegion"]
+position = Vector3(-6.3, 0, 0.9)
+collision_layer = 1
+collision_mask = 0
+
+[node name="Shape" type="CollisionShape3D" parent="NavRegion/GuestArmchair"]
+position = Vector3(0, 0.4, 0)
+shape = SubResource("shape_Armchair")
+
+[node name="Seat" type="MeshInstance3D" parent="NavRegion/GuestArmchair"]
+position = Vector3(0, 0.225, 0)
+mesh = SubResource("mesh_ArmchairSeat")
+surface_material_override/0 = SubResource("mat_tweed_brown")
+
+[node name="Back" type="MeshInstance3D" parent="NavRegion/GuestArmchair"]
+position = Vector3(-0.35, 0.7, 0)
+mesh = SubResource("mesh_ArmchairBack")
+surface_material_override/0 = SubResource("mat_tweed_brown")
+
+[node name="VicarVisit" type="Node3D" parent="."]
+visible = false
+position = Vector3(-6.25, 0, 0.9)
+script = ExtResource("10_story_guest")
+story_id = "vicar_roof"
+
+[node name="Body" type="MeshInstance3D" parent="VicarVisit"]
+position = Vector3(0, 0.9, 0)
+mesh = SubResource("mesh_seated")
+surface_material_override/0 = SubResource("mat_black")
+
+[node name="Collar" type="MeshInstance3D" parent="VicarVisit"]
+position = Vector3(0.27, 1.28, 0)
+rotation = Vector3(0, 1.5708, 0)
+mesh = SubResource("mesh_collar")
+surface_material_override/0 = SubResource("mat_white")
+
+[node name="Head" type="MeshInstance3D" parent="VicarVisit"]
+position = Vector3(0, 1.52, 0)
+mesh = SubResource("mesh_head")
+surface_material_override/0 = SubResource("mat_skin_1")
+
+[node name="Hair" type="MeshInstance3D" parent="VicarVisit"]
+position = Vector3(-0.04, 1.6, 0)
+mesh = SubResource("mesh_hair")
+surface_material_override/0 = SubResource("mat_white")
+
+[node name="Label" type="Label3D" parent="VicarVisit"]
+position = Vector3(0, 2.1, 0)
+pixel_size = 0.008
+billboard = 1
+no_depth_test = true
+text = "Викарий"
+font_size = 36
+outline_size = 10
+modulate = Color(0.96, 0.84, 0.45, 1)
+
 [node name="Table" type="StaticBody3D" parent="NavRegion"]
-position = Vector3(0.5, 0, 0.5)
+position = Vector3(3.2, 0, 2.8)
 collision_layer = 1
 collision_mask = 0
 
@@ -504,105 +1012,55 @@ surface_material_override/0 = SubResource("mat_oak")
 
 [node name="Teapot" type="MeshInstance3D" parent="NavRegion/Table"]
 position = Vector3(0.3, 0.9, 0.1)
-mesh = SubResource("mesh_NavRegion_Table_Teapot")
+mesh = SubResource("mesh_Teapot")
 surface_material_override/0 = SubResource("mat_window_frame")
 
 [node name="Papers" type="MeshInstance3D" parent="NavRegion/Table"]
 position = Vector3(-0.6, 0.82, -0.2)
-mesh = SubResource("mesh_NavRegion_Table_Papers")
+mesh = SubResource("mesh_Papers")
 surface_material_override/0 = SubResource("mat_shirt_cream")
 
 [node name="Chair0" type="StaticBody3D" parent="NavRegion"]
-position = Vector3(0.5, 0, -0.8)
+position = Vector3(1.4, 0, 2.8)
 collision_layer = 1
 collision_mask = 0
 
 [node name="Shape" type="CollisionShape3D" parent="NavRegion/Chair0"]
 position = Vector3(0, 0.25, 0)
-shape = SubResource("shape_Chair0")
+shape = SubResource("shape_Chair")
 
 [node name="Mesh" type="MeshInstance3D" parent="NavRegion/Chair0"]
 position = Vector3(0, 0.25, 0)
-mesh = SubResource("mesh_Chair0")
+mesh = SubResource("mesh_Chair")
 surface_material_override/0 = SubResource("mat_timber")
 
 [node name="Chair1" type="StaticBody3D" parent="NavRegion"]
-position = Vector3(0.5, 0, 1.8)
+position = Vector3(5.0, 0, 2.8)
 collision_layer = 1
 collision_mask = 0
 
 [node name="Shape" type="CollisionShape3D" parent="NavRegion/Chair1"]
 position = Vector3(0, 0.25, 0)
-shape = SubResource("shape_Chair1")
+shape = SubResource("shape_Chair")
 
 [node name="Mesh" type="MeshInstance3D" parent="NavRegion/Chair1"]
 position = Vector3(0, 0.25, 0)
-mesh = SubResource("mesh_Chair1")
+mesh = SubResource("mesh_Chair")
 surface_material_override/0 = SubResource("mat_timber")
 
-[node name="Chair2" type="StaticBody3D" parent="NavRegion"]
-position = Vector3(-1.6, 0, 0.5)
-collision_layer = 1
-collision_mask = 0
+[node name="LivingLight" type="OmniLight3D" parent="."]
+position = Vector3(0.5, 3.0, 3.0)
+light_color = Color(0.949, 0.769, 0.42, 1)
+light_energy = 1.1
+omni_range = 10.0
 
-[node name="Shape" type="CollisionShape3D" parent="NavRegion/Chair2"]
-position = Vector3(0, 0.25, 0)
-shape = SubResource("shape_Chair2")
-
-[node name="Mesh" type="MeshInstance3D" parent="NavRegion/Chair2"]
-position = Vector3(0, 0.25, 0)
-mesh = SubResource("mesh_Chair2")
-surface_material_override/0 = SubResource("mat_timber")
-
-[node name="Dresser" type="StaticBody3D" parent="NavRegion"]
-position = Vector3(3.5, 0, -5.4)
-collision_layer = 1
-collision_mask = 0
-
-[node name="Shape" type="CollisionShape3D" parent="NavRegion/Dresser"]
-position = Vector3(0, 0.7, 0)
-shape = SubResource("shape_Dresser")
-
-[node name="Mesh" type="MeshInstance3D" parent="NavRegion/Dresser"]
-position = Vector3(0, 0.7, 0)
-mesh = SubResource("mesh_Dresser")
-surface_material_override/0 = SubResource("mat_oak")
-
-[node name="Sofa" type="StaticBody3D" parent="NavRegion"]
-position = Vector3(-3.8, 0, 3.6)
-collision_layer = 1
-collision_mask = 0
-
-[node name="Shape" type="CollisionShape3D" parent="NavRegion/Sofa"]
-position = Vector3(0, 0.35, 0)
-shape = SubResource("shape_Sofa")
-
-[node name="Mesh" type="MeshInstance3D" parent="NavRegion/Sofa"]
-position = Vector3(0, 0.35, 0)
-mesh = SubResource("mesh_Sofa")
-surface_material_override/0 = SubResource("mat_door_green")
-
-[node name="Rug" type="MeshInstance3D" parent="NavRegion"]
-position = Vector3(-4.6, 0.012, 1.2)
-mesh = SubResource("mesh_rug")
-surface_material_override/0 = SubResource("mat_tie_burgundy")
-
-[node name="Window0" type="MeshInstance3D" parent="NavRegion/WallNorth"]
-position = Vector3(-1.5, 0.3, 0.27)
-mesh = SubResource("mesh_NavRegion_WallNorth_Window0")
-surface_material_override/0 = SubResource("mat_lamp_warm_glow")
-
-[node name="Window1" type="MeshInstance3D" parent="NavRegion/WallNorth"]
-position = Vector3(3.0, 0.3, 0.27)
-mesh = SubResource("mesh_NavRegion_WallNorth_Window1")
-surface_material_override/0 = SubResource("mat_lamp_warm_glow")
-
-[node name="Vivienne" type="StaticBody3D" parent="NavRegion" node_paths=PackedStringArray("approach")]
-position = Vector3(2.6, 0, -2.6)
-collision_layer = 2
+[node name="Vivienne" type="StaticBody3D" parent="NavRegion" node_paths=PackedStringArray("approach", "spots")]
+position = Vector3(3.2, 0, 4.3)
+collision_layer = 4
 collision_mask = 0
 script = ExtResource("5_vivienne")
 approach = NodePath("Approach")
+spots = NodePath("../../VivienneSpots")
 
 [node name="Shape" type="CollisionShape3D" parent="NavRegion/Vivienne"]
 position = Vector3(0, 0.9, 0)
@@ -610,17 +1068,17 @@ shape = SubResource("shape_vivienne")
 
 [node name="Coat" type="MeshInstance3D" parent="NavRegion/Vivienne"]
 position = Vector3(0, 0.75, 0)
-mesh = SubResource("mesh_viv_coat")
+mesh = SubResource("mesh_coat")
 surface_material_override/0 = SubResource("mat_tie_burgundy")
 
 [node name="Head" type="MeshInstance3D" parent="NavRegion/Vivienne"]
 position = Vector3(0, 1.65, 0)
-mesh = SubResource("mesh_viv_head")
+mesh = SubResource("mesh_head")
 surface_material_override/0 = SubResource("mat_skin_2")
 
 [node name="Hair" type="MeshInstance3D" parent="NavRegion/Vivienne"]
 position = Vector3(0, 1.74, -0.04)
-mesh = SubResource("mesh_viv_hair")
+mesh = SubResource("mesh_hair")
 surface_material_override/0 = SubResource("mat_hair_fair")
 
 [node name="Label" type="Label3D" parent="NavRegion/Vivienne"]
@@ -634,7 +1092,22 @@ outline_size = 10
 modulate = Color(0.96, 0.84, 0.45, 1)
 
 [node name="Approach" type="Marker3D" parent="NavRegion/Vivienne"]
-position = Vector3(0, 0, 1.4)
+position = Vector3(0, 0, 1.1)
+
+[node name="VivienneSpots" type="Node3D" parent="."]
+
+[node name="breakfast" type="Marker3D" parent="VivienneSpots"]
+position = Vector3(3.2, 0, 4.3)
+
+[node name="study" type="Marker3D" parent="VivienneSpots"]
+position = Vector3(1.6, 0, -4.4)
+
+[node name="fireside" type="Marker3D" parent="VivienneSpots"]
+position = Vector3(-5.4, 0, 4.6)
+rotation = Vector3(0, 1.5708, 0)
+
+[node name="bedroom" type="Marker3D" parent="VivienneSpots"]
+position = Vector3(-2.2, 0, -4.6)
 
 [node name="Drive" type="MeshInstance3D" parent="."]
 position = Vector3(11.0, -0.02, 0.0)
@@ -647,36 +1120,7 @@ collision_layer = 1
 collision_mask = 0
 
 [node name="Shape" type="CollisionShape3D" parent="NavRegion/DriveGround"]
-position = Vector3(0, 0, 0)
 shape = SubResource("shape_DriveGround")
-
-[node name="WallEastNorth" type="StaticBody3D" parent="NavRegion"]
-position = Vector3(8.25, 0.25, -3.5)
-collision_layer = 1
-collision_mask = 0
-
-[node name="Shape" type="CollisionShape3D" parent="NavRegion/WallEastNorth"]
-position = Vector3(0, 0, 0)
-shape = SubResource("shape_WallEastNorth")
-
-[node name="Mesh" type="MeshInstance3D" parent="NavRegion/WallEastNorth"]
-position = Vector3(0, 0, 0)
-mesh = SubResource("mesh_WallEastNorth")
-surface_material_override/0 = SubResource("mat_timber")
-
-[node name="WallEastSouth" type="StaticBody3D" parent="NavRegion"]
-position = Vector3(8.25, 0.25, 4.0)
-collision_layer = 1
-collision_mask = 0
-
-[node name="Shape" type="CollisionShape3D" parent="NavRegion/WallEastSouth"]
-position = Vector3(0, 0, 0)
-shape = SubResource("shape_WallEastSouth")
-
-[node name="Mesh" type="MeshInstance3D" parent="NavRegion/WallEastSouth"]
-position = Vector3(0, 0, 0)
-mesh = SubResource("mesh_WallEastSouth")
-surface_material_override/0 = SubResource("mat_timber")
 
 [node name="Car" type="StaticBody3D" parent="NavRegion" node_paths=PackedStringArray("approach")]
 position = Vector3(11.0, 0, 1.0)
@@ -703,20 +1147,29 @@ outline_size = 10
 [node name="Approach" type="Marker3D" parent="NavRegion/Car"]
 position = Vector3(-1.9, 0, 0.4)
 
-[node name="CeilingLight" type="OmniLight3D" parent="."]
-position = Vector3(1.0, 3.2, 0.0)
-light_color = Color(0.949, 0.769, 0.42, 1)
-light_energy = 1.1
-omni_range = 11.0
-
 [node name="PorchLight" type="OmniLight3D" parent="."]
 position = Vector3(9.5, 2.6, 1.0)
 light_color = Color(0.949, 0.769, 0.42, 1)
 light_energy = 1.0
 omni_range = 6.0
 
+[node name="Jack" parent="." instance=ExtResource("2_jack")]
+
+[node name="CameraRig" type="Node3D" parent="." node_paths=PackedStringArray("camera")]
+rotation = Vector3(0, 0.785398, 0)
+script = ExtResource("3_iso_camera_rig")
+camera = NodePath("Camera")
+distance = 26.0
+zoom_min = 12.0
+zoom_max = 44.0
+bounds = Rect2(-8, -6, 22, 12)
+
+[node name="Camera" type="Camera3D" parent="CameraRig"]
+
+[node name="SpawnPoints" type="Node3D" parent="."]
+
 [node name="from_car" type="Marker3D" parent="SpawnPoints"]
-position = Vector3(1.5, 0, 2.6)
+position = Vector3(6.6, 0, 1.5)
 
 [node name="bed" type="Marker3D" parent="SpawnPoints"]
 position = Vector3(-3.6, 0, -3.6)

@@ -46,6 +46,23 @@ func lie_low(on: bool, now: float, actor: String) -> CommandResult:
 	return CommandResult.success()
 
 
+## Pay to cancel a pending inspection (the tip never reaches the constable).
+func bribe_off(now: float, actor: String) -> CommandResult:
+	if not inspection_pending():
+		return CommandResult.failure(CommandResult.ALREADY_DONE)
+	var cost := maxi(_def.bribe_cost, 0)
+	if cost > 0 and not _economy.spend(cost):
+		return CommandResult.failure(CommandResult.NOT_ENOUGH_MONEY)
+	inspection_at = INF
+	add(-maxf(_def.bribe_suspicion_relief, 0.0))
+	_event_log.record(EventLog.INSPECTION_BRIBED, now, PackedStringArray([actor, "inspector"]), {
+		"cost": cost,
+		"money": _economy.money,
+		"level": roundi(level),
+	})
+	return CommandResult.success(cost)
+
+
 func next_event_time() -> float:
 	return minf(next_tick_at, inspection_at)
 

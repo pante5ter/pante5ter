@@ -13,6 +13,8 @@ func before_all() -> void:
 ## Reggie's everyday guidance; the first-day script's own lines are checked in test_first_day.
 func _new_state() -> SimState:
 	var plain := _balance.duplicate() as BalanceConfig
+	plain.shop = null
+	plain.opportunities = null
 	plain.first_day = null
 	plain.director = null
 	plain.stash = _balance.stash.duplicate() as StashDef
@@ -98,6 +100,8 @@ func test_objective_points_at_harvest_and_then_the_buyer() -> void:
 
 func test_objective_skips_hiring_when_wage_is_unaffordable() -> void:
 	var balance := _balance.duplicate() as BalanceConfig
+	balance.shop = null
+	balance.opportunities = null
 	balance.starting_money = balance.worker.daily_wage - 1
 	balance.first_day = null
 	var state := SimState.new(balance, 1)

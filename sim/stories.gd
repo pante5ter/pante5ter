@@ -127,7 +127,9 @@ func start(story: StoryDef, now: float, actor: String) -> bool:
 
 func next_event_time() -> float:
 	var story := pending()
-	if story == null or story.place != StoryDef.MANOR:
+	if story == null or story.wait_hours <= 0.0:
+		return INF
+	if story.place != StoryDef.MANOR and story.place != StoryDef.CALL:
 		return INF
 	return pending_since + story.wait_hours * SimClock.GAME_SECONDS_PER_HOUR
 
@@ -137,8 +139,12 @@ func process(now: float) -> void:
 	if story == null or now < next_event_time():
 		return
 	pending_id = ""
-	shift(LORD, story.ignored_relation)
-	_event_log.record(EventLog.STORY_EXPIRED, now, PackedStringArray([StoryDef.LORD]), {"story_id": story.id})
+	var who := StoryDef.LORD if story.place == StoryDef.MANOR else Stories.VILLAGE
+	if story.place == StoryDef.MANOR:
+		shift(LORD, story.ignored_relation)
+	elif story.ignored_relation != 0:
+		shift(VILLAGE, story.ignored_relation)
+	_event_log.record(EventLog.STORY_EXPIRED, now, PackedStringArray([who]), {"story_id": story.id})
 
 
 func choose(story_id: String, index: int, now: float, actor: String) -> CommandResult:

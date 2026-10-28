@@ -15,6 +15,8 @@ func before_all() -> void:
 
 func _calm(balance: BalanceConfig) -> BalanceConfig:
 	var calm := balance.duplicate() as BalanceConfig
+	calm.shop = null
+	calm.opportunities = null
 	calm.problems = balance.problems.duplicate() as ProblemsDef
 	calm.problems.chance_per_hour = 0.0
 	calm.raids = balance.raids.duplicate() as RaidsDef
@@ -32,12 +34,16 @@ func _calm(balance: BalanceConfig) -> BalanceConfig:
 ## The farmhand alone: the helper's own care, wage and plots stay out of the sums.
 func _without_helper(balance: BalanceConfig) -> BalanceConfig:
 	var alone := balance.duplicate() as BalanceConfig
+	alone.shop = null
+	alone.opportunities = null
 	alone.helper = null
 	return alone
 
 
 func _balance_with_money(money: int) -> BalanceConfig:
 	var copy := _balance.duplicate() as BalanceConfig
+	copy.shop = null
+	copy.opportunities = null
 	copy.starting_money = money
 	return copy
 
@@ -222,6 +228,8 @@ func test_thirty_days_with_a_worker_stay_profitable_and_bounded() -> void:
 	for hour: int in 30 * 24:
 		_advance_hours(state, 1.0, 1.0)
 		lowest_money = mini(lowest_money, state.economy.money)
+		if state.rent.call_pending() and state.rent.can_pay().is_empty():
+			state.apply(RentCommand.new(Rent.PAY))
 		for order: Order in state.orders.with_status(Order.Status.OFFERED):
 			state.apply(AnswerOrderCommand.new(order.id, Orders.ACCEPT))
 		state.apply(PickUpParcelCommand.new())

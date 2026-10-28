@@ -35,6 +35,8 @@ func after_each() -> void:
 
 func _calm() -> BalanceConfig:
 	var calm := _balance.duplicate() as BalanceConfig
+	calm.shop = null
+	calm.opportunities = null
 	calm.starting_money = 300
 	calm.problems = _balance.problems.duplicate() as ProblemsDef
 	calm.problems.chance_per_hour = 0.0
@@ -300,9 +302,10 @@ func test_vivienne_does_not_open_the_day_with_yesterdays_last_line() -> void:
 
 func test_breakfast_and_a_morning_chat_say_different_things() -> void:
 	var state := _state()
+	Game.sim = state
 	state.clock.advance_to(2.0 * DAY + 7.0 * HOUR)
 	var night := state.event_log.record(EventLog.HOME_NIGHT, state.clock.elapsed_game_seconds, PackedStringArray(), {"suspicion_relief": 5.0, "bonus": 0})
-	var breakfast := Vivienne.morning_lines(night)[0].text
+	var breakfast := _breakfast_gossip(Vivienne.morning_lines(night))
 	assert_true(Vivienne.GOSSIP.has(breakfast))
 	var chat := Vivienne.lines(state)[0].text
 	assert_true(Vivienne.GOSSIP.has(chat), "in the morning she talks village news")
@@ -310,6 +313,26 @@ func test_breakfast_and_a_morning_chat_say_different_things() -> void:
 	var again := Vivienne.lines(state)[0].text
 	assert_ne(again, chat)
 	assert_ne(again, breakfast)
+
+
+func test_breakfast_mentions_the_raid_clip_after_a_night_raid() -> void:
+	var state := _state()
+	Game.sim = state
+	state.clock.advance_to(DAY + 22.0 * HOUR)
+	var night := state.event_log.record(EventLog.HOME_NIGHT, state.clock.elapsed_game_seconds, PackedStringArray(), {"suspicion_relief": 5.0, "bonus": 0})
+	state.event_log.record(EventLog.RAID_STARTED, state.clock.elapsed_game_seconds + HOUR, PackedStringArray(["raiders"]), {"bribe": 200})
+	state.clock.advance_to(2.0 * DAY + 7.0 * HOUR)
+	var lines := Vivienne.morning_lines(night)
+	assert_gte(lines.size(), 2)
+	assert_string_contains(lines[0].text, "клип")
+	assert_true(Vivienne.GOSSIP.has(lines[1].text))
+
+
+func _breakfast_gossip(lines: Array[DialogueLineDef]) -> String:
+	for line: DialogueLineDef in lines:
+		if Vivienne.GOSSIP.has(line.text):
+			return line.text
+	return lines[0].text if not lines.is_empty() else ""
 
 
 func test_the_evening_pool_at_evening() -> void:

@@ -5,6 +5,8 @@ extends GutTest
 
 func test_the_stock_line_names_unpacked_harvest_plainly() -> void:
 	var config := (load("res://content/balance.tres") as BalanceConfig).duplicate() as BalanceConfig
+	config.shop = null
+	config.opportunities = null
 	config.first_day = null
 	config.director = null
 	var state := SimState.new(config, 1)

@@ -120,7 +120,7 @@ func _build(alert: Alert, style: StyleBoxFlat) -> PanelContainer:
 	var buttons := VBoxContainer.new()
 	buttons.alignment = BoxContainer.ALIGNMENT_CENTER
 	var ink := Alert.ink_color(alert.severity)
-	if not alert.action.is_empty() and (alert.topic == Alert.CALL or alert.topic == Alert.HOME or AlertTarget.find_live(get_tree(), alert.topic) != null):
+	if not alert.action.is_empty() and (_phone_action(alert.topic) or AlertTarget.find_live(get_tree(), alert.topic) != null):
 		buttons.add_child(_button(alert.action, action_requested.emit.bind(alert.topic), ink))
 	elif Alert.is_farm_trouble(alert.topic) and AlertTarget.find_live(get_tree(), alert.topic) == null and not _on_the_farm():
 		buttons.add_child(_button(Alert.LOOK_AT_FARM, action_requested.emit.bind(alert.topic), ink))
@@ -130,6 +130,11 @@ func _build(alert: Alert, style: StyleBoxFlat) -> PanelContainer:
 		buttons.add_child(_button("×", acknowledge.bind(alert.topic), ink))
 	line.add_child(buttons)
 	return panel
+
+
+## Phone topics have no world marker; the action opens the talk / phone / travel.
+func _phone_action(topic: String) -> bool:
+	return topic == Alert.CALL or topic == Alert.HOME or topic == Alert.RENT_CALL or topic == Alert.SUMMONS or topic == Alert.STORY_CALL or topic == Alert.INSPECTION
 
 
 ## Away from the farm a raid or an inspection offers to switch the view there.

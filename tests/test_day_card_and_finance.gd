@@ -1,5 +1,7 @@
 extends GutTest
 
+## Day-end summary (all-nighter at the morning hour) and the finance app.
+
 const FIELD_SCENE: String = "res://scenes/field/field.tscn"
 const SETTLE_FRAMES: int = 3
 const SCREEN: Vector2i = Vector2i(1600, 900)
@@ -10,6 +12,7 @@ var _old_screen: Vector2i = Vector2i.ZERO
 func before_each() -> void:
 	Game.new_game(42)
 	Game.sim.first_day.skip()
+	DayEndWatch.forget()
 	Game.is_running = false
 	_old_screen = get_tree().root.size
 	get_tree().root.size = SCREEN
@@ -18,6 +21,7 @@ func before_each() -> void:
 func after_each() -> void:
 	Game.is_running = false
 	get_tree().root.size = _old_screen
+	DayEndWatch.forget()
 	Game.new_game(42)
 
 
@@ -34,10 +38,10 @@ func _advance_game_seconds(game_seconds: float) -> void:
 	Game.sim.apply(AdvanceTimeCommand.new(game_seconds * Game.sim.config.real_seconds_per_game_day / SimClock.GAME_SECONDS_PER_DAY))
 
 
-## The director may open a village story at the same moment; these tests look at the card alone.
-func _past_midnight() -> void:
-	var elapsed := Game.sim.clock.elapsed_game_seconds
-	_advance_game_seconds(SimClock.GAME_SECONDS_PER_DAY - fmod(elapsed, SimClock.GAME_SECONDS_PER_DAY) + 60.0)
+## Past the first morning that closes a day (the prologue night does not count).
+func _past_morning() -> void:
+	var target := DayEndWatch.next_morning(Game.sim) + 60.0
+	_advance_game_seconds(target - Game.sim.clock.elapsed_game_seconds)
 	Game.sim.stories.pending_id = ""
 
 
@@ -48,59 +52,51 @@ func _texts(root: Node) -> String:
 	return "\n".join(lines)
 
 
-func test_midnight_brings_up_the_day_card_with_the_days_money() -> void:
+func test_staying_up_past_morning_brings_the_day_summary_with_the_days_money() -> void:
 	var level := await _open()
 	var product := Game.sim.inventory.create(Game.sim.config.strain.id, 80)
 	var price := Game.sim.economy.price_of(product)
 	Game.sim.apply(SellCommand.new(product.id))
 	await wait_process_frames(2)
-	assert_false(level.hud.day_card.is_showing(), "no card during the day")
-	_past_midnight()
-	await wait_process_frames(2)
-	var card := level.hud.day_card
-	assert_true(card.is_showing())
-	var text := _texts(card)
-	assert_string_contains(text, "День 1 окончен")
-	assert_string_contains(text, "Начинается день 2")
-	assert_string_contains(text, "Заработано %s" % UiText.money(price))
-	assert_true(Rect2(Vector2.ZERO, Vector2(SCREEN)).encloses(card.get_global_rect()), "the card fits on screen: %s" % card.get_global_rect())
+	assert_false(level.hud.night.is_open(), "no summary during the day")
+	_past_morning()
+	await wait_process_frames(3)
+	assert_true(level.hud.night.is_open())
+	assert_eq(level.hud.night.page(), NightFlow.PAGE_SUMMARY)
+	var panel := level.hud.night.summary
+	assert_eq(panel.title_label.text, "День 1 окончен")
+	var text := _texts(panel)
+	assert_string_contains(text, "Заработано")
+	assert_string_contains(text, UiText.money(price))
+	assert_true(Rect2(Vector2.ZERO, Vector2(SCREEN)).encloses(panel.get_global_rect()), "the panel fits on screen: %s" % panel.get_global_rect())
 
 
-func test_the_card_fades_away_by_itself() -> void:
+func test_a_dialogue_at_morning_holds_the_summary_until_it_closes() -> void:
 	var level := await _open()
-	_past_midnight()
-	await wait_process_frames(2)
-	assert_true(level.hud.day_card.is_showing())
-	await wait_seconds(DayCard.SHOW_SECONDS + 0.3)
-	assert_false(level.hud.day_card.visible)
-
-
-func test_a_dialogue_at_midnight_holds_the_card_until_it_closes() -> void:
-	var level := await _open()
-	_past_midnight()
-	var lines: Array[DialogueLineDef] = [DialogueLineDef.make(UiText.REGGIE, "Босс, полночь.")]
+	_past_morning()
+	var lines: Array[DialogueLineDef] = [DialogueLineDef.make(UiText.REGGIE, "Босс, утро.")]
 	level.hud.play_dialogue(lines)
-	await wait_seconds(DayCard.SHOW_SECONDS + 0.3)
-	assert_false(level.hud.day_card.visible, "hidden under the dialogue")
-	assert_true(level.hud.day_card.is_waiting())
+	await wait_process_frames(3)
+	assert_false(level.hud.night.is_open(), "held under the dialogue")
 	level.hud.dialogue_box.skip()
-	await wait_process_frames(2)
-	assert_true(level.hud.day_card.is_showing(), "shown once the dialogue is over")
-	await wait_seconds(DayCard.SHOW_SECONDS + 0.3)
-	assert_false(level.hud.day_card.visible, "and gone after its own time")
+	await wait_process_frames(3)
+	assert_true(level.hud.night.is_open(), "shown once the dialogue is over")
+	assert_eq(level.hud.night.page(), NightFlow.PAGE_SUMMARY)
 
 
 func test_opening_a_level_late_in_the_game_does_not_replay_old_days() -> void:
 	_advance_game_seconds(SimClock.GAME_SECONDS_PER_DAY * 2.0)
 	var level := await _open()
-	await wait_process_frames(2)
-	assert_false(level.hud.day_card.is_showing())
+	await wait_process_frames(3)
+	assert_false(level.hud.night.is_open())
 
 
 func test_a_quiet_day_still_says_it_is_over() -> void:
-	var summary := DayCard.summary(Game.sim, 5)
-	assert_string_contains(summary, "не пришло")
-	assert_eq(DayCard.title(0), "День 1 окончен")
+	var day := SimClock.GAME_SECONDS_PER_DAY
+	var summary := DaySummary.build(Game.sim, 0.0, day)
+	assert_string_contains("\n".join(summary.lines()), "не пришло")
+	assert_eq(summary.title(), "День 1 окончен")
+	assert_eq(DayEndWatch.day_number(0.0), 1)
 
 
 func test_the_finance_app_lists_spending_with_reasons() -> void:

@@ -9,7 +9,7 @@ const VIEWPORT_SIZE: Vector2i = Vector2i(1600, 900)
 
 func before_each() -> void:
 	Game.new_game(7)
-	Game.is_running = false
+Game.is_running = false
 
 
 func after_each() -> void:
@@ -49,6 +49,8 @@ func _lines(count: int) -> Array[DialogueLineDef]:
 
 func _plain_state() -> SimState:
 	var plain := (load(BALANCE_PATH) as BalanceConfig).duplicate() as BalanceConfig
+	plain.shop = null
+	plain.opportunities = null
 	plain.first_day = null
 	plain.director = null
 	return SimState.new(plain, 1)
@@ -85,7 +87,10 @@ func test_a_pending_story_plays_and_the_choice_reaches_the_sim() -> void:
 	Game.sim.stories.start(story, Game.sim.clock.elapsed_game_seconds, Director.ACTOR)
 	await wait_process_frames(3)
 	var hud := level.hud
-	assert_true(hud.is_dialogue_open(), "the story opens by itself")
+	assert_true(hud.alert_banner.topics().has(Alert.STORY_CALL), "the vicar rings first")
+	hud._on_alert_action(Alert.STORY_CALL)
+	await wait_process_frames(2)
+	assert_true(hud.is_dialogue_open(), "answering opens the talk")
 	assert_false(Game.is_running, "time stops while Jack decides")
 	assert_eq(hud.dialogue_box.current_line().text, story.lines[0].text)
 	hud.dialogue_box.skip()

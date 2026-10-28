@@ -15,6 +15,7 @@ var _old_screen: Vector2i = Vector2i.ZERO
 
 ## No director or random trouble: a story popping up would cover the bed and the banner.
 func before_each() -> void:
+	DayEndWatch.forget()
 	_calm_game(0.0)
 	Game.is_running = false
 	_old_screen = get_tree().root.size
@@ -24,6 +25,7 @@ func before_each() -> void:
 func after_each() -> void:
 	Game.is_running = false
 	get_tree().root.size = _old_screen
+	DayEndWatch.forget()
 	Game.new_game(42)
 
 
@@ -65,8 +67,24 @@ func _advance_to_hour(hour: float) -> void:
 		sim.apply(AdvanceTimeCommand.new(hours * sim.config.real_seconds_per_game_day / 24.0))
 
 
+func _texts(root: Node) -> String:
+	var lines := PackedStringArray()
+	for node: Node in root.find_children("*", "Label", true, false):
+		lines.append((node as Label).text)
+	return "\n".join(lines)
+
+
+## Summary, optional forks, then the morning briefing.
+func _to_briefing(night: NightFlow) -> void:
+	while night.is_open() and night.page() != NightFlow.PAGE_BRIEFING:
+		night.turn_page()
+	assert_eq(night.page(), NightFlow.PAGE_BRIEFING)
+
+
 func _calm_game(raid_chance: float) -> void:
 	var config := (load("res://content/balance.tres") as BalanceConfig).duplicate() as BalanceConfig
+	config.shop = null
+	config.opportunities = null
 	config.raids = config.raids.duplicate() as RaidsDef
 	config.raids.chance_per_night = raid_chance
 	config.problems = config.problems.duplicate() as ProblemsDef
@@ -189,18 +207,19 @@ func test_sleep_shows_the_day_then_the_morning_briefing() -> void:
 	var level := await _open(HOME_SCENE)
 	Game.is_running = true
 	(level.get_node("NavRegion/Bed") as Bed).interact(level)
-	var card := level.hud.night.card
-	assert_true(level.hud.night.is_open())
-	assert_false(Game.is_running, "time waits while the card is up")
-	assert_eq(card.title_label.text, "День 1 окончен")
-	assert_string_contains(card.body_text(), "Деньги")
+	var night := level.hud.night
+	assert_true(night.is_open())
+	assert_false(Game.is_running, "time waits while the summary is up")
+	assert_eq(night.page(), NightFlow.PAGE_SUMMARY)
+	assert_eq(night.summary.title_label.text, "День 1 окончен")
+	assert_string_contains(_texts(night.summary), "Деньги")
 	assert_almost_eq(Game.sim.clock.hour_of_day(), Game.sim.config.day.wake_hour, 0.001)
-	card.next_pressed.emit()
-	assert_string_contains(card.title_label.text, "Утро")
-	assert_string_contains(card.body_text(), "За ночь")
-	assert_string_contains(card.body_text(), "На ферме 1 ящик", "the briefing remembers the crate at the farm")
-	card.next_pressed.emit()
-	assert_false(level.hud.night.is_open())
+	_to_briefing(night)
+	assert_string_contains(night.card.title_label.text, "Утро")
+	assert_string_contains(night.card.body_text(), "За ночь")
+	assert_string_contains(night.card.body_text(), "На ферме 1 ящик", "the briefing remembers the crate at the farm")
+	night.turn_page()
+	assert_false(night.is_open())
 	assert_true(level.hud.is_dialogue_open(), "Vivienne has a word over breakfast")
 	level.hud.dialogue_box.skip()
 	assert_true(Game.is_running)
@@ -226,7 +245,7 @@ func test_a_night_raid_wakes_jack_and_reggie_asks_what_to_do() -> void:
 	await wait_process_frames(2)
 	assert_false(Game.sim.raids.pending, "Reggie dealt with them")
 	assert_true(level.hud.night.is_open(), "the morning comes with its summary")
-	level.hud.night.card.next_pressed.emit()
+	_to_briefing(level.hud.night)
 	assert_string_contains(level.hud.night.card.body_text(), "Молочные зубы", "the briefing tells of the raid")
 
 
@@ -289,11 +308,14 @@ func test_a_raid_seen_from_home_offers_the_farm_view() -> void:
 	assert_eq(_buttons(level.hud.alert_banner, Alert.LOOK_AT_FARM).size(), 1)
 
 
-func test_the_midnight_card_stays_away_after_a_night_in_bed() -> void:
+func test_the_morning_summary_stays_away_after_a_night_in_bed() -> void:
 	_go(DayCycle.HOME)
 	_advance_to_hour(22.0)
 	var level := await _open(HOME_SCENE)
 	await wait_process_frames(2)
 	(level.get_node("NavRegion/Bed") as Bed).interact(level)
 	await wait_process_frames(3)
-	assert_false(level.hud.day_card.is_waiting(), "the bedtime summary already told the day")
+	while level.hud.night.is_open():
+		level.hud.night.turn_page()
+	await wait_process_frames(2)
+	assert_false(DayEndWatch.all_nighter_due(Game.sim), "the bedtime summary already told the day")

@@ -16,7 +16,6 @@
 [ext_resource type="Script" path="res://scenes/common/iso_camera_rig.gd" id="14_iso_camera_rig"]
 [ext_resource type="PackedScene" path="res://scenes/ui/hud.tscn" id="15_hud"]
 [ext_resource type="Script" path="res://scenes/plantation/bunker_lights.gd" id="16_bunker_lights"]
-[ext_resource type="Script" path="res://scenes/plantation/clue_board.gd" id="17_clue_board"]
 
 [sub_resource type="Environment" id="env_bunker"]
 background_mode = 1
@@ -103,33 +102,6 @@ emission_energy_multiplier = 2.0
 
 [sub_resource type="BoxShape3D" id="shape_Crates"]
 size = Vector3(1.4, 1.0, 1.8)
-
-[sub_resource type="BoxShape3D" id="shape_ClueBoard"]
-size = Vector3(0.5, 1.4, 1.6)
-
-[sub_resource type="BoxMesh" id="mesh_board_frame"]
-size = Vector3(0.06, 1.1, 1.5)
-
-[sub_resource type="BoxMesh" id="mesh_cork"]
-size = Vector3(0.04, 0.96, 1.36)
-
-[sub_resource type="StandardMaterial3D" id="mat_camel_coat"]
-albedo_color = Color(0.659, 0.541, 0.384, 1)
-roughness = 0.95
-
-[sub_resource type="BoxMesh" id="mesh_note"]
-size = Vector3(0.015, 0.22, 0.2)
-
-[sub_resource type="StandardMaterial3D" id="mat_plaster"]
-albedo_color = Color(0.847, 0.812, 0.745, 1)
-roughness = 0.9
-
-[sub_resource type="BoxMesh" id="mesh_pin"]
-size = Vector3(0.04, 0.04, 0.04)
-
-[sub_resource type="StandardMaterial3D" id="mat_alert_red"]
-albedo_color = Color(0.722, 0.227, 0.196, 1)
-roughness = 0.9
 
 [node name="Plantation" type="Node3D" node_paths=PackedStringArray("nav_region", "jack", "camera_rig", "hud", "spawn_points")]
 script = ExtResource("1_level")
@@ -307,127 +279,6 @@ outline_size = 10
 
 [node name="Approach" type="Marker3D" parent="NavRegion/Computer"]
 position = Vector3(1.5, 0, 0)
-
-[node name="ClueBoard" type="StaticBody3D" parent="NavRegion" node_paths=PackedStringArray("notes", "approach")]
-position = Vector3(-9.85, 0, 5.8)
-collision_layer = 2
-collision_mask = 0
-script = ExtResource("17_clue_board")
-notes = NodePath("Notes")
-approach = NodePath("Approach")
-
-[node name="Shape" type="CollisionShape3D" parent="NavRegion/ClueBoard"]
-position = Vector3(0, 1.5, 0)
-shape = SubResource("shape_ClueBoard")
-
-[node name="Frame" type="MeshInstance3D" parent="NavRegion/ClueBoard"]
-position = Vector3(0, 1.55, 0)
-mesh = SubResource("mesh_board_frame")
-surface_material_override/0 = SubResource("mat_oak")
-
-[node name="Cork" type="MeshInstance3D" parent="NavRegion/ClueBoard"]
-position = Vector3(0.04, 1.55, 0)
-mesh = SubResource("mesh_cork")
-surface_material_override/0 = SubResource("mat_camel_coat")
-
-[node name="Notes" type="Node3D" parent="NavRegion/ClueBoard"]
-position = Vector3(0.07, 0, 0)
-
-[node name="Note0" type="MeshInstance3D" parent="NavRegion/ClueBoard/Notes"]
-visible = false
-position = Vector3(0, 1.85, -0.45)
-rotation = Vector3(0.08, 0, 0)
-mesh = SubResource("mesh_note")
-surface_material_override/0 = SubResource("mat_plaster")
-
-[node name="Pin" type="MeshInstance3D" parent="NavRegion/ClueBoard/Notes/Note0"]
-position = Vector3(0.02, 0.08, 0)
-mesh = SubResource("mesh_pin")
-surface_material_override/0 = SubResource("mat_alert_red")
-
-[node name="Note1" type="MeshInstance3D" parent="NavRegion/ClueBoard/Notes"]
-visible = false
-position = Vector3(0, 1.82, -0.1)
-rotation = Vector3(-0.06, 0, 0)
-mesh = SubResource("mesh_note")
-surface_material_override/0 = SubResource("mat_plaster")
-
-[node name="Pin" type="MeshInstance3D" parent="NavRegion/ClueBoard/Notes/Note1"]
-position = Vector3(0.02, 0.08, 0)
-mesh = SubResource("mesh_pin")
-surface_material_override/0 = SubResource("mat_alert_red")
-
-[node name="Note2" type="MeshInstance3D" parent="NavRegion/ClueBoard/Notes"]
-visible = false
-position = Vector3(0, 1.86, 0.25)
-rotation = Vector3(0.05, 0, 0)
-mesh = SubResource("mesh_note")
-surface_material_override/0 = SubResource("mat_plaster")
-
-[node name="Pin" type="MeshInstance3D" parent="NavRegion/ClueBoard/Notes/Note2"]
-position = Vector3(0.02, 0.08, 0)
-mesh = SubResource("mesh_pin")
-surface_material_override/0 = SubResource("mat_alert_red")
-
-[node name="Note3" type="MeshInstance3D" parent="NavRegion/ClueBoard/Notes"]
-visible = false
-position = Vector3(0, 1.5, -0.3)
-rotation = Vector3(-0.1, 0, 0)
-mesh = SubResource("mesh_note")
-surface_material_override/0 = SubResource("mat_plaster")
-
-[node name="Pin" type="MeshInstance3D" parent="NavRegion/ClueBoard/Notes/Note3"]
-position = Vector3(0.02, 0.08, 0)
-mesh = SubResource("mesh_pin")
-surface_material_override/0 = SubResource("mat_alert_red")
-
-[node name="Note4" type="MeshInstance3D" parent="NavRegion/ClueBoard/Notes"]
-visible = false
-position = Vector3(0, 1.52, 0.1)
-rotation = Vector3(0.07, 0, 0)
-mesh = SubResource("mesh_note")
-surface_material_override/0 = SubResource("mat_plaster")
-
-[node name="Pin" type="MeshInstance3D" parent="NavRegion/ClueBoard/Notes/Note4"]
-position = Vector3(0.02, 0.08, 0)
-mesh = SubResource("mesh_pin")
-surface_material_override/0 = SubResource("mat_alert_red")
-
-[node name="Note5" type="MeshInstance3D" parent="NavRegion/ClueBoard/Notes"]
-visible = false
-position = Vector3(0, 1.48, 0.48)
-rotation = Vector3(-0.04, 0, 0)
-mesh = SubResource("mesh_note")
-surface_material_override/0 = SubResource("mat_plaster")
-
-[node name="Pin" type="MeshInstance3D" parent="NavRegion/ClueBoard/Notes/Note5"]
-position = Vector3(0.02, 0.08, 0)
-mesh = SubResource("mesh_pin")
-surface_material_override/0 = SubResource("mat_alert_red")
-
-[node name="Note6" type="MeshInstance3D" parent="NavRegion/ClueBoard/Notes"]
-visible = false
-position = Vector3(0, 1.2, -0.05)
-rotation = Vector3(0.09, 0, 0)
-mesh = SubResource("mesh_note")
-surface_material_override/0 = SubResource("mat_plaster")
-
-[node name="Pin" type="MeshInstance3D" parent="NavRegion/ClueBoard/Notes/Note6"]
-position = Vector3(0.02, 0.08, 0)
-mesh = SubResource("mesh_pin")
-surface_material_override/0 = SubResource("mat_alert_red")
-
-[node name="Label" type="Label3D" parent="NavRegion/ClueBoard"]
-position = Vector3(0, 2.6, 0)
-pixel_size = 0.008
-billboard = 1
-no_depth_test = true
-text = "Доска улик"
-font_size = 36
-outline_size = 10
-
-[node name="Approach" type="Marker3D" parent="NavRegion/ClueBoard"]
-position = Vector3(1.4, 0, 0)
 
 [node name="Crates" type="StaticBody3D" parent="NavRegion" node_paths=PackedStringArray("stack", "count_label", "approach")]
 position = Vector3(-8.9, 0, -3.8)

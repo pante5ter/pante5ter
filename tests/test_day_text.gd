@@ -13,6 +13,8 @@ func before_all() -> void:
 
 func _state() -> SimState:
 	var config := _balance.duplicate() as BalanceConfig
+	config.shop = null
+	config.opportunities = null
 	config.first_day = null
 	config.director = null
 	config.stash = _balance.stash.duplicate() as StashDef

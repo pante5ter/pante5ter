@@ -18,6 +18,8 @@ var _inventory: Inventory
 var _event_log: EventLog
 var _config: BalanceConfig = null
 var _progress: Progress = null
+## Set by SimState; null keeps every call at the newcomer's size.
+var demand: Demand = null
 
 
 func _init(def: OrdersDef, reference_strain: StrainDef, rng: SimRng, inventory: Inventory, event_log: EventLog) -> void:
@@ -199,16 +201,47 @@ func has_room() -> bool:
 	return _open_count() < _def.max_open
 
 
+func demand_level(at: float) -> float:
+	return demand.level(at) if demand != null else 0.0
+
+
+## The draws stay in the same order at any demand: a newcomer's calls come out as they always did.
 func _spawn(at: float) -> void:
+	var grown := demand_level(at)
 	var kind := _pick_kind()
 	var retail := kind == Order.RETAIL
-	var quantity := _rng.randi_range(_def.retail_quantity_min, _def.retail_quantity_max) if retail else _rng.randi_range(_def.quantity_min, _def.quantity_max)
-	var quality_steps := maxi(floori(float(_def.quality_max - _def.quality_min) / float(maxi(_def.quality_step, 1))), 0)
-	var min_quality := _def.quality_min + _rng.randi_range(0, quality_steps) * _def.quality_step
+	var quantity := 0
+	if retail:
+		quantity = _rng.randi_range(_def.retail_quantity_min, _def.retail_quantity_max + roundi(grown * float(_def.demand_extra_retail)))
+	else:
+		var low := _def.quantity_min + roundi(grown * float(_def.demand_extra_quantity_min))
+		quantity = _rng.randi_range(low, maxi(low, _def.quantity_max + roundi(grown * float(_def.demand_extra_quantity_max))))
+	var step := maxi(_def.quality_step, 1)
+	var supplied := demand.stock_quality() if demand != null else -1
+	var highest := _def.quality_max + mini(roundi(grown * float(_def.demand_extra_quality_max)), maxi(supplied + step - _def.quality_max, 0))
+	var lowest := mini(_def.quality_min + roundi(grown * float(_def.demand_extra_quality_min)), maxi(_def.quality_min, supplied))
+	lowest = mini(lowest, highest)
+	var min_quality := lowest + _rng.randi_range(0, floori(float(highest - lowest) / float(step))) * step
 	var strain_id := pick_strain()
-	var reward := roundi(float(quantity * Economy.price_with(price_strain(strain_id), min_quality)) * _def.reward_multiplier * _kind_price_multiplier(kind))
+	min_quality = mini(min_quality, achievable_quality(strain_id))
+	var reward := roundi(float(quantity * Economy.price_with(price_strain(strain_id), min_quality)) * _def.reward_multiplier * _kind_price_multiplier(kind) * (1.0 + grown * _def.demand_reward_bonus))
 	var deadline_hours := _def.wholesale_deadline_hours if kind == Order.WHOLESALE else 0.0
 	inject(quantity, min_quality, reward, _def.answer_hours, deadline_hours, false, at, strain_id, kind)
+
+
+## The pickiest a client may be: what the strain (any unlocked one when empty) grows with full care.
+func achievable_quality(strain_id: String) -> int:
+	if _config == null:
+		return 100
+	var best := 0
+	if not strain_id.is_empty():
+		var asked := _config.find_strain(strain_id)
+		best = _config.best_quality(asked if asked != null else _reference_strain)
+	else:
+		for strain: StrainDef in _config.strains():
+			if _progress == null or _progress.is_strain_unlocked(strain.id):
+				best = maxi(best, _config.best_quality(strain))
+	return maxi(best - maxi(_def.quality_headroom, 0), 0)
 
 
 ## No draw without a retail share, so old content keeps its sequence of calls.

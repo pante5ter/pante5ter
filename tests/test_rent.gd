@@ -12,6 +12,8 @@ func before_all() -> void:
 
 func _calm(money: int) -> BalanceConfig:
 	var calm := _balance.duplicate() as BalanceConfig
+	calm.shop = null
+	calm.opportunities = null
 	calm.starting_money = money
 	calm.problems = _balance.problems.duplicate() as ProblemsDef
 	calm.problems.chance_per_hour = 0.0

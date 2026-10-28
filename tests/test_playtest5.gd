@@ -45,6 +45,8 @@ func _open(path: String) -> Level:
 
 func _calm(money: int = 1000) -> SimState:
 	var config := _balance.duplicate() as BalanceConfig
+	config.shop = null
+	config.opportunities = null
 	config.starting_money = money
 	config.first_day = null
 	config.director = null

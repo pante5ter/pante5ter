@@ -28,6 +28,8 @@ func after_each() -> void:
 ## Little enough money that the empire stays below the level that unlocks elite.
 func _calm(money: int = 1000, seed_value: int = 3) -> SimState:
 	var config := _balance.duplicate() as BalanceConfig
+	config.shop = null
+	config.opportunities = null
 	config.starting_money = money
 	config.first_day = null
 	config.director = null
@@ -264,6 +266,8 @@ func test_an_order_without_a_strain_takes_any() -> void:
 
 func test_urgent_calls_name_a_strain_too() -> void:
 	var config := _balance.duplicate() as BalanceConfig
+	config.shop = null
+	config.opportunities = null
 	config.first_day = null
 	var state := SimState.new(config, 5)
 	state.director._trigger(Director.URGENT_ORDER, 0.0)

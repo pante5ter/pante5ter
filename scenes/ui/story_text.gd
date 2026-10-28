@@ -81,7 +81,7 @@ static func rat_hunt(sim: SimState) -> String:
 	var intrigue := sim.intrigue
 	if intrigue.phase != Intrigue.Phase.INVESTIGATING:
 		return ""
-	return "Нас сдали «Молочным зубам». Улик собрано %d из %d — я вешаю их на доску у компьютера в бункере. Когда сложим все, решим, кто крыса." % [intrigue.clues_given, intrigue.schedule.size()]
+	return "Нас сдали «Молочным зубам». Улик собрано %d из %d — я вешаю их на доску в кабинете дома. Когда сложим все, решим, кто крыса." % [intrigue.clues_given, intrigue.schedule.size()]
 
 
 static func summons(sim: SimState, underground: bool) -> String:
@@ -101,8 +101,15 @@ static func announcement(event: SimEvent, sim: SimState) -> String:
 		var started := sim.stories.find(String(event.data["story_id"]))
 		if started != null and started.place == StoryDef.MANOR:
 			return "Звонил дворецкий: лорд Эшкомб просит вас заехать в поместье."
+		if started != null and started.place == StoryDef.CALL:
+			var who := started.lines[0].speaker if not started.lines.is_empty() and not started.lines[0].speaker.is_empty() else "Кто-то"
+			return "Звонит %s. Возьмите трубку — баннер «Ответить» или телефон (Tab)." % who
 		return ""
 	if event.type == EventLog.STORY_EXPIRED:
+		var expired_id := String(event.data.get("story_id", ""))
+		var expired := sim.stories.find(expired_id)
+		if expired != null and expired.place == StoryDef.CALL:
+			return "%s так и не дождался ответа. В деревне это запомнят." % (expired.lines[0].speaker if not expired.lines.is_empty() else "Звонивший")
 		return "Лорд Эшкомб так и не дождался вас в поместье. Дворецкий передал, что милорд «не настаивает». Это хуже, чем если бы настаивал."
 	if event.type == EventLog.INTRIGUE_CLUE:
 		return ClueBoardText.announcement(event, sim)

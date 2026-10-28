@@ -77,6 +77,10 @@ const ERRORS: Dictionary[String, String] = {
 	CommandResult.HELPER_AWAY: "Помощника сейчас нет на ферме — он в дороге или на курсах.",
 	CommandResult.NOTHING_TO_RESTOCK: "Запас и так полный.",
 	CommandResult.NO_STORY: "Этот разговор уже закончен.",
+	CommandResult.UPGRADE_LOCKED: "Это продадут только на следующем уровне империи.",
+	CommandResult.NEEDS_UPGRADE: "Сначала нужно оборудование попроще.",
+	CommandResult.NOT_IN_VILLAGE: "Деревенская лавка — рядом с тайником. Сначала доедьте туда.",
+	CommandResult.NOT_SOLD_IN_VILLAGE: "В деревенской лавке такого не держат — только в телефоне.",
 }
 
 
@@ -465,6 +469,8 @@ static func announcement(event: SimEvent, sim: SimState) -> String:
 			return "Проверяющий потоптался у контейнера и уехал ни с чем. Приятный человек."
 		EventLog.INSPECTION_FAILED:
 			return "Проверка обошлась в %s. Взятка — тоже статья расходов." % money(int(event.data["fine"]))
+		EventLog.INSPECTION_BRIBED:
+			return "Проверку отменили за %s. Констебль будет молчать — пока." % money(int(event.data["cost"]))
 		EventLog.RAID_STARTED:
 			return "У контейнера «Молочные зубы» — в балаклавах и с телефоном: снимают клип прямо на налёте. Разберитесь, пока не обчистили ферму."
 		EventLog.RAID_RESOLVED:
@@ -482,6 +488,9 @@ static func announcement(event: SimEvent, sim: SimState) -> String:
 			return "Аренду заплатить нечем. Лорд недоволен, по округе пошли разговоры. Пропущено %d из %d." % [int(event.data["missed"]), int(event.data["evict_after"])]
 		EventLog.RENT_EVICTED:
 			return error(CommandResult.EVICTED)
+	var econ := EconText.announcement(event, sim)
+	if not econ.is_empty():
+		return econ
 	var day := DayText.announcement(event, sim)
 	if not day.is_empty():
 		return day

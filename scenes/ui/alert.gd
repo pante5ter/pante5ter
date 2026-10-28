@@ -15,11 +15,15 @@ const PAID: String = "paid"
 const HOME: String = "home"
 const HAUL: String = "haul"
 const WORKER: String = "worker"
+const SUMMONS: String = "summons"
+const RENT_CALL: String = "rent_call"
+const STORY_CALL: String = "story_call"
 
 const SHOW: String = "Показать"
 const ANSWER: String = "Ответить"
 const GO_HOME: String = "Домой"
 const LOOK_AT_FARM: String = "На ферму"
+const PREPARE: String = "Подготовиться"
 
 var severity: Severity = Severity.INFO
 var topic: String = ""
@@ -51,7 +55,28 @@ static func from_event(event: SimEvent, sim: SimState) -> Alert:
 			raid.action = SHOW
 			return raid
 		EventLog.INSPECTION_WARNED:
-			return make(Severity.WARNING, INSPECTION, PhoneGlyphs.INSPECTION, "Скоро проверка", news)
+			var inspect := make(Severity.WARNING, INSPECTION, PhoneGlyphs.INSPECTION, "Скоро проверка", news)
+			inspect.action = PREPARE
+			return inspect
+		EventLog.RENT_CALLED:
+			var rent := make(Severity.WARNING, RENT_CALL, PhoneGlyphs.CALLS, "Звонит лорд Эшкомб", news)
+			rent.action = ANSWER
+			rent.sticky = true
+			return rent
+		EventLog.STORY_STARTED:
+			var started := sim.stories.find(String(event.data.get("story_id", "")))
+			if started != null and started.place == StoryDef.MANOR:
+				var butler := make(Severity.WARNING, SUMMONS, PhoneGlyphs.CALLS, "Звонит дворецкий", news)
+				butler.action = ANSWER
+				butler.sticky = true
+				return butler
+			if started != null and started.place == StoryDef.CALL:
+				var who := started.lines[0].speaker if not started.lines.is_empty() and not started.lines[0].speaker.is_empty() else "Неизвестный"
+				var ring := make(Severity.INFO, STORY_CALL, PhoneGlyphs.CALLS, "Звонит %s" % who, "Возьмите трубку — Tab или «Ответить».")
+				ring.action = ANSWER
+				ring.sticky = true
+				ring.seconds = 12.0
+				return ring
 		EventLog.SUPPLY_DELIVERED:
 			var where := "Ящик у двери контейнера, на краю пшеничного поля: %s × %d. Подойдите и кликните по нему." % [UiText.item_name(String(event.data["item"]), sim), int(event.data["quantity"])]
 			var parcel := make(Severity.INFO, PARCEL, PhoneGlyphs.STOCK, "Посылка приехала", where)
@@ -102,6 +127,14 @@ static func is_live(alert_topic: String, sim: SimState) -> bool:
 			return not sim.supplies.parcel().is_empty()
 		CALL:
 			return not sim.orders.with_status(Order.Status.OFFERED).is_empty()
+		RENT_CALL:
+			return sim.rent.call_pending()
+		SUMMONS:
+			var manor := sim.stories.pending()
+			return manor != null and manor.place == StoryDef.MANOR
+		STORY_CALL:
+			var call := sim.stories.pending()
+			return call != null and call.place == StoryDef.CALL
 		HOME:
 			return not sim.day.is_home() and not sim.day.travelling()
 		COURIER:

@@ -35,6 +35,12 @@ func _flat_distance(a: Vector3, b: Vector3) -> float:
 	return Vector2(a.x, a.z).distance_to(Vector2(b.x, b.z))
 
 
+func _wait_for_parcel() -> void:
+	var arrives := Game.sim.supplies.arrival_for(Game.sim.clock.elapsed_game_seconds)
+	var hours := (arrives - Game.sim.clock.elapsed_game_seconds) / SimClock.GAME_SECONDS_PER_HOUR + 0.05
+	Game.sim.apply(AdvanceTimeCommand.new(_hours_to_real(hours)))
+
+
 func _hours_to_real(hours: float) -> float:
 	return hours * Game.sim.config.real_seconds_per_game_day / 24.0
 
@@ -98,7 +104,7 @@ func test_bed_menu_offers_premium_only_with_seeds() -> void:
 	assert_false((before[0] as UiAction).enabled)
 	Game.sim.economy.earn(1000)
 	Game.sim.apply(BuyCommand.new(Supplies.seed_item(premium.id), 1))
-	Game.sim.apply(AdvanceTimeCommand.new(_hours_to_real(Game.sim.config.delivery_hours + 0.01)))
+	_wait_for_parcel()
 	Game.sim.apply(PickUpParcelCommand.new())
 	bed.interact(level)
 	_choose(level, "Посадить «%s»" % premium.display_name)
@@ -367,7 +373,7 @@ func test_parcel_waits_by_the_container_and_is_picked_up_by_clicking_it() -> voi
 	assert_false(parcel.visual.visible)
 	assert_eq(parcel.collision_layer, 0, "no parcel, nothing to click")
 	Game.sim.apply(BuyCommand.new(Supplies.FERTILIZER, 2))
-	Game.sim.apply(AdvanceTimeCommand.new(_hours_to_real(Game.sim.config.delivery_hours + 0.01)))
+	_wait_for_parcel()
 	await wait_process_frames(2)
 	assert_true(parcel.visual.visible)
 	assert_ne(parcel.collision_layer, 0)
@@ -382,7 +388,7 @@ func test_container_goes_down_without_a_parcel_menu() -> void:
 	var level := await _open(FIELD_SCENE)
 	var container := level.get_node("NavRegion/Container") as ContainerEntrance
 	Game.sim.apply(BuyCommand.new(Supplies.FERTILIZER, 1))
-	Game.sim.apply(AdvanceTimeCommand.new(_hours_to_real(Game.sim.config.delivery_hours + 0.01)))
+	_wait_for_parcel()
 	assert_string_contains(container.hover_text(), "посылка")
 	container.interact(level)
 	assert_false(level.hud.action_menu.visible, "the container no longer hands out parcels")
