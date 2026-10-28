@@ -1,7 +1,7 @@
 class_name ClueBoardText
 extends RefCounted
 
-## The cork board in the bunker: every clue Reggie has pinned up, by whom it concerns.
+## The cork board in the study at home: every clue Reggie has pinned up, by whom it concerns.
 
 const RAID_CASE: String = "Налёт: что известно"
 const NEW_MARK: String = "НОВОЕ"
@@ -9,7 +9,7 @@ const NEW_COLOR: Color = Color(1.0, 0.62, 0.5)
 
 
 static func announcement(event: SimEvent, sim: SimState) -> String:
-	return "Реджи приколол на доску в бункере улику %d из %d: %s" % [int(event.data["number"]), int(event.data["of"]), sim.intrigue.clue_text(String(event.data["clue"]))]
+	return "Реджи приколол на доску в кабинете улику %d из %d: %s" % [int(event.data["number"]), int(event.data["of"]), sim.intrigue.clue_text(String(event.data["clue"]))]
 
 
 static func when(game_time: float) -> String:
@@ -43,7 +43,7 @@ static func status(sim: SimState, pinned: int) -> String:
 		Intrigue.Phase.ACCUSING:
 			if intrigue.accuse_at > 0.0:
 				return "Все улики на доске. Реджи вернётся к разговору через %s." % UiText.real_duration(intrigue.accuse_at - sim.clock.elapsed_game_seconds, sim)
-			return "Все улики на доске. Пора решать, кто крыса."
+			return "Все улики на доске. Реджи ждёт у неё в кабинете: пора решать, кто крыса."
 	if pinned == 0:
 		return "Доска пуста. Дело закрыли, не начав."
 	return "Дело закрыто. Булавки остались."

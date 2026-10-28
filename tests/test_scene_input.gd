@@ -102,7 +102,7 @@ func test_every_bed_and_work_spot_can_be_reached_in_the_plantation() -> void:
 	var level := await _open(PLANTATION_SCENE)
 	var start := level.jack.global_position
 	var targets := _interactables(level).filter(func(target: Interactable) -> bool: return not target is WorkerTalk)
-	assert_eq(targets.size(), Game.sim.grow.plots().size() + 4, "beds, lift, computer, crates, clue board")
+	assert_eq(targets.size(), Game.sim.grow.plots().size() + 3, "beds, lift, computer, crates; the clue board hangs in the study at home")
 	for target: Interactable in targets:
 		_assert_reachable(level, start, target.approach_position(), target.name)
 		if target is PlotView:

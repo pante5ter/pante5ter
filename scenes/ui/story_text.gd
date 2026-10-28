@@ -81,7 +81,7 @@ static func rat_hunt(sim: SimState) -> String:
 	var intrigue := sim.intrigue
 	if intrigue.phase != Intrigue.Phase.INVESTIGATING:
 		return ""
-	return "Нас сдали «Молочным зубам». Улик собрано %d из %d — я вешаю их на доску у компьютера в бункере. Когда сложим все, решим, кто крыса." % [intrigue.clues_given, intrigue.schedule.size()]
+	return "Нас сдали «Молочным зубам». Улик собрано %d из %d — я вешаю их на пробковую доску у вас в кабинете. Когда сложим все, решим, кто крыса." % [intrigue.clues_given, intrigue.schedule.size()]
 
 
 static func summons(sim: SimState, underground: bool) -> String:

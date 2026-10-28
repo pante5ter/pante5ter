@@ -34,8 +34,9 @@ var alert_banner: AlertBanner
 var road_panel: RoadPanel
 var edge_markers: EdgeMarkers
 var jack_button: JackButton
-var day_card: DayCard
 var night: NightFlow
+## «Развилки» from the pause menu: every fork of the story so far.
+var story_tree: StoryTreeScreen
 var remote_bar: RemoteBar
 var raid_recap: RaidRecap
 ## Set by the level: Reggie phrases directions from where Jack stands.
@@ -75,9 +76,6 @@ func _ready() -> void:
 	jack_button.centre_requested.connect(jack_focus_requested.emit.bind(false))
 	jack_button.follow_requested.connect(jack_focus_requested.emit.bind(true))
 	add_child(jack_button)
-	day_card = DayCard.new()
-	day_card.hud = self
-	add_child(day_card)
 	edge_markers = EdgeMarkers.new()
 	add_child(edge_markers)
 	alert_banner = AlertBanner.new()
@@ -100,7 +98,11 @@ func _ready() -> void:
 	add_child(computer)
 	pause_menu = PauseMenu.new()
 	pause_menu.message.connect(show_message)
+	pause_menu.forks_requested.connect(open_story_tree)
 	add_child(pause_menu)
+	story_tree = StoryTreeScreen.new()
+	story_tree.next_pressed.connect(close_story_tree)
+	add_child(story_tree)
 	for index: int in Game.SPEEDS.size():
 		var button := UiStyle.button("x%d" % roundi(Game.SPEEDS[index]), set_speed.bind(index))
 		button.toggle_mode = true
@@ -238,7 +240,7 @@ func show_message(text: String) -> void:
 
 
 func set_hover(text: String) -> void:
-	var blocked := action_menu.visible or phone.visible or pause_menu.visible or computer.visible or dialogue_box.is_open() or night.is_open()
+	var blocked := action_menu.visible or phone.visible or pause_menu.visible or computer.visible or dialogue_box.is_open() or night.is_open() or story_tree.visible
 	hover_label.text = text
 	hover_label.visible = not text.is_empty() and not blocked
 
@@ -252,7 +254,7 @@ func close_actions() -> void:
 
 
 func is_blocking_world() -> bool:
-	return action_menu.visible or pause_menu.visible or computer.visible or dialogue_box.is_open() or night.is_open()
+	return action_menu.visible or pause_menu.visible or computer.visible or dialogue_box.is_open() or night.is_open() or story_tree.visible
 
 
 ## Phone buttons fire on mouse down and may rebuild the screen under the cursor before the GUI
@@ -362,6 +364,19 @@ func open_computer() -> void:
 	computer.open()
 
 
+func open_story_tree() -> void:
+	action_menu.close()
+	phone.close()
+	story_tree.show_all(Game.sim)
+
+
+func close_story_tree() -> void:
+	if not story_tree.visible:
+		return
+	story_tree.close()
+	pause_menu.resume()
+
+
 func set_speed(index: int) -> void:
 	Game.set_speed(index)
 
@@ -391,7 +406,9 @@ func _input(event: InputEvent) -> void:
 		KEY_TAB:
 			toggle_phone()
 		KEY_ESCAPE:
-			if action_menu.visible:
+			if story_tree.visible:
+				close_story_tree()
+			elif action_menu.visible:
 				action_menu.close()
 			elif computer.visible:
 				computer.close()

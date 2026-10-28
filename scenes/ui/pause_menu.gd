@@ -4,6 +4,7 @@ extends PanelContainer
 const CONTROLS_TEXT: String = "Управление\n\nЛКМ — идти / выбрать действие\nЗажать ЛКМ и тянуть — двигать камеру\nWASD — двигать камеру\nКолесо — приблизить / отдалить\nQ / E — повернуть камеру\nTab — телефон (магазин, склад, империя)\nКомпьютер на плантации — звонки, заказы, курьеры\n1 / 2 / 3 — скорость времени x1 / x2 / x4\nF5 / F9 — быстрое сохранение / загрузка\nEsc — это меню"
 
 signal message(text: String)
+signal forks_requested
 
 var _controls: Label
 var _was_running: bool = false
@@ -22,6 +23,7 @@ func _ready() -> void:
 	rows.add_child(UiStyle.button("Продолжить", close))
 	rows.add_child(UiStyle.button("Сохранить", _save))
 	rows.add_child(UiStyle.button("Загрузить", _load))
+	rows.add_child(UiStyle.button("Развилки", _show_forks))
 	rows.add_child(UiStyle.button("Управление", _toggle_controls))
 	rows.add_child(UiStyle.button("Выйти из игры", _quit))
 	_controls = UiStyle.label(CONTROLS_TEXT, 14, UiStyle.MUTED)
@@ -59,6 +61,16 @@ func _save() -> void:
 func _load() -> void:
 	message.emit("Игра загружена." if Game.load_game() == OK else "Сохранения нет или оно повреждено.")
 	close()
+
+
+## The menu steps aside but time stays stopped while the forks are open.
+func _show_forks() -> void:
+	visible = false
+	forks_requested.emit()
+
+
+func resume() -> void:
+	Game.is_running = _was_running
 
 
 func _toggle_controls() -> void:

@@ -21,6 +21,8 @@ static func lines(sim: SimState) -> PackedStringArray:
 	var story := sim.stories.pending()
 	if story != null and story.place == StoryDef.MANOR:
 		found.append(SEPARATOR.join(["Лорд зовёт в поместье", UiText.due_by(sim.stories.next_event_time(), sim)]))
+	if story != null and story.id == Intrigue.ACCUSE_STORY_ID and sim.day.enabled():
+		found.append(SEPARATOR.join(["Реджи ждёт у доски", "кабинет, дома"]))
 	for order: Order in sim.orders.with_status(Order.Status.ACCEPTED):
 		found.append(SEPARATOR.join(["Заказ #%d: отправить" % order.id, UiText.due_by(order.deadline, sim)]))
 	if found.size() > MAX_LINES:

@@ -26,11 +26,16 @@ func _process(_delta: float) -> void:
 	if story == null:
 		_story_id = ""
 	# Only Jack's people know where the farm is: the lord's talks wait for Jack at the manor.
-	elif story.place != StoryDef.MANOR:
+	elif story.place != StoryDef.MANOR and not waits_for_study(story):
 		_present(story)
 		return
 	if sim.rent.call_pending() and not hud.night.is_open():
 		_present_rent(RentTalk.CALL)
+
+
+## Reggie puts the rat question to Jack at the cork board in the study at home, nowhere else.
+func waits_for_study(story: StoryDef) -> bool:
+	return story.id == Intrigue.ACCUSE_STORY_ID and Game.sim.day.enabled() and hud.place != DayCycle.HOME
 
 
 ## Called by the lord when Jack walks up to him; false when the lord has nothing to discuss.
