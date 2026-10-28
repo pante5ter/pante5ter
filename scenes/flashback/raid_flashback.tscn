@@ -4,99 +4,84 @@
 [ext_resource type="Script" path="res://scenes/flashback/flashback_actor.gd" id="2_actor"]
 [ext_resource type="Script" path="res://scenes/common/character_model.gd" id="3_character_model"]
 [ext_resource type="PackedScene" path="res://assets/models/characters/courier.glb" id="4_courier"]
-[ext_resource type="PackedScene" path="res://assets/models/field/container.glb" id="5_container"]
-[ext_resource type="PackedScene" path="res://assets/models/field/container_shelf.glb" id="6_container_shelf"]
+[ext_resource type="PackedScene" path="res://assets/models/characters/worker.glb" id="5_worker"]
+[ext_resource type="PackedScene" path="res://assets/models/plantation/lift_cage.glb" id="6_lift_cage"]
 [ext_resource type="PackedScene" path="res://assets/models/field/stash_crate.glb" id="7_stash_crate"]
 [ext_resource type="Script" path="res://scenes/common/model_row.gd" id="8_model_row"]
-[ext_resource type="PackedScene" path="res://assets/models/field/path_tile_2x2.glb" id="9_path_tile"]
-[ext_resource type="PackedScene" path="res://assets/models/field/path_tile_t_2x2.glb" id="10_path_tile_t"]
-[ext_resource type="Script" path="res://scenes/common/scatter_field.gd" id="11_scatter_field"]
-[ext_resource type="PackedScene" path="res://assets/models/field/wheat_clump.glb" id="12_wheat_clump"]
-[ext_resource type="PackedScene" path="res://assets/models/field/hedge_2m.glb" id="13_hedge"]
-[ext_resource type="PackedScene" path="res://assets/models/field/bush.glb" id="14_bush"]
-[ext_resource type="PackedScene" path="res://assets/models/field/tree_round.glb" id="15_tree_round"]
-[ext_resource type="PackedScene" path="res://assets/models/field/tree_conifer.glb" id="16_tree_conifer"]
-[ext_resource type="PackedScene" path="res://assets/models/field/puddle.glb" id="17_puddle"]
-[ext_resource type="Script" path="res://scenes/flashback/flashback_container.gd" id="18_container"]
-[ext_resource type="Script" path="res://scenes/flashback/flashback_camera.gd" id="19_camera"]
+[ext_resource type="PackedScene" path="res://assets/models/plantation/concrete_wall_2m.glb" id="9_concrete_wall"]
+[ext_resource type="PackedScene" path="res://assets/models/plantation/vent_duct_2m.glb" id="10_vent_duct"]
+[ext_resource type="PackedScene" path="res://assets/models/plantation/raised_bed.glb" id="11_raised_bed"]
+[ext_resource type="PackedScene" path="res://assets/models/plantation/plant_stage_4.glb" id="12_plant"]
+[ext_resource type="PackedScene" path="res://assets/models/plantation/grow_lamp.glb" id="13_grow_lamp"]
+[ext_resource type="Script" path="res://scenes/flashback/flashback_prop.gd" id="14_prop"]
+[ext_resource type="Script" path="res://scenes/flashback/flashback_camera.gd" id="15_camera"]
 
-[sub_resource type="Environment" id="env_night"]
+[sub_resource type="Environment" id="env_bunker"]
 background_mode = 1
-background_color = Color(0.137, 0.165, 0.2, 1)
+background_color = Color(0.08, 0.07, 0.06, 1)
 ambient_light_source = 2
-ambient_light_color = Color(0.165, 0.196, 0.251, 1)
-ambient_light_energy = 2.8
+ambient_light_color = Color(0.29, 0.263, 0.235, 1)
+ambient_light_energy = 1.4
 tonemap_mode = 4
-fog_enabled = true
-fog_light_color = Color(0.137, 0.165, 0.2, 1)
-fog_density = 0.008
+glow_enabled = true
+glow_intensity = 0.6
 
-[sub_resource type="StandardMaterial3D" id="mat_grass_mid"]
-albedo_color = Color(0.337, 0.447, 0.29, 1)
+[sub_resource type="StandardMaterial3D" id="mat_concrete"]
+albedo_color = Color(0.435, 0.431, 0.416, 1)
 roughness = 0.9
 
-[sub_resource type="BoxMesh" id="mesh_ground"]
-size = Vector3(120, 1, 100)
+[sub_resource type="BoxMesh" id="mesh_floor"]
+size = Vector3(17, 1, 13)
 
-[sub_resource type="StandardMaterial3D" id="mat_path_dirt"]
-albedo_color = Color(0.49, 0.4, 0.314, 1)
-roughness = 0.9
-
-[sub_resource type="BoxMesh" id="mesh_yard"]
-size = Vector3(13, 0.02, 7)
-
-[sub_resource type="StandardMaterial3D" id="mat_mud"]
-albedo_color = Color(0.369, 0.294, 0.227, 1)
-roughness = 0.9
-
-[sub_resource type="BoxMesh" id="mesh_crop_soil"]
-size = Vector3(43, 0.03, 58)
-
-[sub_resource type="StandardMaterial3D" id="mat_car_body"]
-albedo_color = Color(0.11, 0.11, 0.118, 1)
-roughness = 0.9
-
-[sub_resource type="StandardMaterial3D" id="mat_car_cabin"]
-albedo_color = Color(0.227, 0.227, 0.235, 1)
-roughness = 0.9
-
-[sub_resource type="StandardMaterial3D" id="mat_car_wheel"]
+[sub_resource type="StandardMaterial3D" id="mat_pot_black"]
 albedo_color = Color(0.149, 0.153, 0.165, 1)
 roughness = 0.9
 
-[sub_resource type="BoxMesh" id="mesh_car_body"]
-material = SubResource("mat_car_body")
-size = Vector3(1.8, 0.7, 3.8)
-
-[sub_resource type="BoxMesh" id="mesh_car_cabin"]
-material = SubResource("mat_car_cabin")
-size = Vector3(1.6, 0.6, 2.0)
-
-[sub_resource type="CylinderMesh" id="mesh_car_wheel"]
-material = SubResource("mat_car_wheel")
-top_radius = 0.34
-bottom_radius = 0.34
-height = 0.24
+[sub_resource type="CylinderMesh" id="mesh_bucket"]
+material = SubResource("mat_pot_black")
+top_radius = 0.26
+bottom_radius = 0.2
+height = 0.45
 radial_segments = 8
 rings = 1
 
-[node name="RaidFlashback" type="CanvasLayer" node_paths=PackedStringArray("view", "camera", "robber", "operator", "container_entrance", "door_point", "car", "car_door_point", "carried_crates", "drive_route", "caption_label", "subtitle_label", "hint_label", "skip_button", "veil")]
+[sub_resource type="CylinderMesh" id="mesh_pole"]
+material = SubResource("mat_pot_black")
+top_radius = 0.04
+bottom_radius = 0.04
+height = 1.8
+radial_segments = 6
+rings = 1
+
+[sub_resource type="CylinderMesh" id="mesh_stand_foot"]
+material = SubResource("mat_pot_black")
+top_radius = 0.3
+bottom_radius = 0.3
+height = 0.06
+radial_segments = 8
+rings = 1
+
+[node name="RaidFlashback" type="CanvasLayer" node_paths=PackedStringArray("view", "camera", "robber", "operator", "guard", "lift", "lift_point", "lift_inside", "crate_stack", "crates_point", "props", "carried_crates", "caption_label", "subtitle_label", "hint_label", "rec_label", "skip_button", "flash", "veil")]
 layer = 50
 script = ExtResource("1_flashback")
 view = NodePath("Screen/View")
 camera = NodePath("Screen/View/Viewport/World/Camera")
 robber = NodePath("Screen/View/Viewport/World/Robber")
 operator = NodePath("Screen/View/Viewport/World/Operator")
-container_entrance = NodePath("Screen/View/Viewport/World/Container")
-door_point = NodePath("Screen/View/Viewport/World/DoorPoint")
-car = NodePath("Screen/View/Viewport/World/Car")
-car_door_point = NodePath("Screen/View/Viewport/World/CarDoorPoint")
+guard = NodePath("Screen/View/Viewport/World/Guard")
+lift = NodePath("Screen/View/Viewport/World/Lift")
+lift_point = NodePath("Screen/View/Viewport/World/LiftPoint")
+lift_inside = NodePath("Screen/View/Viewport/World/LiftInside")
+crate_stack = NodePath("Screen/View/Viewport/World/CrateStack")
+crates_point = NodePath("Screen/View/Viewport/World/CratesPoint")
+props = NodePath("Screen/View/Viewport/World/Props")
 carried_crates = NodePath("Screen/View/Viewport/World/Robber/Carried")
-drive_route = NodePath("Screen/View/Viewport/World/DriveRoute")
 caption_label = NodePath("Screen/Caption")
 subtitle_label = NodePath("Screen/Subtitle")
 hint_label = NodePath("Screen/Hint")
+rec_label = NodePath("Screen/Rec")
 skip_button = NodePath("Screen/Skip")
+flash = NodePath("Screen/Flash")
 veil = NodePath("Screen/Veil")
 
 [node name="Screen" type="Control" parent="."]
@@ -127,214 +112,242 @@ render_target_update_mode = 4
 [node name="World" type="Node3D" parent="Screen/View/Viewport"]
 
 [node name="Environment" type="WorldEnvironment" parent="Screen/View/Viewport/World"]
-environment = SubResource("env_night")
-
-[node name="Moon" type="DirectionalLight3D" parent="Screen/View/Viewport/World"]
-rotation = Vector3(-0.698132, 0.7, 0)
-light_color = Color(0.498, 0.576, 0.71, 1)
-light_energy = 0.2
-shadow_enabled = true
-directional_shadow_max_distance = 60.0
+environment = SubResource("env_bunker")
 
 [node name="Camera" type="Camera3D" parent="Screen/View/Viewport/World"]
-script = ExtResource("19_camera")
+script = ExtResource("15_camera")
+distance = 19.0
 current = true
-fov = 28.0
+fov = 30.0
 near = 0.5
-far = 300.0
+far = 200.0
 
-[node name="Ground" type="MeshInstance3D" parent="Screen/View/Viewport/World"]
-position = Vector3(0, -0.5, 10)
-mesh = SubResource("mesh_ground")
-surface_material_override/0 = SubResource("mat_grass_mid")
+[node name="Floor" type="MeshInstance3D" parent="Screen/View/Viewport/World"]
+position = Vector3(0.5, -0.5, 0)
+mesh = SubResource("mesh_floor")
+surface_material_override/0 = SubResource("mat_concrete")
 
-[node name="Yard" type="MeshInstance3D" parent="Screen/View/Viewport/World"]
-position = Vector3(3.5, 0.008, 6.5)
-mesh = SubResource("mesh_yard")
-surface_material_override/0 = SubResource("mat_path_dirt")
-
-[node name="Lane" type="Node3D" parent="Screen/View/Viewport/World"]
-position = Vector3(0, 0.006, 23)
+[node name="WallNorth" type="Node3D" parent="Screen/View/Viewport/World"]
+position = Vector3(0, 0, -6.4)
 script = ExtResource("8_model_row")
-model = ExtResource("9_path_tile")
-count = 18
+model = ExtResource("9_concrete_wall")
+count = 9
+spacing = Vector3(2, 0, 0)
+vary_yaw = false
+
+[node name="WallWest" type="Node3D" parent="Screen/View/Viewport/World"]
+position = Vector3(-8, 0, 0)
+script = ExtResource("8_model_row")
+model = ExtResource("9_concrete_wall")
+count = 7
 spacing = Vector3(0, 0, 2)
 vary_yaw = false
-
-[node name="Junction" parent="Screen/View/Viewport/World" instance=ExtResource("10_path_tile_t")]
-position = Vector3(0, 0.005, 42)
-
-[node name="RoadWest" type="Node3D" parent="Screen/View/Viewport/World"]
-position = Vector3(-24, 0.005, 42)
-script = ExtResource("8_model_row")
-model = ExtResource("9_path_tile")
-count = 23
-spacing = Vector3(2, 0, 0)
-vary_yaw = false
 yaw_degrees = 90.0
 
-[node name="RoadEast" type="Node3D" parent="Screen/View/Viewport/World"]
-position = Vector3(24, 0.005, 42)
+[node name="Vents" type="Node3D" parent="Screen/View/Viewport/World"]
+position = Vector3(1, 2.3, -5.85)
 script = ExtResource("8_model_row")
-model = ExtResource("9_path_tile")
-count = 23
-spacing = Vector3(2, 0, 0)
-vary_yaw = false
-yaw_degrees = 90.0
-
-[node name="Puddle" parent="Screen/View/Viewport/World" instance=ExtResource("17_puddle")]
-position = Vector3(0.3, 0.012, 26)
-rotation = Vector3(0, 1.047198, 0)
-
-[node name="Soil" type="MeshInstance3D" parent="Screen/View/Viewport/World"]
-position = Vector3(-25.5, 0.015, 0)
-mesh = SubResource("mesh_crop_soil")
-surface_material_override/0 = SubResource("mat_mud")
-
-[node name="Wheat" type="MultiMeshInstance3D" parent="Screen/View/Viewport/World"]
-position = Vector3(-25.5, 0.03, 0)
-script = ExtResource("11_scatter_field")
-model = ExtResource("12_wheat_clump")
-size = Vector2(42, 57)
-spacing = 1.15
-jitter = 0.3
-
-[node name="HedgeSouth" type="Node3D" parent="Screen/View/Viewport/World"]
-position = Vector3(-25, 0, 30.5)
-script = ExtResource("8_model_row")
-model = ExtResource("13_hedge")
-count = 22
+model = ExtResource("10_vent_duct")
+count = 6
 spacing = Vector3(2, 0, 0)
 vary_yaw = false
 
-[node name="HedgeNorth" type="Node3D" parent="Screen/View/Viewport/World"]
-position = Vector3(-25, 0, -30.5)
-script = ExtResource("8_model_row")
-model = ExtResource("13_hedge")
-count = 22
-spacing = Vector3(2, 0, 0)
-vary_yaw = false
+[node name="Lift" type="Node3D" parent="Screen/View/Viewport/World"]
+position = Vector3(-6.6, 0, 0)
 
-[node name="BushesYard" type="Node3D" parent="Screen/View/Viewport/World"]
-position = Vector3(8, 0, 2)
-script = ExtResource("8_model_row")
-model = ExtResource("14_bush")
-count = 4
-spacing = Vector3(2.2, 0, 0)
+[node name="Model" parent="Screen/View/Viewport/World/Lift" instance=ExtResource("6_lift_cage")]
+rotation = Vector3(0, 1.570796, 0)
 
-[node name="BushesField" type="Node3D" parent="Screen/View/Viewport/World"]
-position = Vector3(-48.5, 0, 0)
-script = ExtResource("8_model_row")
-model = ExtResource("14_bush")
-count = 12
-spacing = Vector3(0, 0, 4.6)
-
-[node name="TreeNorth" parent="Screen/View/Viewport/World" instance=ExtResource("16_tree_conifer")]
-position = Vector3(9, 0, -32)
-scale = Vector3(1.4, 1.4, 1.4)
-
-[node name="TreeEast" parent="Screen/View/Viewport/World" instance=ExtResource("15_tree_round")]
-position = Vector3(13, 0, 18)
-scale = Vector3(1.3, 1.3, 1.3)
-
-[node name="TreeYard" parent="Screen/View/Viewport/World" instance=ExtResource("15_tree_round")]
-position = Vector3(13, 0, -10)
-scale = Vector3(1.2, 1.2, 1.2)
-
-[node name="TreeSouth" parent="Screen/View/Viewport/World" instance=ExtResource("16_tree_conifer")]
-position = Vector3(-21, 0, 50)
-scale = Vector3(1.2, 1.2, 1.2)
-
-[node name="Container" type="Node3D" parent="Screen/View/Viewport/World" node_paths=PackedStringArray("model", "shelf")]
-script = ExtResource("18_container")
-model = NodePath("Model")
-shelf = NodePath("Shelf")
-
-[node name="Model" parent="Screen/View/Viewport/World/Container" instance=ExtResource("5_container")]
-rotation = Vector3(0, -1.570796, 0)
-
-[node name="Shelf" parent="Screen/View/Viewport/World/Container" instance=ExtResource("6_container_shelf")]
-position = Vector3(0, 0, 2.6)
-
-[node name="ContainerLabel" type="Label3D" parent="Screen/View/Viewport/World"]
-position = Vector3(0, 3.4, 0)
+[node name="Label" type="Label3D" parent="Screen/View/Viewport/World/Lift"]
+position = Vector3(0, 3.6, 0)
 pixel_size = 0.008
 billboard = 1
 no_depth_test = true
-text = "Контейнер"
-font_size = 44
+text = "Лифт"
+font_size = 40
 outline_size = 10
 
-[node name="DoorLamp" type="OmniLight3D" parent="Screen/View/Viewport/World"]
-position = Vector3(0, 2.8, 3.6)
+[node name="LiftLamp" type="OmniLight3D" parent="Screen/View/Viewport/World"]
+position = Vector3(-5.2, 2.6, 0)
 light_color = Color(0.949, 0.769, 0.42, 1)
-light_energy = 1.2
-omni_range = 6.0
+light_energy = 1.0
+omni_range = 5.0
 
-[node name="DoorPoint" type="Marker3D" parent="Screen/View/Viewport/World"]
-position = Vector3(0, 0, 4.4)
+[node name="LiftPoint" type="Marker3D" parent="Screen/View/Viewport/World"]
+position = Vector3(-4.4, 0, 0)
 
-[node name="Car" type="Node3D" parent="Screen/View/Viewport/World"]
-position = Vector3(0, 0, 19)
+[node name="LiftInside" type="Marker3D" parent="Screen/View/Viewport/World"]
+position = Vector3(-6.6, 0, 0)
 
-[node name="Body" type="MeshInstance3D" parent="Screen/View/Viewport/World/Car"]
-position = Vector3(0, 0.6, 0)
-mesh = SubResource("mesh_car_body")
+[node name="CrateStack" type="Node3D" parent="Screen/View/Viewport/World"]
+position = Vector3(-4.6, 0, -4.2)
 
-[node name="Cabin" type="MeshInstance3D" parent="Screen/View/Viewport/World/Car"]
-position = Vector3(0, 1.25, -0.3)
-mesh = SubResource("mesh_car_cabin")
+[node name="Crate0" parent="Screen/View/Viewport/World/CrateStack" instance=ExtResource("7_stash_crate")]
+position = Vector3(-0.45, 0, 0)
+scale = Vector3(0.75, 0.75, 0.75)
 
-[node name="WheelFL" type="MeshInstance3D" parent="Screen/View/Viewport/World/Car"]
-position = Vector3(-0.9, 0.34, 1.2)
-rotation = Vector3(0, 0, 1.570796)
-mesh = SubResource("mesh_car_wheel")
+[node name="Crate1" parent="Screen/View/Viewport/World/CrateStack" instance=ExtResource("7_stash_crate")]
+position = Vector3(0.45, 0, 0)
+rotation = Vector3(0, 0.261799, 0)
+scale = Vector3(0.75, 0.75, 0.75)
 
-[node name="WheelFR" type="MeshInstance3D" parent="Screen/View/Viewport/World/Car"]
-position = Vector3(0.9, 0.34, 1.2)
-rotation = Vector3(0, 0, 1.570796)
-mesh = SubResource("mesh_car_wheel")
+[node name="Crate2" parent="Screen/View/Viewport/World/CrateStack" instance=ExtResource("7_stash_crate")]
+position = Vector3(0, 0.62, 0)
+rotation = Vector3(0, 0.523599, 0)
+scale = Vector3(0.75, 0.75, 0.75)
 
-[node name="WheelRL" type="MeshInstance3D" parent="Screen/View/Viewport/World/Car"]
-position = Vector3(-0.9, 0.34, -1.2)
-rotation = Vector3(0, 0, 1.570796)
-mesh = SubResource("mesh_car_wheel")
+[node name="Crate3" parent="Screen/View/Viewport/World/CrateStack" instance=ExtResource("7_stash_crate")]
+position = Vector3(1.3, 0, 0)
+rotation = Vector3(0, 0.785398, 0)
+scale = Vector3(0.75, 0.75, 0.75)
 
-[node name="WheelRR" type="MeshInstance3D" parent="Screen/View/Viewport/World/Car"]
-position = Vector3(0.9, 0.34, -1.2)
-rotation = Vector3(0, 0, 1.570796)
-mesh = SubResource("mesh_car_wheel")
+[node name="Crate4" parent="Screen/View/Viewport/World/CrateStack" instance=ExtResource("7_stash_crate")]
+position = Vector3(0.9, 0.62, 0)
+rotation = Vector3(0, 1.047198, 0)
+scale = Vector3(0.75, 0.75, 0.75)
 
-[node name="Label" type="Label3D" parent="Screen/View/Viewport/World/Car"]
-position = Vector3(0, 2.4, 0)
+[node name="Crate5" parent="Screen/View/Viewport/World/CrateStack" instance=ExtResource("7_stash_crate")]
+position = Vector3(-1.3, 0, 0)
+rotation = Vector3(0, 1.308997, 0)
+scale = Vector3(0.75, 0.75, 0.75)
+
+[node name="Label" type="Label3D" parent="Screen/View/Viewport/World/CrateStack"]
+position = Vector3(0, 2.0, 0)
 pixel_size = 0.008
 billboard = 1
 no_depth_test = true
-text = "Машина"
+text = "Ящики"
 font_size = 36
 outline_size = 10
-modulate = Color(1, 0.55, 0.45, 1)
 
-[node name="CarDoorPoint" type="Marker3D" parent="Screen/View/Viewport/World"]
-position = Vector3(-1.6, 0, 19)
+[node name="CratesLight" type="OmniLight3D" parent="Screen/View/Viewport/World"]
+position = Vector3(-4.6, 2.4, -3.6)
+light_color = Color(0.949, 0.769, 0.42, 1)
+light_energy = 1.0
+omni_range = 4.0
 
-[node name="DriveRoute" type="Node3D" parent="Screen/View/Viewport/World"]
+[node name="CratesPoint" type="Marker3D" parent="Screen/View/Viewport/World"]
+position = Vector3(-4.6, 0, -2.8)
 
-[node name="P0" type="Marker3D" parent="Screen/View/Viewport/World/DriveRoute"]
-position = Vector3(0, 0, 30)
+[node name="Beds" type="Node3D" parent="Screen/View/Viewport/World"]
 
-[node name="P1" type="Marker3D" parent="Screen/View/Viewport/World/DriveRoute"]
-position = Vector3(0, 0, 41)
+[node name="Bed0" parent="Screen/View/Viewport/World/Beds" instance=ExtResource("11_raised_bed")]
+position = Vector3(1, 0, -3.4)
 
-[node name="P2" type="Marker3D" parent="Screen/View/Viewport/World/DriveRoute"]
-position = Vector3(14, 0, 42)
+[node name="Plant0" parent="Screen/View/Viewport/World/Beds" instance=ExtResource("12_plant")]
+position = Vector3(1, 0.3, -3.4)
 
-[node name="P3" type="Marker3D" parent="Screen/View/Viewport/World/DriveRoute"]
-position = Vector3(46, 0, 42)
+[node name="Bed1" parent="Screen/View/Viewport/World/Beds" instance=ExtResource("11_raised_bed")]
+position = Vector3(4.4, 0, -3.4)
+
+[node name="Plant1" parent="Screen/View/Viewport/World/Beds" instance=ExtResource("12_plant")]
+position = Vector3(4.4, 0.3, -3.4)
+
+[node name="Bed2" parent="Screen/View/Viewport/World/Beds" instance=ExtResource("11_raised_bed")]
+position = Vector3(1, 0, 0)
+
+[node name="Plant2" parent="Screen/View/Viewport/World/Beds" instance=ExtResource("12_plant")]
+position = Vector3(1, 0.3, 0)
+
+[node name="Bed3" parent="Screen/View/Viewport/World/Beds" instance=ExtResource("11_raised_bed")]
+position = Vector3(4.4, 0, 0)
+
+[node name="Plant3" parent="Screen/View/Viewport/World/Beds" instance=ExtResource("12_plant")]
+position = Vector3(4.4, 0.3, 0)
+
+[node name="Bed4" parent="Screen/View/Viewport/World/Beds" instance=ExtResource("11_raised_bed")]
+position = Vector3(1, 0, 3.4)
+
+[node name="Plant4" parent="Screen/View/Viewport/World/Beds" instance=ExtResource("12_plant")]
+position = Vector3(1, 0.3, 3.4)
+
+[node name="Bed5" parent="Screen/View/Viewport/World/Beds" instance=ExtResource("11_raised_bed")]
+position = Vector3(4.4, 0, 3.4)
+
+[node name="Plant5" parent="Screen/View/Viewport/World/Beds" instance=ExtResource("12_plant")]
+position = Vector3(4.4, 0.3, 3.4)
+
+[node name="Lamp0" parent="Screen/View/Viewport/World/Beds" instance=ExtResource("13_grow_lamp")]
+position = Vector3(1, 2.5, -3.4)
+scale = Vector3(1.6, 1.6, 1.6)
+
+[node name="Lamp1" parent="Screen/View/Viewport/World/Beds" instance=ExtResource("13_grow_lamp")]
+position = Vector3(4.4, 2.5, 0)
+scale = Vector3(1.6, 1.6, 1.6)
+
+[node name="Lamp2" parent="Screen/View/Viewport/World/Beds" instance=ExtResource("13_grow_lamp")]
+position = Vector3(1, 2.5, 3.4)
+scale = Vector3(1.6, 1.6, 1.6)
+
+[node name="GrowLightNorth" type="OmniLight3D" parent="Screen/View/Viewport/World/Beds"]
+position = Vector3(2.7, 2.3, -3.4)
+light_color = Color(0.949, 0.769, 0.42, 1)
+light_energy = 1.6
+omni_range = 5.5
+
+[node name="GrowLightMiddle" type="OmniLight3D" parent="Screen/View/Viewport/World/Beds"]
+position = Vector3(2.7, 2.3, 0)
+light_color = Color(0.949, 0.769, 0.42, 1)
+light_energy = 1.6
+omni_range = 5.5
+
+[node name="GrowLightSouth" type="OmniLight3D" parent="Screen/View/Viewport/World/Beds"]
+position = Vector3(2.7, 2.3, 3.4)
+light_color = Color(0.949, 0.769, 0.42, 1)
+light_energy = 1.6
+omni_range = 5.5
+
+[node name="Props" type="Node3D" parent="Screen/View/Viewport/World"]
+
+[node name="LampStandWest" type="Node3D" parent="Screen/View/Viewport/World/Props"]
+position = Vector3(-1.6, 0, 1.8)
+script = ExtResource("14_prop")
+
+[node name="Foot" type="MeshInstance3D" parent="Screen/View/Viewport/World/Props/LampStandWest"]
+position = Vector3(0, 0.03, 0)
+mesh = SubResource("mesh_stand_foot")
+
+[node name="Pole" type="MeshInstance3D" parent="Screen/View/Viewport/World/Props/LampStandWest"]
+position = Vector3(0, 0.9, 0)
+mesh = SubResource("mesh_pole")
+
+[node name="Lamp" parent="Screen/View/Viewport/World/Props/LampStandWest" instance=ExtResource("13_grow_lamp")]
+position = Vector3(0, 1.8, 0)
+
+[node name="LampStandEast" type="Node3D" parent="Screen/View/Viewport/World/Props"]
+position = Vector3(6.4, 0, -1.7)
+script = ExtResource("14_prop")
+
+[node name="Foot" type="MeshInstance3D" parent="Screen/View/Viewport/World/Props/LampStandEast"]
+position = Vector3(0, 0.03, 0)
+mesh = SubResource("mesh_stand_foot")
+
+[node name="Pole" type="MeshInstance3D" parent="Screen/View/Viewport/World/Props/LampStandEast"]
+position = Vector3(0, 0.9, 0)
+mesh = SubResource("mesh_pole")
+
+[node name="Lamp" parent="Screen/View/Viewport/World/Props/LampStandEast" instance=ExtResource("13_grow_lamp")]
+position = Vector3(0, 1.8, 0)
+
+[node name="BucketMiddle" type="Node3D" parent="Screen/View/Viewport/World/Props"]
+position = Vector3(2.7, 0, 1.7)
+script = ExtResource("14_prop")
+
+[node name="Mesh" type="MeshInstance3D" parent="Screen/View/Viewport/World/Props/BucketMiddle"]
+position = Vector3(0, 0.225, 0)
+mesh = SubResource("mesh_bucket")
+
+[node name="BucketNorth" type="Node3D" parent="Screen/View/Viewport/World/Props"]
+position = Vector3(-1.4, 0, -2.2)
+script = ExtResource("14_prop")
+
+[node name="Mesh" type="MeshInstance3D" parent="Screen/View/Viewport/World/Props/BucketNorth"]
+position = Vector3(0, 0.225, 0)
+mesh = SubResource("mesh_bucket")
 
 [node name="Robber" type="Node3D" parent="Screen/View/Viewport/World" node_paths=PackedStringArray("model")]
-position = Vector3(-1.4, 0, 16.5)
-rotation = Vector3(0, 3.141593, 0)
+position = Vector3(-4.4, 0, 0.6)
+rotation = Vector3(0, 1.570796, 0)
 script = ExtResource("2_actor")
 model = NodePath("Model")
 
@@ -370,7 +383,7 @@ outline_size = 10
 modulate = Color(1, 0.55, 0.45, 1)
 
 [node name="Operator" type="Node3D" parent="Screen/View/Viewport/World" node_paths=PackedStringArray("model")]
-position = Vector3(-3.4, 0, 17.5)
+position = Vector3(-5.2, 0, 1.8)
 script = ExtResource("2_actor")
 speed = 4.4
 model = NodePath("Model")
@@ -386,6 +399,60 @@ light_color = Color(0.929, 0.922, 0.902, 1)
 light_energy = 0.8
 omni_range = 3.5
 
+[node name="Guard" type="Node3D" parent="Screen/View/Viewport/World" node_paths=PackedStringArray("model")]
+position = Vector3(-1.2, 0, -4.6)
+rotation = Vector3(0, 3.141593, 0)
+script = ExtResource("2_actor")
+speed = 3.2
+model = NodePath("Model")
+
+[node name="Model" type="Node3D" parent="Screen/View/Viewport/World/Guard"]
+script = ExtResource("3_character_model")
+
+[node name="Mesh" parent="Screen/View/Viewport/World/Guard/Model" instance=ExtResource("5_worker")]
+
+[node name="Label" type="Label3D" parent="Screen/View/Viewport/World/Guard"]
+position = Vector3(0, 2.3, 0)
+pixel_size = 0.008
+billboard = 1
+no_depth_test = true
+text = "Реджи"
+font_size = 32
+outline_size = 10
+
+[node name="LetterboxTop" type="ColorRect" parent="Screen"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 70.0
+grow_horizontal = 2
+mouse_filter = 2
+color = Color(0, 0, 0, 1)
+
+[node name="LetterboxBottom" type="ColorRect" parent="Screen"]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -70.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
+color = Color(0, 0, 0, 1)
+
+[node name="Rec" type="Label" parent="Screen"]
+layout_mode = 1
+offset_left = 24.0
+offset_top = 18.0
+offset_right = 200.0
+offset_bottom = 52.0
+theme_override_colors/font_color = Color(0.722, 0.227, 0.196, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 6
+theme_override_font_sizes/font_size = 24
+text = "● REC"
+
 [node name="Caption" type="Label" parent="Screen"]
 layout_mode = 1
 anchors_preset = 8
@@ -394,9 +461,9 @@ anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = -500.0
-offset_top = -40.0
+offset_top = -60.0
 offset_right = 500.0
-offset_bottom = 40.0
+offset_bottom = 60.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_colors/font_color = Color(0.96, 0.84, 0.45, 1)
@@ -411,16 +478,17 @@ layout_mode = 1
 anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
-offset_left = -460.0
-offset_top = 20.0
-offset_right = 460.0
-offset_bottom = 52.0
+offset_left = -560.0
+offset_top = 82.0
+offset_right = 560.0
+offset_bottom = 114.0
 grow_horizontal = 2
 theme_override_colors/font_color = Color(0.85, 0.81, 0.745, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 6
 theme_override_font_sizes/font_size = 18
 horizontal_alignment = 1
+autowrap_mode = 3
 
 [node name="Subtitle" type="Label" parent="Screen"]
 layout_mode = 1
@@ -430,9 +498,9 @@ anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
 offset_left = -560.0
-offset_top = -110.0
+offset_top = -140.0
 offset_right = 560.0
-offset_bottom = -60.0
+offset_bottom = -90.0
 grow_horizontal = 2
 grow_vertical = 0
 theme_override_colors/font_color = Color(0.929, 0.922, 0.902, 1)
@@ -448,12 +516,22 @@ anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
 offset_left = -210.0
-offset_top = 14.0
+offset_top = 16.0
 offset_right = -14.0
-offset_bottom = 52.0
+offset_bottom = 54.0
 grow_horizontal = 0
 focus_mode = 0
 text = "Пропустить  [Esc]"
+
+[node name="Flash" type="ColorRect" parent="Screen"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.929, 0.922, 0.902, 1)
 
 [node name="Veil" type="ColorRect" parent="Screen"]
 layout_mode = 1

@@ -1,0 +1,51 @@
+[gd_resource type="Resource" script_class="StoryDef" format=3]
+
+[ext_resource type="Script" path="res://content/defs/story_def.gd" id="1_story"]
+[ext_resource type="Script" path="res://content/defs/story_choice_def.gd" id="2_choice"]
+[ext_resource type="Script" path="res://content/defs/dialogue_line_def.gd" id="3_line"]
+
+[sub_resource type="Resource" id="Line_1"]
+script = ExtResource("3_line")
+speaker = ""
+text = "Звонит Реджи. Без «доброго утра» — значит, новости не из приятных."
+
+[sub_resource type="Resource" id="Line_2"]
+script = ExtResource("3_line")
+speaker = "Реджи"
+text = "Ещё про «Зубов». Зал Гаффера живёт на абонементы по двадцать фунтов. А у троих его пацанов с прошлой недели одинаковые новые кроссовки. По триста."
+
+[sub_resource type="Resource" id="Line_3"]
+script = ExtResource("3_line")
+speaker = "Реджи"
+text = "И клип первым выложил не их канал. Лондонский аккаунт, без лица, подпись одна — «Шёлк». Кто-то пацанам заплатил. И теперь этим хвастается."
+
+[sub_resource type="Resource" id="Line_4"]
+script = ExtResource("3_line")
+speaker = "Реджи"
+text = "Узнаю. Начну с Гаффера — он не любит, когда его пацанов покупают через его голову."
+
+[sub_resource type="Resource" id="Choice_1"]
+script = ExtResource("2_choice")
+label = "Узнай, кто такой «Шёлк»"
+reply = Array[ExtResource("3_line")]([SubResource("Line_4")])
+
+[sub_resource type="Resource" id="Line_5"]
+script = ExtResource("3_line")
+speaker = "Реджи"
+text = "Работаем. Только тот, кто платит за клипы, обычно хочет продолжения. Гафферу я всё-таки позвоню — для порядка."
+
+[sub_resource type="Resource" id="Choice_2"]
+script = ExtResource("2_choice")
+label = "Не до того. Работаем"
+reply = Array[ExtResource("3_line")]([SubResource("Line_5")])
+
+[resource]
+script = ExtResource("1_story")
+id = "silk_clue"
+kind = "script"
+after_stories = PackedStringArray("raid_clip")
+from_hour = 9.0
+until_hour = 19.0
+delay_hours = 14.0
+lines = Array[ExtResource("3_line")]([SubResource("Line_1"), SubResource("Line_2"), SubResource("Line_3")])
+choices = Array[ExtResource("2_choice")]([SubResource("Choice_1"), SubResource("Choice_2")])

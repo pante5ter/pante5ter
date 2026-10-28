@@ -12,12 +12,22 @@ text = "Утро после налёта. Реджи кладёт на стол 
 [sub_resource type="Resource" id="Line_2"]
 script = ExtResource("3_line")
 speaker = "Реджи"
-text = "Один из «Молочных зубов» обронил у контейнера. Тут их новый клип: бит, балаклавы, наш контейнер крупным планом."
+text = "Один из «Молочных зубов» обронил у контейнера. В клип вошёл только наш подвал, а в черновиках — как они заходят."
 
 [sub_resource type="Resource" id="Line_3"]
 script = ExtResource("3_line")
 speaker = "Реджи"
 text = "На сорок второй секунде один из них сразу тянет стеллаж — не ищет, не стучит по стенам. Он знал, что стеллаж отъезжает. Кто-то им рассказал, мистер Кэллоуэй."
+
+[sub_resource type="Resource" id="Line_Gaffer_1"]
+script = ExtResource("3_line")
+speaker = "Реджи"
+text = "Пацаны — из зала Гаффера, это Южный Лондон. Старый боксёр из Глазго: подбирает ребят с улицы и учит держать удар, чтобы не держали нож."
+
+[sub_resource type="Resource" id="Line_Gaffer_2"]
+script = ExtResource("3_line")
+speaker = "Реджи"
+text = "Сам Гаффер такое не заказал бы — не его стиль, и со мной он всегда был честен. Своих он знает: за деньги назовёт, кто им шепнул про стеллаж. Или ответим сами — но тогда он нам уже не друг."
 
 [sub_resource type="Resource" id="Line_4"]
 script = ExtResource("3_line")
@@ -73,5 +83,5 @@ fail_reply = Array[ExtResource("3_line")]([SubResource("Line_8"), SubResource("L
 script = ExtResource("1_story")
 id = "raid_clip"
 kind = "script"
-lines = Array[ExtResource("3_line")]([SubResource("Line_1"), SubResource("Line_2"), SubResource("Line_3")])
+lines = Array[ExtResource("3_line")]([SubResource("Line_1"), SubResource("Line_2"), SubResource("Line_3"), SubResource("Line_Gaffer_1"), SubResource("Line_Gaffer_2")])
 choices = Array[ExtResource("2_choice")]([SubResource("Choice_1"), SubResource("Choice_2"), SubResource("Choice_3")])

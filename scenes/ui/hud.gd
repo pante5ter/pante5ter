@@ -38,6 +38,7 @@ var day_card: DayCard
 var night: NightFlow
 var remote_bar: RemoteBar
 var raid_recap: RaidRecap
+var reggie_pov: ReggiePov
 ## Set by the level: Reggie phrases directions from where Jack stands.
 var underground: bool = false
 ## Set by the level: which of Jack's places this view shows.
@@ -119,6 +120,9 @@ func _ready() -> void:
 	raid_recap = RaidRecap.new()
 	raid_recap.hud = self
 	add_child(raid_recap)
+	reggie_pov = ReggiePov.new()
+	reggie_pov.hud = self
+	add_child(reggie_pov)
 	story_presenter = StoryPresenter.new()
 	story_presenter.hud = self
 	add_child(story_presenter)

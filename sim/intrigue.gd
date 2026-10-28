@@ -99,10 +99,23 @@ func accusable() -> Array[SuspectDef]:
 func next_event_time() -> float:
 	if phase == Phase.ACCUSING and accuse_at > 0.0:
 		return accuse_at
+	var intro_at := _next_intro_at()
 	if phase != Phase.INVESTIGATING:
-		return INF
+		return intro_at
 	if clues_given < schedule.size():
-		return next_clue_at
+		return minf(next_clue_at, intro_at)
+	return intro_at
+
+
+## An introduction held back by its visitor's hours wakes the hunt when they come.
+func _next_intro_at() -> float:
+	var hunting := phase == Phase.INVESTIGATING or (phase == Phase.ACCUSING and accuse_at <= 0.0 and not _stories.used.has(ACCUSE_STORY_ID))
+	if not hunting or _stories.is_pending() or _stories.clock == null:
+		return INF
+	for person: SuspectDef in _def.suspects:
+		if is_introduced(person) or not _can_meet(person):
+			continue
+		return person.intro_story.opens_at(_stories.clock.elapsed_game_seconds)
 	return INF
 
 
@@ -230,7 +243,7 @@ func _introduce(now: float) -> bool:
 	for person: SuspectDef in _def.suspects:
 		if is_introduced(person) or not _can_meet(person):
 			continue
-		if _stories.is_pending():
+		if _stories.is_pending() or not person.intro_story.is_open_at(now):
 			return false
 		_stories.start(person.intro_story, now, ACTOR)
 	return true

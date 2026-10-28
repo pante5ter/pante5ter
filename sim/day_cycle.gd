@@ -143,9 +143,10 @@ func interrupt_sleep(alarm: SimEvent) -> void:
 	})
 
 
-## What wakes Jack at night: trouble at the farm someone has to answer.
+## What wakes Jack at night: an inspection someone has to answer. A raid does not: Reggie and the
+## farm deal with it on their own, and Jack hears of it over breakfast.
 static func is_alarm(event: SimEvent) -> bool:
-	return event.type == EventLog.RAID_STARTED or event.type == EventLog.INSPECTION_WARNED
+	return event.type == EventLog.INSPECTION_WARNED
 
 
 func next_event_time() -> float:

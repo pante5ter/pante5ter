@@ -48,6 +48,7 @@ var day: DayCycle
 var stash: Stash
 var planting: PlantingPlan
 var meetings: Meetings
+var threads: StoryThreads
 
 
 func _init(balance: BalanceConfig, seed_value: int) -> void:
@@ -84,6 +85,8 @@ func _init(balance: BalanceConfig, seed_value: int) -> void:
 	couriers.attach_helper(helper)
 	raids.attach_helper(helper)
 	stories = Stories.new(balance, economy, suspicion, rent, rng, event_log)
+	stories.clock = clock
+	threads = StoryThreads.new(balance, stories, clock, event_log)
 	first_day = FirstDay.new(balance, grow, inventory, orders, problems, stories, event_log)
 	director = Director.new(balance, rng, orders, problems, suspicion, raids, couriers, stories, first_day, event_log)
 	intrigue = Intrigue.new(balance, rng, stories, raids, couriers, suspicion, event_log)
@@ -110,6 +113,7 @@ func apply(command: SimCommand) -> CommandResult:
 	first_day.update(clock.elapsed_game_seconds)
 	intrigue.update(clock.elapsed_game_seconds)
 	thefts.update(clock.elapsed_game_seconds)
+	threads.update(clock.elapsed_game_seconds)
 	meetings.update(clock.elapsed_game_seconds)
 	progress.update(empire_value(), clock.elapsed_game_seconds)
 	return result
@@ -287,6 +291,7 @@ func _next_event_time() -> float:
 	next = minf(next, minf(first_day.next_event_time(), director.next_event_time()))
 	next = minf(next, minf(intrigue.next_event_time(), stories.next_event_time()))
 	next = minf(next, minf(day.next_event_time(), stash.next_event_time()))
+	next = minf(next, threads.next_event_time())
 	return minf(next, raids.next_event_time())
 
 
@@ -310,6 +315,7 @@ func _process_events(now: float) -> void:
 	first_day.update(now)
 	intrigue.update(now)
 	thefts.update(now)
+	threads.update(now)
 	director.process(now)
 	meetings.update(now)
 

@@ -13,6 +13,8 @@ var used: Array[String] = []
 var relations: Dictionary[String, int] = {}
 ## Stories built at runtime (the intrigue's accusation), rebuilt from saved state on load.
 var _built: Dictionary[String, StoryDef] = {}
+## Set by SimState: a story is ready only within its hours of the day.
+var clock: SimClock = null
 
 var _config: BalanceConfig
 var _economy: Economy
@@ -46,6 +48,9 @@ func all() -> Array[StoryDef]:
 		for person: SuspectDef in _config.intrigue.suspects:
 			if person.intro_story != null and not found.has(person.intro_story):
 				found.append(person.intro_story)
+	for beat: StoryDef in _config.threads:
+		if not found.has(beat):
+			found.append(beat)
 	found.append_array(_built.values())
 	return found
 
@@ -101,11 +106,14 @@ func untold(kind: String) -> Array[StoryDef]:
 	return found
 
 
-## A later beat of a story waits for the earlier ones and for the village to grow suspicious.
+## A later beat of a story waits for the earlier ones and for the village to grow suspicious;
+## a visitor waits for his hours of the day.
 func is_ready(story: StoryDef) -> bool:
 	for earlier: String in story.after_stories:
 		if not used.has(earlier):
 			return false
+	if clock != null and not story.is_open_at(clock.elapsed_game_seconds):
+		return false
 	return _suspicion.level >= story.min_suspicion
 
 

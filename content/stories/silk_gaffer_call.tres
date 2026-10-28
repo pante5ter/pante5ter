@@ -1,0 +1,62 @@
+[gd_resource type="Resource" script_class="StoryDef" format=3]
+
+[ext_resource type="Script" path="res://content/defs/story_def.gd" id="1_story"]
+[ext_resource type="Script" path="res://content/defs/story_choice_def.gd" id="2_choice"]
+[ext_resource type="Script" path="res://content/defs/dialogue_line_def.gd" id="3_line"]
+
+[sub_resource type="Resource" id="Line_1"]
+script = ExtResource("3_line")
+speaker = ""
+text = "Звонит Реджи. На фоне — глухие удары по груше и чей-то свисток."
+
+[sub_resource type="Resource" id="Line_2"]
+script = ExtResource("3_line")
+speaker = "Реджи"
+text = "Я у Гаффера в зале. Он хочет сказать сам."
+
+[sub_resource type="Resource" id="Line_3"]
+script = ExtResource("3_line")
+speaker = "Гаффер"
+text = "Мистер Кэллоуэй. Пацанов моих купили. Молодой китаец из Лондона, костюм дороже моего ринга. Лео Чан. На улице его зовут Шёлк."
+
+[sub_resource type="Resource" id="Line_4"]
+script = ExtResource("3_line")
+speaker = "Гаффер"
+text = "Сказал им: возьмёте подвал красиво, на камеру, — заплачу вдвое. Своих я выпорю. А он — это уже ваше дело, не моё."
+
+[sub_resource type="Resource" id="Line_5"]
+script = ExtResource("3_line")
+speaker = "Гаффер"
+text = "Перчатки новые куплю. Сунется Шёлк ко мне в зал ещё раз — узнаете первым."
+
+[sub_resource type="Resource" id="Line_6"]
+script = ExtResource("3_line")
+speaker = "Реджи"
+text = "Хорошие люди стоят недорого. Поэтому их так мало."
+
+[sub_resource type="Resource" id="Choice_1"]
+script = ExtResource("2_choice")
+label = "Поблагодарить Гаффера: £100 на зал"
+money = -100
+reply = Array[ExtResource("3_line")]([SubResource("Line_5"), SubResource("Line_6")])
+
+[sub_resource type="Resource" id="Line_7"]
+script = ExtResource("3_line")
+speaker = "Гаффер"
+text = "Сами так сами. Только он не из тех, кто приходит один раз."
+
+[sub_resource type="Resource" id="Choice_2"]
+script = ExtResource("2_choice")
+label = "«Спасибо, Гаффер. Дальше мы сами»"
+reply = Array[ExtResource("3_line")]([SubResource("Line_7")])
+
+[resource]
+script = ExtResource("1_story")
+id = "silk_gaffer_call"
+kind = "script"
+after_stories = PackedStringArray("silk_clue")
+from_hour = 10.0
+until_hour = 20.0
+delay_hours = 20.0
+lines = Array[ExtResource("3_line")]([SubResource("Line_1"), SubResource("Line_2"), SubResource("Line_3"), SubResource("Line_4")])
+choices = Array[ExtResource("2_choice")]([SubResource("Choice_1"), SubResource("Choice_2")])

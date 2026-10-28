@@ -31,6 +31,8 @@ extends Resource
 @export var intrigue: IntrigueDef
 ## Reggie's call after a courier steals; %s in the texts is the thief's name. Null: no call.
 @export var courier_theft_story: StoryDef
+## Plot threads, told beat by beat by StoryThreads.
+@export var threads: Array[StoryDef] = []
 ## Temperature, humidity and ventilation in the bunker. Null: mold is a plain random problem.
 @export var climate: ClimateDef
 ## Evening call, nights out and sleep. Null: no day rhythm, travel takes no time.

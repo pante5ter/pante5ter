@@ -1,0 +1,82 @@
+[gd_resource type="Resource" script_class="StoryDef" format=3]
+
+[ext_resource type="Script" path="res://content/defs/story_def.gd" id="1_story"]
+[ext_resource type="Script" path="res://content/defs/story_choice_def.gd" id="2_choice"]
+[ext_resource type="Script" path="res://content/defs/dialogue_line_def.gd" id="3_line"]
+
+[sub_resource type="Resource" id="Line_1"]
+script = ExtResource("3_line")
+speaker = ""
+text = "Скрытый номер. Голос молодой, тихий, без акцента — так говорят люди, которым не приходится повторять."
+
+[sub_resource type="Resource" id="Line_2"]
+script = ExtResource("3_line")
+speaker = "Шёлк"
+text = "Мистер Кэллоуэй. Лео Чан. Надеюсь, клип вам понравился — монтаж я оплачивал отдельно."
+
+[sub_resource type="Resource" id="Line_3"]
+script = ExtResource("3_line")
+speaker = "Шёлк"
+text = "Я не ворую, я провожу аудит. Подвал у вас хороший, люди — старые, крыша — лорд, которому нужны деньги. Я покупаю дело целиком. Цену назовите сами. Я её поправлю."
+
+[sub_resource type="Resource" id="Line_4"]
+script = ExtResource("3_line")
+speaker = "Джек"
+text = "Не продаётся."
+
+[sub_resource type="Resource" id="Line_5"]
+script = ExtResource("3_line")
+speaker = "Шёлк"
+text = "Всё продаётся, мистер Кэллоуэй. Просто не всё сразу. Я перезвоню, когда вы подешевеете."
+
+[sub_resource type="Resource" id="Choice_1"]
+script = ExtResource("2_choice")
+label = "«Не продаётся»"
+reply = Array[ExtResource("3_line")]([SubResource("Line_4"), SubResource("Line_5")])
+
+[sub_resource type="Resource" id="Line_6"]
+script = ExtResource("3_line")
+speaker = "Шёлк"
+text = "Чай на Джеррард-стрит, в четверг. Адрес пришлю. Берите Реджи — он у вас красиво падает."
+
+[sub_resource type="Resource" id="Line_7"]
+script = ExtResource("3_line")
+speaker = "Реджи"
+text = "Пойду. Падать в этот раз будет не моя очередь."
+
+[sub_resource type="Resource" id="Choice_2"]
+script = ExtResource("2_choice")
+label = "Предложить встречу — в Лондоне, на его территории"
+reply = Array[ExtResource("3_line")]([SubResource("Line_6"), SubResource("Line_7")])
+
+[sub_resource type="Resource" id="Line_8"]
+script = ExtResource("3_line")
+speaker = "Джек"
+text = "Ещё один клип, мистер Чан, — и снимать его будет некому."
+
+[sub_resource type="Resource" id="Line_9"]
+script = ExtResource("3_line")
+speaker = "Шёлк"
+text = "Угрозы — это расходы, а не аргументы. Записал."
+
+[sub_resource type="Resource" id="Line_10"]
+script = ExtResource("3_line")
+speaker = "Реджи"
+text = "Записал. Такие правда записывают."
+
+[sub_resource type="Resource" id="Choice_3"]
+script = ExtResource("2_choice")
+label = "Пригрозить"
+suspicion = 4.0
+reply = Array[ExtResource("3_line")]([SubResource("Line_8"), SubResource("Line_9"), SubResource("Line_10")])
+
+[resource]
+script = ExtResource("1_story")
+id = "silk_call"
+kind = "script"
+after_stories = PackedStringArray("silk_gaffer_call")
+from_hour = 11.0
+until_hour = 21.0
+delay_hours = 22.0
+lines = Array[ExtResource("3_line")]([SubResource("Line_1"), SubResource("Line_2"), SubResource("Line_3")])
+choices = Array[ExtResource("2_choice")]([SubResource("Choice_1"), SubResource("Choice_2"), SubResource("Choice_3")])

@@ -1,58 +1,75 @@
 class_name RaidFlashback
 extends CanvasLayer
-## The robbery replayed as one of «Молочные зубы»: walk to the container, carry the crates out, drive off.
-## Display only. The sim already decided how many crates went, and nothing here touches Game.sim.
+## The gang's clip, played as one of «Молочные зубы» inside the bunker: down in the lift, knock things over
+## for the camera, carry the crates to the lift and ride up. If Reggie was there, he steps in and is shoved
+## aside. Display only: the sim already decided how many crates went, and nothing here touches Game.sim.
 
-## Behind the black the flashback replaced the owner's view: the owner may stop drawing its own scene.
+## Behind the black the clip replaced the owner's view: the owner may stop drawing its own scene.
 signal opened
 ## The screen is black: the owner puts its scene back and calls dismiss().
 signal finished
 
-enum Phase { INTRO, PLAYING, DRIVING, ENDING, DONE }
+enum Phase { INTRO, PLAYING, LEAVING, ENDING, DONE }
 
 const FLASHBACK_LAYER: int = 50
 const FADE_SECONDS: float = 0.5
 const CAPTION_SECONDS: float = 2.6
 const SUBTITLE_SECONDS: float = 3.2
-## However big the haul, a few trips into the container carry it all.
+## However big the haul, a few grabs at the stack carry it all.
 const MAX_TRIPS: int = 4
 const TRIP_SECONDS: float = 0.9
-const DRIVE_SECONDS: float = 3.6
-const CONTAINER_CLICK_RADIUS: float = 3.0
-const CAR_CLICK_RADIUS: float = 2.6
-## The yard in front of the container and the lane down to the car: x/z of the walkable ground.
-const WALK_AREA: Rect2 = Rect2(-6.0, 4.6, 14.0, 19.4)
-const OPERATOR_DISTANCE: float = 2.8
+const SCUFFLE_SECONDS: float = 0.9
+const RISE_SECONDS: float = 1.4
+const RISE_HEIGHT: float = 3.2
+const REC_BLINK_SECONDS: float = 0.5
+const CRATES_CLICK_RADIUS: float = 2.0
+const LIFT_CLICK_RADIUS: float = 2.2
+const PROP_CLICK_RADIUS: float = 1.0
+const GUARD_REACH: float = 1.1
+const LIFT_DOOR_NAME: String = "Door"
+const LIFT_DOOR_OFFSET: Vector3 = Vector3(1.84, 0.0, 0.0)
+## The bunker floor between the lift and the far wall: x/z of where one may walk.
+const WALK_AREA: Rect2 = Rect2(-5.2, -5.0, 12.0, 10.0)
+const OPERATOR_DISTANCE: float = 2.2
 
 @export var view: SubViewportContainer
 @export var camera: FlashbackCamera
 @export var robber: FlashbackActor
 @export var operator: FlashbackActor
-@export var container_entrance: FlashbackContainer
-@export var door_point: Marker3D
-@export var car: Node3D
-@export var car_door_point: Marker3D
+@export var guard: FlashbackActor
+@export var lift: Node3D
+@export var lift_point: Marker3D
+@export var lift_inside: Marker3D
+@export var crate_stack: Node3D
+@export var crates_point: Marker3D
+@export var props: Node3D
 @export var carried_crates: Node3D
-@export var drive_route: Node3D
 @export var caption_label: Label
 @export var subtitle_label: Label
 @export var hint_label: Label
+@export var rec_label: Label
 @export var skip_button: Button
+@export var flash: ColorRect
 @export var veil: ColorRect
 
 var total: int = 0
 var carried: int = 0
+var knocked: int = 0
 var phase: Phase = Phase.INTRO
+var guard_present: bool = false
+var guard_down: bool = false
 var _caption: String = ""
 var _batch: int = 1
-var _in_container: bool = false
+var _busy: bool = false
 var _subtitle_left: float = 0.0
+var _rec_left: float = REC_BLINK_SECONDS
 
 
-func setup(caption: String, taken: int) -> void:
+func setup(caption: String, taken: int, with_guard: bool = false) -> void:
 	_caption = caption
 	total = maxi(taken, 1)
 	_batch = ceili(float(total) / float(MAX_TRIPS))
+	guard_present = with_guard
 
 
 func _ready() -> void:
@@ -65,7 +82,12 @@ func _ready() -> void:
 	skip_button.text = RaidRecapText.SKIP_LABEL
 	skip_button.pressed.connect(skip)
 	veil.modulate.a = 0.0
-	_show_carried()
+	flash.modulate.a = 0.0
+	guard.visible = guard_present
+	var door := _lift_door()
+	if door != null:
+		door.position += LIFT_DOOR_OFFSET
+	_show_crates()
 	camera.target = robber
 	camera.snap()
 	var tween := create_tween()
@@ -77,7 +99,7 @@ func _ready() -> void:
 
 
 func is_playable() -> bool:
-	return phase == Phase.PLAYING and not _in_container
+	return phase == Phase.PLAYING and not _busy
 
 
 func _open_scene() -> void:
@@ -85,7 +107,7 @@ func _open_scene() -> void:
 		return
 	view.visible = true
 	skip_button.visible = true
-	caption_label.text = _caption
+	caption_label.text = "%s\n%s" % [RaidRecapText.CLIP_TITLE, _caption]
 	caption_label.visible = true
 	opened.emit()
 
@@ -114,11 +136,15 @@ func _process(delta: float) -> void:
 	_subtitle_left = maxf(_subtitle_left - delta, 0.0)
 	if _subtitle_left <= 0.0:
 		subtitle_label.visible = false
+	_rec_left -= delta
+	if _rec_left <= 0.0:
+		_rec_left = REC_BLINK_SECONDS
+		rec_label.visible = not rec_label.visible
 	_follow_robber()
 
 
 func _follow_robber() -> void:
-	if not operator.visible:
+	if not operator.visible or phase == Phase.LEAVING:
 		return
 	var away := operator.position - robber.position
 	away.y = 0.0
@@ -143,7 +169,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		click_ground(point as Vector3)
 
 
-## Where a click on the screen meets the ground; null when it misses (the sky).
+## Where a click on the screen meets the floor; null when it misses.
 func ground_point(screen_position: Vector2) -> Variant:
 	var origin := camera.project_ray_origin(screen_position)
 	var normal := camera.project_ray_normal(screen_position)
@@ -153,54 +179,129 @@ func ground_point(screen_position: Vector2) -> Variant:
 func click_ground(point: Vector3) -> void:
 	if not is_playable():
 		return
-	if _flat_distance(point, container_entrance.position) < CONTAINER_CLICK_RADIUS or _flat_distance(point, door_point.position) < CONTAINER_CLICK_RADIUS:
-		go_to_container()
-	elif _flat_distance(point, car.position) < CAR_CLICK_RADIUS:
-		go_to_car()
+	var prop := _prop_near(point)
+	if _flat_distance(point, crate_stack.position) < CRATES_CLICK_RADIUS or _flat_distance(point, crates_point.position) < CRATES_CLICK_RADIUS:
+		go_to_crates()
+	elif _flat_distance(point, lift.position) < LIFT_CLICK_RADIUS or _flat_distance(point, lift_point.position) < LIFT_CLICK_RADIUS:
+		go_to_lift()
+	elif prop != null:
+		knock_over(prop)
 	else:
 		robber.move_to(_walkable(point))
 
 
-func go_to_container() -> void:
+func go_to_crates() -> void:
 	if is_playable():
-		robber.move_to(door_point.position, _fetch_crates)
+		robber.move_to(crates_point.position, _at_crates)
 
 
-func go_to_car() -> void:
+func go_to_lift() -> void:
 	if is_playable():
-		robber.move_to(car_door_point.position, _board)
+		robber.move_to(lift_point.position, _board)
 
 
-func _fetch_crates() -> void:
+func knock_over(prop: FlashbackProp) -> void:
+	if is_playable() and not prop.knocked:
+		robber.move_to(_walkable(prop.position.lerp(robber.position, 0.25)), _knock.bind(prop))
+
+
+func standing_props() -> Array[FlashbackProp]:
+	var found: Array[FlashbackProp] = []
+	for child: Node in props.get_children():
+		var prop := child as FlashbackProp
+		if prop != null and not prop.knocked:
+			found.append(prop)
+	return found
+
+
+func _prop_near(point: Vector3) -> FlashbackProp:
+	for prop: FlashbackProp in standing_props():
+		if _flat_distance(point, prop.position) < PROP_CLICK_RADIUS:
+			return prop
+	return null
+
+
+func _knock(prop: FlashbackProp) -> void:
+	if not is_playable() or prop.knocked:
+		return
+	robber.face(prop.position)
+	prop.knock(robber.position)
+	knocked += 1
+	if knocked == 1:
+		say(RaidRecapText.banter(RaidRecapText.KNOCKED))
+
+
+func _at_crates() -> void:
 	if not is_playable():
 		return
-	if carried >= total:
-		_hint(RaidRecapText.car_hint())
+	if guard_present and not guard_down:
+		_scuffle()
 		return
-	_in_container = true
-	robber.face(container_entrance.position)
-	var tween := create_tween()
-	tween.tween_interval(container_entrance.open())
-	tween.tween_callback(_go_inside)
-	tween.tween_interval(TRIP_SECONDS)
-	tween.tween_callback(_come_out)
+	_grab()
 
 
-func _go_inside() -> void:
-	robber.visible = false
+## Reggie steps out from behind the beds and is shoved aside: a flash, and he sits down hard.
+func _scuffle() -> void:
+	_busy = true
+	say(RaidRecapText.banter(RaidRecapText.GUARD_STEPS_IN))
+	var meet := robber.position + (guard.position - robber.position).normalized() * GUARD_REACH
+	guard.move_to(meet, _shove)
 
 
-func _come_out() -> void:
-	_in_container = false
+func _shove() -> void:
 	if phase != Phase.PLAYING:
 		return
-	robber.visible = true
+	robber.face(guard.position)
+	guard.face(robber.position)
+	var back := (guard.position - robber.position).normalized()
+	var tween := create_tween()
+	tween.tween_property(robber, "position", robber.position + back * 0.4, 0.12)
+	tween.tween_property(flash, "modulate:a", 0.8, 0.06)
+	tween.tween_callback(_knock_guard_down.bind(back))
+	tween.tween_property(robber, "position", robber.position, 0.12)
+	tween.tween_property(flash, "modulate:a", 0.0, 0.2)
+	tween.tween_interval(SCUFFLE_SECONDS)
+	tween.tween_callback(_after_scuffle)
+
+
+func _knock_guard_down(back: Vector3) -> void:
+	guard_down = true
+	guard.position += back * 0.6
+	guard.rotation.x = deg_to_rad(-70.0)
+	say(RaidRecapText.banter(RaidRecapText.GUARD_DOWN))
+
+
+func _after_scuffle() -> void:
+	_busy = false
+	if phase == Phase.PLAYING:
+		_grab()
+
+
+func _grab() -> void:
+	if carried >= total:
+		_hint(RaidRecapText.lift_hint())
+		return
+	_busy = true
+	robber.face(crate_stack.position)
+	if robber.model != null:
+		robber.model.play_work()
+	var tween := create_tween()
+	tween.tween_interval(TRIP_SECONDS)
+	tween.tween_callback(_take_batch)
+
+
+func _take_batch() -> void:
+	_busy = false
+	if phase != Phase.PLAYING:
+		return
+	if robber.model != null:
+		robber.model.play_idle()
 	var first := carried == 0
 	carried = mini(total, carried + _batch)
-	_show_carried()
-	robber.face(car.position)
+	_show_crates()
+	robber.face(lift.position)
 	if carried >= total:
-		_hint(RaidRecapText.car_hint())
+		_hint(RaidRecapText.lift_hint())
 		say(RaidRecapText.banter(RaidRecapText.LOADED))
 		return
 	_hint(RaidRecapText.load_hint(carried, total))
@@ -208,11 +309,15 @@ func _come_out() -> void:
 		say(RaidRecapText.banter(RaidRecapText.FIRST_CRATE))
 
 
-func _show_carried() -> void:
-	var crates := carried_crates.get_children()
-	var shown := ceili(float(carried) / float(total) * float(crates.size())) if total > 0 else 0
-	for index: int in crates.size():
-		(crates[index] as Node3D).visible = index < shown
+func _show_crates() -> void:
+	var in_hands := carried_crates.get_children()
+	var shown := ceili(float(carried) / float(total) * float(in_hands.size())) if total > 0 else 0
+	for index: int in in_hands.size():
+		(in_hands[index] as Node3D).visible = index < shown
+	var stacked := crate_stack.get_children()
+	var left := ceili(float(total - carried) / float(total) * float(stacked.size())) if total > 0 else 0
+	for index: int in stacked.size():
+		(stacked[index] as Node3D).visible = index < left
 
 
 func _board() -> void:
@@ -221,32 +326,34 @@ func _board() -> void:
 	if carried < total:
 		_hint(RaidRecapText.load_hint(carried, total))
 		return
-	drive_off()
+	leave()
 
 
-func drive_off() -> void:
-	phase = Phase.DRIVING
+func leave() -> void:
+	phase = Phase.LEAVING
 	hint_label.visible = false
-	robber.stop()
+	say(RaidRecapText.banter(RaidRecapText.DRIVE_OFF))
+	operator.move_to(lift_inside.position + Vector3(0.0, 0.0, 0.6))
+	robber.move_to(lift_inside.position, _rise)
+
+
+func _rise() -> void:
+	if phase != Phase.LEAVING:
+		return
 	robber.visible = false
 	operator.stop()
 	operator.visible = false
-	say(RaidRecapText.banter(RaidRecapText.DRIVE_OFF))
-	camera.target = car
-	var points := drive_route.get_children()
+	camera.target = lift
 	var tween := create_tween()
-	var leg_seconds := DRIVE_SECONDS / float(maxi(points.size(), 1))
-	for marker: Node in points:
-		var target := (marker as Node3D).position
-		tween.tween_callback(_aim_car.bind(target))
-		tween.tween_property(car, "position", target, leg_seconds)
+	var door := _lift_door()
+	if door != null:
+		tween.tween_property(door, "position", door.position - LIFT_DOOR_OFFSET, 0.3)
+	tween.tween_property(lift, "position", lift.position + Vector3.UP * RISE_HEIGHT, RISE_SECONDS).set_trans(Tween.TRANS_SINE)
 	tween.tween_callback(_end)
 
 
-func _aim_car(target: Vector3) -> void:
-	var flat := Vector3(target.x - car.position.x, 0.0, target.z - car.position.z)
-	if flat.length() > 0.01:
-		car.rotation.y = atan2(flat.x, flat.z)
+func _lift_door() -> Node3D:
+	return lift.find_child(LIFT_DOOR_NAME, true, false) as Node3D
 
 
 func skip() -> void:

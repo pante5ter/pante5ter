@@ -26,6 +26,9 @@ func _process(_delta: float) -> void:
 	if story == null:
 		_story_id = ""
 	# Only Jack's people know where the farm is: the lord's talks wait for Jack at the manor.
+	elif ReggiePov.wants(story, sim):
+		hud.reggie_pov.handle(story)
+		return
 	elif story.place != StoryDef.MANOR:
 		_present(story)
 		return
@@ -43,6 +46,11 @@ func present_at_manor() -> bool:
 		return false
 	_present(story)
 	return true
+
+
+## Reggie's talk with a visitor, once the two have met on the field.
+func present_visit(story: StoryDef) -> void:
+	_present(story)
 
 
 func _present(story: StoryDef) -> void:

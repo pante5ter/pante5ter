@@ -2,14 +2,14 @@ class_name NightFlow
 extends Control
 
 ## Bedtime at home: the screen goes dark, the night runs in the sim, then the summary of the day and the
-## morning briefing. A farm alarm wakes Jack instead, and Reggie asks what to do.
+## morning briefing. An inspection wakes Jack instead, and Reggie asks what to do; a night raid
+## waits for breakfast, where Vivienne has seen the clip first.
 
 const FADE_SECONDS: float = 0.4
 const DRIVE: int = 0
-const LOOK: int = 1
-const SLEEP_ON: int = 2
-const ALARM_CHOICES: PackedStringArray = ["Ехать на ферму", "Посмотреть, что там", "Спать дальше — Реджи справится"]
-const ALARM_REPLIES: PackedStringArray = ["Машина у двери. Поехали.", "Сейчас покажу. Ты пока не одевайся.", "Спи. Разберусь — расскажу утром."]
+const SLEEP_ON: int = 1
+const ALARM_CHOICES: PackedStringArray = ["Ехать на ферму", "Спать дальше — Реджи справится"]
+const ALARM_REPLIES: PackedStringArray = ["Машина у двери. Поехали.", "Спи. Разберусь — расскажу утром."]
 
 ## Set by the HUD.
 var hud: Hud
@@ -106,8 +106,6 @@ func _act_on_alarm() -> void:
 			var result := Travel.go(DayCycle.FARM)
 			if not result.ok:
 				hud.show_message(UiText.error(result.error))
-		LOOK:
-			Travel.look_at(DayCycle.FARM)
 		SLEEP_ON:
 			sleep()
 
@@ -164,6 +162,10 @@ func close() -> void:
 	tween.tween_property(_veil, "modulate:a", 0.0, FADE_SECONDS)
 	if hud.place != Game.sim.day.place:
 		Travel.back_to_jack()
+		return
+	var robbery := hud.raid_recap.unseen_robbery()
+	if robbery != null and hud.place == DayCycle.HOME:
+		hud.raid_recap.tell_at_breakfast(robbery)
 		return
 	var woke_at_home := _home_night_since(_night_from)
 	if woke_at_home != null and hud.place == DayCycle.HOME:

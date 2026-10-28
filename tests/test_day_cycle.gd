@@ -173,7 +173,7 @@ func test_sleep_equals_waiting_the_night_out() -> void:
 	assert_eq(slept.economy.money, waited.economy.money + slept.config.day.home_night_money, "only a night in bed brings Vivienne's bridge winnings")
 
 
-func test_a_raid_wakes_jack_on_the_spot_and_sleeping_on_lets_reggie_handle_it() -> void:
+func test_a_night_raid_does_not_wake_jack_and_reggie_handles_it() -> void:
 	var config := _config()
 	config.raids.chance_per_night = 1.0
 	config.starting_money = 1000
@@ -183,18 +183,16 @@ func test_a_raid_wakes_jack_on_the_spot_and_sleeping_on_lets_reggie_handle_it() 
 	_advance(state, config.raids.start_hours - 2.0, 1.0)
 	var result := state.apply(SleepCommand.new())
 	assert_true(result.ok)
-	assert_ne(result.value, -1, "an alarm cut the night short")
-	var alarm := state.event_log.entries()[result.value]
-	assert_eq(alarm.type, EventLog.RAID_STARTED)
-	assert_eq(state.clock.elapsed_game_seconds, alarm.game_time, "the clock stops at the alarm")
-	assert_true(state.raids.pending)
-	assert_eq(state.event_log.of_type(EventLog.SLEEP_INTERRUPTED).size(), 1)
-	assert_eq(state.event_log.of_type(EventLog.JACK_WOKE).size(), 0)
-	assert_true(state.apply(SleepCommand.new()).ok, "sleeping on is allowed")
+	assert_eq(result.value, -1, "Jack sleeps through the raid")
+	assert_eq(state.event_log.of_type(EventLog.RAID_STARTED).size(), 1, "the gang came all the same")
+	assert_eq(state.event_log.of_type(EventLog.SLEEP_INTERRUPTED).size(), 0)
+	assert_eq(state.event_log.of_type(EventLog.JACK_WOKE).size(), 1)
 	assert_false(state.raids.pending, "Reggie dealt with them while Jack slept")
 	var outcome := String(state.event_log.of_type(EventLog.RAID_RESOLVED)[0].data["outcome"])
 	assert_true(outcome.begins_with("helper_"), outcome)
+	assert_lt(state.event_log.of_type(EventLog.RAID_RESOLVED)[0].game_time, state.clock.elapsed_game_seconds, "settled before breakfast")
 	assert_almost_eq(state.clock.hour_of_day(), config.day.wake_hour, 0.0001)
+	assert_false(DayCycle.is_alarm(state.event_log.of_type(EventLog.RAID_STARTED)[0]))
 
 
 func test_an_inspection_warning_is_an_alarm_too() -> void:
@@ -210,18 +208,19 @@ func test_an_inspection_warning_is_an_alarm_too() -> void:
 
 func test_travelling_to_the_farm_after_an_alarm_takes_the_drive_time() -> void:
 	var config := _config()
-	config.raids.chance_per_night = 1.0
-	config.starting_money = 1000
-	config.helper = null
+	config.suspicion.inspection_threshold = 30.0
 	var state := SimState.new(config, 2)
-	state.inventory.create(config.strain.id, 60)
 	_go(state, DayCycle.HOME)
-	_advance(state, config.raids.start_hours - 2.0, 1.0)
-	state.apply(SleepCommand.new())
-	assert_true(state.raids.pending)
+	_advance_to_hour(state, 22.0)
+	state.suspicion.add(40.0)
+	var result := state.apply(SleepCommand.new())
+	assert_ne(result.value, -1, "an alarm cut the night short")
+	var alarm := state.event_log.entries()[result.value]
+	assert_eq(state.clock.elapsed_game_seconds, alarm.game_time, "the clock stops at the alarm")
+	assert_true(state.suspicion.inspection_pending())
 	assert_true(_go(state, DayCycle.FARM).ok)
-	assert_true(state.raids.pending, "the gang waits an hour; the drive is shorter")
-	assert_true(state.apply(RaidCommand.new(Raids.PAY)).ok)
+	assert_almost_eq(state.clock.elapsed_game_seconds - alarm.game_time, state.day.travel_seconds(), 0.001)
+	assert_true(state.suspicion.inspection_pending(), "the inspector gives more warning than the drive takes")
 
 
 func test_the_day_survives_save_and_load() -> void:

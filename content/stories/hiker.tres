@@ -7,7 +7,7 @@
 [sub_resource type="Resource" id="Line_1"]
 script = ExtResource("3_line")
 speaker = ""
-text = "Утро. В дверь коттеджа стучит мужчина в анораке, с картой и термосом."
+text = "Утро. По тропе к контейнеру шагает мужчина в анораке, с картой и термосом."
 
 [sub_resource type="Resource" id="Line_2"]
 script = ExtResource("3_line")
@@ -65,5 +65,8 @@ reply = Array[ExtResource("3_line")]([SubResource("Line_7"), SubResource("Line_8
 script = ExtResource("1_story")
 id = "hiker"
 kind = "village"
+from_hour = 7.0
+until_hour = 12.0
+visitor_name = "Турист"
 lines = Array[ExtResource("3_line")]([SubResource("Line_1"), SubResource("Line_2"), SubResource("Line_3")])
 choices = Array[ExtResource("2_choice")]([SubResource("Choice_1"), SubResource("Choice_2")])
