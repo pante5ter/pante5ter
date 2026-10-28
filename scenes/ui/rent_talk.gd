@@ -88,4 +88,21 @@ static func announcement(event: SimEvent, sim: SimState) -> String:
 
 
 static func missed_visit(event: SimEvent) -> String:
-	return "Лорд Эшкомб прождал вас в поместье до назначенного часа. Аренда не приехала, херес выдохся. Пропущено %d из %d." % [int(event.data["missed"]), int(event.data["evict_after"])]
+	return "Лорд Эшкомб прождал вас в поместье до назначенного часа. Аренда не приехала, херес выдохся. Пропущено %d из %d.%s" % [int(event.data["missed"]), int(event.data["evict_after"]), debt_note(event)]
+
+
+## A missed payment is not forgiven: what the RENT_MISSED event says about the debt it left.
+static func debt_note(event: SimEvent) -> String:
+	var debt := int(event.data.get("debt", 0))
+	if debt <= 0:
+		return ""
+	var fee := int(event.data.get("late_fee", 0))
+	var with_fee := " (с пеней %s)" % UiText.money(fee) if fee > 0 else ""
+	return " Долг лорду — %s%s: его человек заберёт деньги из кассы, как только там наберётся вся сумма." % [UiText.money(debt), with_fee]
+
+
+## Empty without a debt.
+static func debt_reminder(sim: SimState) -> String:
+	if sim.rent.debt <= 0:
+		return ""
+	return " Плюс долг с пеней — %s: лорд заберёт его из кассы сам, как только наберётся." % UiText.money(sim.rent.debt)

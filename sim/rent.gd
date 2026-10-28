@@ -21,6 +21,9 @@ var evicted: bool = false
 var credit: int = 0
 ## About the payment due at next_due_at: "" until the lord rings, then CALLED or PROMISED.
 var call_stage: String = ""
+## Missed rent plus late fees: the lord takes it from the till as soon as it is all there.
+var debt: int = 0
+var next_collect_at: float = INF
 
 var _def: RentDef
 var _economy: Economy
@@ -78,7 +81,7 @@ func can_pay() -> String:
 
 
 func next_event_time() -> float:
-	return INF if evicted else minf(_call_time(), next_due_at)
+	return INF if evicted else minf(minf(_call_time(), next_due_at), next_collect_at)
 
 
 func process(now: float) -> void:
@@ -90,8 +93,32 @@ func process(now: float) -> void:
 			var due_at := next_due_at
 			next_due_at += _def.period_hours * SimClock.GAME_SECONDS_PER_HOUR
 			_settle(due_at)
+		elif now >= next_collect_at:
+			_collect(next_collect_at)
 		else:
 			return
+
+
+## The lord's man checks the till: the whole debt or nothing, so Jack is never left without wages.
+func _collect(at: float) -> void:
+	if debt <= 0:
+		next_collect_at = INF
+		return
+	if not _economy.spend(debt):
+		next_collect_at = at + _check_seconds()
+		return
+	var paid := debt
+	debt = 0
+	missed = 0
+	next_collect_at = INF
+	_event_log.record(EventLog.RENT_DEBT_PAID, at, PackedStringArray([LORD_ACTOR]), {
+		"amount": paid,
+		"money": _economy.money,
+	})
+
+
+func _check_seconds() -> float:
+	return maxf(_def.debt_check_hours, 0.05) * SimClock.GAME_SECONDS_PER_HOUR
 
 
 func answer(choice: String, now: float, actor: String) -> CommandResult:
@@ -174,6 +201,9 @@ func _paid() -> void:
 
 
 func _miss(at: float, promised: bool) -> void:
+	var unpaid := owed()
+	credit = maxi(credit - _def.amount, 0)
+	debt += unpaid + maxi(_def.late_fee, 0)
 	missed += 1
 	_suspicion.add(_def.missed_suspicion)
 	var data := {
@@ -181,6 +211,8 @@ func _miss(at: float, promised: bool) -> void:
 		"money": _economy.money,
 		"missed": missed,
 		"evict_after": _def.evict_after_missed,
+		"late_fee": maxi(_def.late_fee, 0),
+		"debt": debt,
 	}
 	if promised:
 		data["promised"] = true
@@ -188,7 +220,11 @@ func _miss(at: float, promised: bool) -> void:
 	if missed >= _def.evict_after_missed:
 		evicted = true
 		next_due_at = INF
+		next_collect_at = INF
 		_event_log.record(EventLog.RENT_EVICTED, at, PackedStringArray([LORD_ACTOR]), {"missed": missed})
+		return
+	if debt > 0:
+		next_collect_at = minf(next_collect_at, at + _check_seconds())
 
 
 func to_dict() -> Dictionary:
@@ -198,6 +234,8 @@ func to_dict() -> Dictionary:
 		"evicted": evicted,
 		"credit": credit,
 		"call_stage": call_stage,
+		"debt": debt,
+		"next_collect_at": ExactFloat.encode(next_collect_at),
 	}
 
 
@@ -208,3 +246,7 @@ func load_dict(data: Dictionary) -> void:
 	credit = int(data.get("credit", 0))
 	var stage := String(data.get("call_stage", ""))
 	call_stage = stage if stage == CALLED or stage == PROMISED else ""
+	debt = maxi(int(data.get("debt", 0)), 0)
+	next_collect_at = ExactFloat.decode(data["next_collect_at"]) if data.has("next_collect_at") else INF
+	if debt <= 0:
+		next_collect_at = INF

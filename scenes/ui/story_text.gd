@@ -89,7 +89,13 @@ static func summons(sim: SimState, underground: bool) -> String:
 	if not rent.is_empty():
 		return rent
 	var story := sim.stories.pending()
-	if story == null or story.place != StoryDef.MANOR:
+	if story == null:
+		return ""
+	if sim.stories.call_waiting():
+		return "Звонит %s. Ответьте — кнопка «Ответить» на плашке вверху." % story.caller.to_lower()
+	if story.place == StoryDef.HOME:
+		return "" if sim.day.is_home() else "%s. Поезжайте домой — разговор будет там." % JackTasks.story_task(story)
+	if story.place != StoryDef.MANOR:
 		return ""
 	if underground:
 		return "Лорд Эшкомб просит заехать в поместье. Поднимитесь наверх и подойдите к нему — сюда он не спустится, и слава богу."
@@ -99,11 +105,19 @@ static func summons(sim: SimState, underground: bool) -> String:
 static func announcement(event: SimEvent, sim: SimState) -> String:
 	if event.type == EventLog.STORY_STARTED:
 		var started := sim.stories.find(String(event.data["story_id"]))
+		if started != null and not started.caller.is_empty():
+			return "Звонит %s. Ответьте на звонок." % started.caller.to_lower()
 		if started != null and started.place == StoryDef.MANOR:
 			return "Звонил дворецкий: лорд Эшкомб просит вас заехать в поместье."
 		return ""
 	if event.type == EventLog.STORY_EXPIRED:
+		var expired := sim.stories.find(String(event.data["story_id"]))
+		if expired != null and expired.place == StoryDef.HOME:
+			return "%s так и не застал вас дома. В деревне это запомнят." % expired.caller
 		return "Лорд Эшкомб так и не дождался вас в поместье. Дворецкий передал, что милорд «не настаивает». Это хуже, чем если бы настаивал."
+	if event.type == EventLog.STORY_CALL_ANSWERED:
+		var answered := sim.stories.find(String(event.data["story_id"]))
+		return answered.call_task + "." if answered != null and not answered.call_task.is_empty() else ""
 	if event.type == EventLog.INTRIGUE_CLUE:
 		return ClueBoardText.announcement(event, sim)
 	if event.type != EventLog.DIRECTOR_EVENT:
@@ -112,16 +126,12 @@ static func announcement(event: SimEvent, sim: SimState) -> String:
 		Director.RUMOUR:
 			if String(event.data["about"]) == Director.ABOUT_INSPECTION:
 				var hours := float(event.data["hours"]) * SimClock.GAME_SECONDS_PER_HOUR
-				return "Знакомый из участка шепнул: проверка будет %s. Свет лучше выключить заранее — или довериться %s." % [UiText.game_when(event.game_time + hours, sim), _helper_dative(sim)]
+				return "Знакомый из участка шепнул: проверка будет %s. Ответьте на его звонок и решите, как её встретить." % UiText.game_when(event.game_time + hours, sim)
 			return "В пабе болтают, что гопники с трассы присмотрели наш контейнер. Этой ночью товар лучше держать в дороге, а не на полке."
 		Director.COURIER_TROUBLE:
 			var hours := float(event.data["hours"]) * SimClock.GAME_SECONDS_PER_HOUR
 			return "%s застрял: на дороге перевернулся трактор с репой. Опоздает на %s." % [UiText.courier_name(String(event.data["courier_id"]), sim), UiText.real_duration(hours, sim)]
 	return ""
-
-
-static func _helper_dative(sim: SimState) -> String:
-	return sim.helper.definition().display_name if sim.helper.exists() else "удаче"
 
 
 static func reply(choice: StoryChoiceDef, worked: bool) -> Array[DialogueLineDef]:

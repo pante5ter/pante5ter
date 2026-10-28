@@ -246,4 +246,20 @@ func _fill_farm(sim: SimState) -> VBoxContainer:
 		box.add_child(_button("Вернуться к работе", lie_low.bind(false)))
 	else:
 		box.add_child(_button("Затихнуть", lie_low.bind(true)))
+	ClimateControls.fill(box, sim, set_ventilation, buy_sensor)
 	return box
+
+
+func set_ventilation(level: int) -> void:
+	var result := Game.sim.apply(SetVentilationCommand.new(level))
+	if not result.ok:
+		message.emit(UiText.error(result.error))
+	else:
+		message.emit("Вентиляция: %s." % Game.sim.climate.definition().ventilation[level].display_name)
+	refresh()
+
+
+func buy_sensor() -> void:
+	var result := Game.sim.apply(BuySensorCommand.new())
+	message.emit(UiText.error(result.error) if not result.ok else "Датчик стоит — влажность видна здесь, на вкладке «Ферма».")
+	refresh()

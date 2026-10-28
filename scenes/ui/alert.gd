@@ -15,6 +15,9 @@ const PAID: String = "paid"
 const HOME: String = "home"
 const HAUL: String = "haul"
 const WORKER: String = "worker"
+## Someone rings Jack about a story or the inspection; the banner stays until he picks up.
+const STORY_CALL: String = "story_call"
+const INSPECTION_CALL: String = "inspection_call"
 
 const SHOW: String = "Показать"
 const ANSWER: String = "Ответить"
@@ -51,7 +54,9 @@ static func from_event(event: SimEvent, sim: SimState) -> Alert:
 			raid.action = SHOW
 			return raid
 		EventLog.INSPECTION_WARNED:
-			return make(Severity.WARNING, INSPECTION, PhoneGlyphs.INSPECTION, "Скоро проверка", news)
+			return inspection_call(sim)
+		EventLog.STORY_STARTED:
+			return story_call(sim)
 		EventLog.SUPPLY_DELIVERED:
 			var where := "Ящик у двери контейнера, на краю пшеничного поля: %s × %d. Подойдите и кликните по нему." % [UiText.item_name(String(event.data["item"]), sim), int(event.data["quantity"])]
 			var parcel := make(Severity.INFO, PARCEL, PhoneGlyphs.STOCK, "Посылка приехала", where)
@@ -91,6 +96,29 @@ static func from_event(event: SimEvent, sim: SimState) -> Alert:
 	return null
 
 
+## Null unless a story caller is ringing and nobody has picked up.
+static func story_call(sim: SimState) -> Alert:
+	var story := sim.stories.pending()
+	if story == null or not sim.stories.call_waiting():
+		return null
+	var call := make(Severity.INFO, STORY_CALL, PhoneGlyphs.CALLS, "Звонит: %s" % story.caller, "Возьмите трубку — разговор займёт минуту.")
+	call.action = ANSWER
+	call.sticky = true
+	return call
+
+
+static func inspection_call(sim: SimState) -> Alert:
+	var when := " " + UiText.game_when(sim.suspicion.inspection_at, sim) if sim.suspicion.inspection_pending() else ""
+	var call := make(Severity.WARNING, INSPECTION_CALL, PhoneGlyphs.INSPECTION, "Звонит: %s" % InspectionTalk.CALLER, "Скоро проверка%s. Ответьте и решите, как её встретить." % when)
+	call.action = ANSWER
+	return call
+
+
+## Calls wait for an answer: the banner offers no «Понял».
+static func is_unanswered_call(alert_topic: String) -> bool:
+	return alert_topic == STORY_CALL or alert_topic == INSPECTION_CALL
+
+
 ## False once the thing the alert is about has gone away: the gang left, the parcel was taken.
 static func is_live(alert_topic: String, sim: SimState) -> bool:
 	match alert_topic:
@@ -104,6 +132,10 @@ static func is_live(alert_topic: String, sim: SimState) -> bool:
 			return not sim.orders.with_status(Order.Status.OFFERED).is_empty()
 		HOME:
 			return not sim.day.is_home() and not sim.day.travelling()
+		STORY_CALL:
+			return sim.stories.call_waiting()
+		INSPECTION_CALL:
+			return sim.suspicion.awaiting_prep()
 		COURIER:
 			return not sim.couriers.hired.is_empty()
 	return true

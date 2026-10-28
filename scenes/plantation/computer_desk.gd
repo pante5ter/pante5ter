@@ -21,7 +21,9 @@ func hover_text() -> String:
 	var ready := ready_orders()
 	if ready > 0:
 		return "Компьютер — заказов к отправке: %d" % ready
-	return "Компьютер — заказы, курьеры, ферма"
+	if not ClimateControls.damp_advice(Game.sim).is_empty():
+		return "Компьютер — в бункере сыро: вентиляция на вкладке «Ферма»"
+	return "Компьютер — заказы, курьеры, ферма и вентиляция"
 
 
 func interact(level: Level) -> void:

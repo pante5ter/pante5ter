@@ -195,6 +195,7 @@ func _process(delta: float) -> void:
 	tasks_label.visible = not tasks_label.text.is_empty()
 	phone.underground = underground
 	_announce_new_events(sim)
+	_keep_calls_on_banner(sim)
 	for index: int in speed_buttons.size():
 		speed_buttons[index].set_pressed_no_signal(is_equal_approx(Game.time_scale, Game.SPEEDS[index]))
 	_message_left = maxf(_message_left - delta, 0.0)
@@ -217,6 +218,8 @@ func _announce_new_events(sim: SimState) -> void:
 			if alert.topic == Alert.CALL and not (dialogue_box.is_open() or computer.visible or pause_menu.visible):
 				action_menu.close()
 				phone.ring()
+			elif Alert.is_unanswered_call(alert.topic) and not dialogue_box.is_open():
+				phone.buzz()
 			continue
 		var text := UiText.announcement(event, sim)
 		if not text.is_empty() and not news.has(text):
@@ -224,6 +227,17 @@ func _announce_new_events(sim: SimState) -> void:
 	_seen_events = sim.event_log.size()
 	if not news.is_empty():
 		show_message("\n".join(news.slice(maxi(news.size() - MAX_NEWS_LINES, 0))))
+
+
+## A call that rang overnight, before a load or off a full banner still waits for an answer.
+func _keep_calls_on_banner(sim: SimState) -> void:
+	if night.is_open():
+		return
+	var topics := alert_banner.topics()
+	if sim.stories.call_waiting() and not topics.has(Alert.STORY_CALL):
+		alert_banner.push(Alert.story_call(sim))
+	if sim.suspicion.awaiting_prep() and not topics.has(Alert.INSPECTION_CALL):
+		alert_banner.push(Alert.inspection_call(sim))
 
 
 ## The night's news goes into the morning briefing, not into rings and banners behind it.
@@ -339,6 +353,12 @@ func _on_alert_action(topic: String) -> void:
 	if topic == Alert.CALL:
 		action_menu.close()
 		phone.open(Phone.APP_CALLS)
+		return
+	if topic == Alert.STORY_CALL:
+		story_presenter.answer_story_call()
+		return
+	if topic == Alert.INSPECTION_CALL:
+		story_presenter.answer_inspection_call()
 		return
 	if topic == Alert.HOME:
 		action_menu.close()

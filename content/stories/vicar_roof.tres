@@ -53,9 +53,24 @@ relation = "village"
 reply = Array[ExtResource("3_line")]([SubResource("Line_4")])
 fail_reply = Array[ExtResource("3_line")]([SubResource("Line_5"), SubResource("Line_6")])
 
+[sub_resource type="Resource" id="Call_1"]
+script = ExtResource("3_line")
+speaker = "Викарий"
+text = "Мистер Кэллоуэй? Преподобный Кэткарт, Святой Михаил. Позволите заглянуть к вам домой? Разговор о приходских делах — не телефонный."
+
+[sub_resource type="Resource" id="Call_2"]
+script = ExtResource("3_line")
+speaker = "Джек"
+text = "Заходите. Буду дома."
+
 [resource]
 script = ExtResource("1_story")
 id = "vicar_roof"
 kind = "village"
+place = "home"
+wait_hours = 24.0
+caller = "Викарий"
+call_lines = Array[ExtResource("3_line")]([SubResource("Call_1"), SubResource("Call_2")])
+call_task = "Викарий зайдёт к вам домой"
 lines = Array[ExtResource("3_line")]([SubResource("Line_1"), SubResource("Line_2")])
 choices = Array[ExtResource("2_choice")]([SubResource("Choice_1"), SubResource("Choice_2")])

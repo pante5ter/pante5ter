@@ -21,6 +21,8 @@ var away_until: float = 0.0
 var training_skill_id: String = ""
 ## He dimmed the farm for an inspection and turns it back on afterwards.
 var dimmed_lights: bool = false
+## He told Jack a spare lamp is needed and there was no money to order one; said once per burned lamp.
+var asked_for_lamp: bool = false
 ## Set by SimState: the gardeners' beds are left to them.
 var farmhand: Workers = null
 
@@ -225,7 +227,7 @@ func _come_back(now: float) -> void:
 
 
 func _lights_due() -> bool:
-	return present() and _suspicion.inspection_pending() and not _suspicion.quiet and not dimmed_lights
+	return present() and _suspicion.awaiting_prep() and not _suspicion.quiet and not dimmed_lights
 
 
 func _lights_out_at() -> float:
@@ -248,12 +250,48 @@ func _lights_back_on(now: float) -> void:
 
 ## He is Jack's right hand, not a gardener: on the farm he only deals with trouble on a bed.
 func _start_next_task(now: float) -> void:
+	_fetch_spare_lamp(now)
 	var taken: Array[int] = farmhand.busy_plot_ids() if farmhand != null else []
 	var target := Workers.pick_plot(_grow, Workers.Task.TREAT, _def.water_below_hours, taken, _can_do)
 	if target != null:
 		_start(Workers.Task.TREAT, target.id, now)
 		return
+	_order_spare_lamp(now)
 	next_check_at = now + _def.idle_check_minutes * 60.0
+
+
+func _lamp_burned() -> bool:
+	if not knows(SkillDef.ELECTRICS):
+		return false
+	for target: Plot in _grow.plots():
+		if target.problem == Problems.LAMP:
+			return true
+	return false
+
+
+## A spare lamp waiting in the parcel at the door: he carries the parcel in himself.
+func _fetch_spare_lamp(now: float) -> void:
+	if not _lamp_burned() or _supplies.count(Supplies.LAMP) > 0:
+		return
+	for entry: Dictionary in _supplies.parcel():
+		if String(entry["item"]) == Supplies.LAMP:
+			_supplies.pick_up(now, ACTOR)
+			return
+
+
+## No spare anywhere: he orders one if the till allows, otherwise he tells Jack once.
+func _order_spare_lamp(now: float) -> void:
+	if not _lamp_burned() or _supplies.stock_and_coming(Supplies.LAMP) > 0:
+		asked_for_lamp = false
+		return
+	var price := _supplies.unit_price(Supplies.LAMP)
+	if price > 0 and _economy.money >= price and _supplies.buy(Supplies.LAMP, 1, now, ACTOR).ok:
+		asked_for_lamp = false
+		return
+	if asked_for_lamp:
+		return
+	asked_for_lamp = true
+	_event_log.record(EventLog.HELPER_NEEDS_LAMP, now, PackedStringArray([ACTOR]), {"price": price, "money": _economy.money})
 
 
 func _can_do(_kind: Workers.Task, target: Plot) -> bool:
@@ -319,6 +357,7 @@ func to_dict() -> Dictionary:
 		"away_until": ExactFloat.encode(away_until),
 		"training_skill_id": training_skill_id,
 		"dimmed_lights": dimmed_lights,
+		"asked_for_lamp": asked_for_lamp,
 	}
 
 
@@ -336,3 +375,4 @@ func load_dict(data: Dictionary) -> void:
 	away_until = ExactFloat.decode(data["away_until"])
 	training_skill_id = String(data["training_skill_id"])
 	dimmed_lights = data["dimmed_lights"] == true
+	asked_for_lamp = data.get("asked_for_lamp", false) == true

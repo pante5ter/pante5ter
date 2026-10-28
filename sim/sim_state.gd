@@ -66,6 +66,7 @@ func _init(balance: BalanceConfig, seed_value: int) -> void:
 	planting = PlantingPlan.new(balance, grow, supplies, progress, event_log)
 	grow.planner = planting
 	suspicion = Suspicion.new(balance.suspicion, grow, economy, event_log)
+	suspicion.attach(rng, inventory)
 	workers = Workers.new(balance.worker, grow, economy, event_log)
 	workers.attach(balance, rng, inventory, suspicion)
 	orders = Orders.new(balance.orders, balance.strain, rng, inventory, event_log)
@@ -203,6 +204,10 @@ func _apply(command: SimCommand) -> CommandResult:
 		return planting.set_beds(plan.strain_id, plan.beds, now, command.actor)
 	if command is MeetCommand:
 		return meetings.meet((command as MeetCommand).character_id, now, command.actor)
+	if command is PrepareInspectionCommand:
+		return suspicion.prepare((command as PrepareInspectionCommand).choice, now, command.actor)
+	if command is AnswerCallCommand:
+		return stories.answer_call((command as AnswerCallCommand).story_id, now, command.actor)
 	return CommandResult.failure(CommandResult.UNKNOWN_COMMAND)
 
 

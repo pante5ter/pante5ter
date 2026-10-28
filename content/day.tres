@@ -10,6 +10,7 @@ late_until_hour = 5.0
 late_suspicion_per_hour = 2.0
 sleep_from_hour = 18.0
 wake_hour = 6.0
+day_sleep_hours = 4.0
 travel_minutes = 20.0
 home_night_suspicion_relief = 6.0
 home_night_money = 40

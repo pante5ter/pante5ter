@@ -10,3 +10,5 @@ first_due_hours = 72.0
 evict_after_missed = 3
 missed_suspicion = 10.0
 call_ahead_hours = 10.0
+late_fee = 250
+debt_check_hours = 1.0

@@ -9,6 +9,8 @@ const BEAT_TYPES: Array[String] = [EventLog.STORY_STARTED, EventLog.INTRIGUE_CLU
 ## The story waiting for Jack's choice; empty when none.
 var pending_id: String = ""
 var pending_since: float = 0.0
+## The pending story's caller has been answered (always true for a story without a call).
+var call_answered: bool = true
 var used: Array[String] = []
 var relations: Dictionary[String, int] = {}
 ## Stories built at runtime (the intrigue's accusation), rebuilt from saved state on load.
@@ -120,14 +122,31 @@ func start(story: StoryDef, now: float, actor: String) -> bool:
 		return false
 	pending_id = story.id
 	pending_since = now
+	call_answered = story.caller.is_empty()
 	used.append(story.id)
 	_event_log.record(EventLog.STORY_STARTED, now, PackedStringArray([actor]), {"story_id": story.id, "kind": story.kind})
 	return true
 
 
+## The phone rings for the pending story and nobody has picked up yet.
+func call_waiting() -> bool:
+	return is_pending() and not call_answered
+
+
+func answer_call(story_id: String, now: float, actor: String) -> CommandResult:
+	var story := pending()
+	if story == null or story.id != story_id:
+		return CommandResult.failure(CommandResult.NO_STORY)
+	if call_answered:
+		return CommandResult.failure(CommandResult.ALREADY_DONE)
+	call_answered = true
+	_event_log.record(EventLog.STORY_CALL_ANSWERED, now, PackedStringArray([actor]), {"story_id": story.id, "caller": story.caller})
+	return CommandResult.success()
+
+
 func next_event_time() -> float:
 	var story := pending()
-	if story == null or story.place != StoryDef.MANOR:
+	if story == null or not story.waits_for_jack():
 		return INF
 	return pending_since + story.wait_hours * SimClock.GAME_SECONDS_PER_HOUR
 
@@ -137,8 +156,10 @@ func process(now: float) -> void:
 	if story == null or now < next_event_time():
 		return
 	pending_id = ""
-	shift(LORD, story.ignored_relation)
-	_event_log.record(EventLog.STORY_EXPIRED, now, PackedStringArray([StoryDef.LORD]), {"story_id": story.id})
+	call_answered = true
+	shift(LORD if story.place == StoryDef.MANOR else VILLAGE, story.ignored_relation)
+	var actor := StoryDef.LORD if story.place == StoryDef.MANOR else StoryDef.VILLAGE
+	_event_log.record(EventLog.STORY_EXPIRED, now, PackedStringArray([actor]), {"story_id": story.id})
 
 
 func choose(story_id: String, index: int, now: float, actor: String) -> CommandResult:
@@ -159,6 +180,7 @@ func choose(story_id: String, index: int, now: float, actor: String) -> CommandR
 	if worked and choice.rent_credit > 0:
 		_rent.add_credit(choice.rent_credit)
 	pending_id = ""
+	call_answered = true
 	_event_log.record(EventLog.STORY_RESOLVED, now, PackedStringArray([actor]), {
 		"story_id": story.id,
 		"choice": index,
@@ -179,12 +201,14 @@ func to_dict() -> Dictionary:
 	var saved_relations: Dictionary = {}
 	for key: String in relations:
 		saved_relations[key] = relations[key]
-	return {"pending_id": pending_id, "pending_since": ExactFloat.encode(pending_since), "used": used.duplicate(), "relations": saved_relations}
+	return {"pending_id": pending_id, "pending_since": ExactFloat.encode(pending_since), "used": used.duplicate(), "relations": saved_relations, "call_answered": call_answered}
 
 
 func load_dict(data: Dictionary) -> void:
 	pending_id = String(data["pending_id"])
 	pending_since = ExactFloat.decode(data["pending_since"]) if data.has("pending_since") else 0.0
+	# Saves from before the calls already told Jack by a notice.
+	call_answered = data.get("call_answered", true) == true
 	used.clear()
 	for story_id: Variant in data["used"] as Array:
 		used.append(String(story_id))

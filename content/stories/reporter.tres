@@ -78,5 +78,6 @@ reply = Array[ExtResource("3_line")]([SubResource("Line_9"), SubResource("Line_1
 script = ExtResource("1_story")
 id = "reporter"
 kind = "village"
+caller = "Репортёр"
 lines = Array[ExtResource("3_line")]([SubResource("Line_1"), SubResource("Line_2"), SubResource("Line_3"), SubResource("Line_4")])
 choices = Array[ExtResource("2_choice")]([SubResource("Choice_1"), SubResource("Choice_2")])

@@ -76,6 +76,7 @@ reply = Array[ExtResource("3_line")]([SubResource("Line_9"), SubResource("Line_1
 script = ExtResource("1_story")
 id = "reporter_vans"
 kind = "village"
+caller = "Репортёр"
 after_stories = PackedStringArray("reporter")
 min_suspicion = 30.0
 lines = Array[ExtResource("3_line")]([SubResource("Line_1"), SubResource("Line_2"), SubResource("Line_3"), SubResource("Line_4")])

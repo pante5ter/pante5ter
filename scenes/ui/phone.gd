@@ -122,6 +122,11 @@ func ring() -> void:
 	_ringer.ring(self)
 
 
+## A person rings about a story: the banner takes the answer, the phone only buzzes.
+func buzz() -> void:
+	_ringer.ring(self)
+
+
 func is_ringing() -> bool:
 	return _ringer.is_ringing()
 

@@ -84,6 +84,10 @@ const RENT_CALLED: String = "rent_called"
 const RENT_VISIT_PROMISED: String = "rent_visit_promised"
 const HOME_NIGHT: String = "home_night"
 const CHARACTER_MET: String = "character_met"
+const RENT_DEBT_PAID: String = "rent_debt_paid"
+const HELPER_NEEDS_LAMP: String = "helper_needs_lamp"
+const STORY_CALL_ANSWERED: String = "story_call_answered"
+const INSPECTION_PREPARED: String = "inspection_prepared"
 
 var _entries: Array[SimEvent] = []
 

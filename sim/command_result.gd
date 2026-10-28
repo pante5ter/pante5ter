@@ -48,6 +48,7 @@ const ON_THE_ROAD: String = "on_the_road"
 const NOT_AT_HOME: String = "not_at_home"
 const NOT_AT_FARM: String = "not_at_farm"
 const TOO_EARLY_TO_SLEEP: String = "too_early_to_sleep"
+const NO_INSPECTION: String = "no_inspection"
 
 var ok: bool = false
 var error: String = ""

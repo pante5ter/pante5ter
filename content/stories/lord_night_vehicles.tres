@@ -64,10 +64,23 @@ relation_change = 1
 relation = "lord"
 reply = Array[ExtResource("3_line")]([SubResource("Line_7"), SubResource("Line_8")])
 
+[sub_resource type="Resource" id="Call_1"]
+script = ExtResource("3_line")
+speaker = "Дворецкий"
+text = "Мистер Кэллоуэй? Дженкинс, из Эшкомб-холла. Милорд просит вас заехать в поместье. Ничего срочного, сказал он, — то есть срочно."
+
+[sub_resource type="Resource" id="Call_2"]
+script = ExtResource("3_line")
+speaker = "Джек"
+text = "Передайте милорду: заеду."
+
 [resource]
 script = ExtResource("1_story")
 id = "lord_night_vehicles"
 kind = "script"
 place = "manor"
+caller = "Дворецкий"
+call_lines = Array[ExtResource("3_line")]([SubResource("Call_1"), SubResource("Call_2")])
+call_task = "Лорд зовёт в поместье"
 lines = Array[ExtResource("3_line")]([SubResource("Line_1"), SubResource("Line_2"), SubResource("Line_3")])
 choices = Array[ExtResource("2_choice")]([SubResource("Choice_1"), SubResource("Choice_2")])

@@ -76,6 +76,7 @@ const ERRORS: Dictionary[String, String] = {
 	CommandResult.HELPER_AWAY: "Помощника сейчас нет на ферме — он в дороге или на курсах.",
 	CommandResult.NOTHING_TO_RESTOCK: "Запас и так полный.",
 	CommandResult.NO_STORY: "Этот разговор уже закончен.",
+	CommandResult.NO_INSPECTION: "Проверки не ждём — готовиться не к чему.",
 }
 
 
@@ -398,6 +399,14 @@ static func announcement(event: SimEvent, sim: SimState) -> String:
 			if String(event.data["kind"]) == Helper.SAVED_LIGHTS:
 				return "%s сам выключил свет и вентиляцию — проверка вот-вот. Включит, когда уедут." % _driver_name(sim)
 			return "%s вышел к гопникам сам. Разговор был короткий, гопники ушли." % _driver_name(sim)
+		EventLog.HELPER_NEEDS_LAMP:
+			return "%s готов поменять перегоревшую лампу, но запасной нет, а на новую (%s) в кассе не хватает. Нужна запасная лампа — телефон → «Магазин»." % [_driver_name(sim), money(int(event.data["price"]))]
+		EventLog.SUPPLY_ORDERED:
+			if event.actors.has(Helper.ACTOR) and String(event.data["item"]) == Supplies.LAMP:
+				return "%s сам заказал запасную лампу за %s — привезут к контейнеру, и он её вкрутит." % [_driver_name(sim), money(int(event.data["cost"]))]
+		EventLog.PARCEL_PICKED_UP:
+			if event.actors.has(Helper.ACTOR):
+				return "%s занёс посылку от двери контейнера на склад — там была запасная лампа." % _driver_name(sim)
 		EventLog.PLOT_TREATED:
 			if event.actors.has(Helper.ACTOR):
 				return "%s вылечил грядку %d: %s — больше не проблема." % [_driver_name(sim), plot_number(int(event.data["plot_id"])), problem(String(event.data["problem"]))]
@@ -436,28 +445,24 @@ static func announcement(event: SimEvent, sim: SimState) -> String:
 			return "Новый уровень — «%s». Неплохо, мистер Кэллоуэй. %s" % [reached.title, reached.description]
 		EventLog.PLOT_PROBLEM:
 			if String(event.data["problem"]) == Problems.MOLD and sim.climate.exists():
-				return "Грядка %d: плесень. В бункере сыро — уберите плесень и прибавьте вентиляцию, иначе вернётся." % plot_number(int(event.data["plot_id"]))
+				return "Грядка %d: плесень. В бункере сыро — уберите плесень (кликните по грядке), иначе вернётся. %s" % [plot_number(int(event.data["plot_id"])), ClimateControls.what_to_do(sim)]
 			if String(event.data["problem"]) == Problems.PESTS:
 				return "Грядка %d: вредители. Пока их не вытравить, они едят будущий урожай." % plot_number(int(event.data["plot_id"]))
 			return "Грядка %d: %s. Лучше заняться сейчас, чем объяснять потом." % [plot_number(int(event.data["plot_id"])), problem(String(event.data["problem"]))]
 		EventLog.SENSOR_INSTALLED:
-			return "Датчик температуры и влажности стоит в бункере. Показания — в телефоне."
+			return "Датчик температуры и влажности стоит в бункере. Показания — %s." % ClimateControls.FARM_TAB
 		EventLog.POWER_BILLED:
 			return "Счёт за электричество для вентиляции: %s." % money(int(event.data["amount"]))
 		EventLog.POWER_CUT:
-			return "Счёт за электричество (%s) оплатить нечем — усиленную вентиляцию отключили. В бункере снова сыро." % money(int(event.data["amount"]))
+			return "Счёт за электричество (%s) оплатить нечем — усиленную вентиляцию отключили. В бункере снова сыро: включить обратно — %s." % [money(int(event.data["amount"])), ClimateControls.PLACE]
 		EventLog.PLOT_CROP_EATEN:
 			return "Грядка %d: вредители съели весь урожай. Собирать нечего — грядка свободна под новую посадку." % plot_number(int(event.data["plot_id"]))
 		EventLog.WORKER_STOLE:
 			return "С грядки %d пропал урожай. Сам он уйти не мог." % plot_number(int(event.data["plot_id"]))
 		EventLog.INSPECTION_WARNED:
-			if sim.helper.exists():
-				return "Сосед проявил бдительность — скоро проверка. На компьютере выключите свет, или %s сделает это сам в последний момент." % _driver_name(sim)
-			return "Сосед проявил бдительность — скоро проверка. На компьютере выключите свет и придержите курьеров."
-		EventLog.INSPECTION_PASSED:
-			return "Проверяющий потоптался у контейнера и уехал ни с чем. Приятный человек."
-		EventLog.INSPECTION_FAILED:
-			return "Проверка обошлась в %s. Взятка — тоже статья расходов." % money(int(event.data["fine"]))
+			return "Звонит знакомый из участка: сосед написал жалобу, скоро проверка. Ответьте и решите, как её встретить."
+		EventLog.INSPECTION_PASSED, EventLog.INSPECTION_FAILED:
+			return InspectionTalk.outcome(event, sim)
 		EventLog.RAID_STARTED:
 			return "У контейнера «Молочные зубы» — в балаклавах и с телефоном: снимают клип прямо на налёте. Разберитесь, пока не обчистили ферму."
 		EventLog.RAID_RESOLVED:
@@ -472,7 +477,9 @@ static func announcement(event: SimEvent, sim: SimState) -> String:
 		EventLog.RENT_MISSED:
 			if event.data.get("promised", false) == true:
 				return RentTalk.missed_visit(event)
-			return "Аренду заплатить нечем. Лорд недоволен, по округе пошли разговоры. Пропущено %d из %d." % [int(event.data["missed"]), int(event.data["evict_after"])]
+			return "Аренду заплатить нечем. Лорд недоволен, по округе пошли разговоры. Пропущено %d из %d.%s" % [int(event.data["missed"]), int(event.data["evict_after"]), RentTalk.debt_note(event)]
+		EventLog.RENT_DEBT_PAID:
+			return "Лорд Эшкомб забрал долг по аренде с пеней: %s. Пропуски прощены, отношения — почти." % money(int(event.data["amount"]))
 		EventLog.RENT_EVICTED:
 			return error(CommandResult.EVICTED)
 	var day := DayText.announcement(event, sim)
@@ -503,7 +510,7 @@ static func lord_lines(sim: SimState) -> Array[DialogueLineDef]:
 		return [
 			DialogueLineDef.make(LORD, "Мистер Кэллоуэй, платёж так и не пришёл. Я не привык напоминать о деньгах. Это неловко для нас обоих."),
 			DialogueLineDef.make(JACK, "Будет, милорд."),
-			DialogueLineDef.make(REGGIE, "Пропущено %d из %d — после этого поле уйдёт. Аренда: %s." % [rent.missed, rent.max_missed(), due]),
+			DialogueLineDef.make(REGGIE, "Пропущено %d из %d — после этого поле уйдёт. Аренда: %s.%s" % [rent.missed, rent.max_missed(), due, RentTalk.debt_reminder(sim)]),
 		]
 	return [
 		DialogueLineDef.make(LORD, "Мистер Кэллоуэй. Дом всё ещё мой — полагаю, вашими стараниями. Что бы вы там ни сеяли."),

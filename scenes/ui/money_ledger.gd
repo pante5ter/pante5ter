@@ -69,6 +69,10 @@ static func of_event(event: SimEvent, sim: SimState) -> Array[Entry]:
 			found.append(Entry.make(at, int(data.get("refund", 0)), "Возврат за курсы Реджи"))
 		EventLog.RENT_PAID:
 			found.append(Entry.make(at, -int(data.get("amount", 0)), "Аренда лорду Эшкомбу"))
+		EventLog.RENT_DEBT_PAID:
+			found.append(Entry.make(at, -int(data.get("amount", 0)), "Долг по аренде с пеней"))
+		EventLog.INSPECTION_PREPARED:
+			found.append(Entry.make(at, -int(data.get("cost", 0)), "Знакомому из участка — за проверку"))
 		EventLog.HOME_NIGHT:
 			found.append(Entry.make(at, int(data.get("bonus", 0)), "Вивьен: выигрыш в бридж"))
 		EventLog.RAID_RESOLVED:

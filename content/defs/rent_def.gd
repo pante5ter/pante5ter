@@ -10,3 +10,7 @@ extends Resource
 ## The lord rings this many game hours before the rent is due: pay now or bring it to the manor.
 ## Zero: no call, the rent is simply taken when due.
 @export var call_ahead_hours: float = 0.0
+## A missed payment is not forgiven: it becomes a debt with this fee on top...
+@export var late_fee: int = 0
+## ...and the lord's man looks into the till this often until he can take the whole debt.
+@export var debt_check_hours: float = 1.0

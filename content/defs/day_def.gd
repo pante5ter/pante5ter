@@ -11,6 +11,8 @@ extends Resource
 ## The bed takes him only from this hour (and through the night).
 @export var sleep_from_hour: float = 18.0
 @export var wake_hour: float = 7.0
+## Sent home by Reggie but back only after the morning came: a short sleep of this many game hours.
+@export var day_sleep_hours: float = 4.0
 ## Game minutes for any drive between the farm, home and the stash.
 @export var travel_minutes: float = 20.0
 ## Waking at home after a full night there: the village saw the cottage go dark on time.

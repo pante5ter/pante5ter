@@ -120,11 +120,13 @@ func _build(alert: Alert, style: StyleBoxFlat) -> PanelContainer:
 	var buttons := VBoxContainer.new()
 	buttons.alignment = BoxContainer.ALIGNMENT_CENTER
 	var ink := Alert.ink_color(alert.severity)
-	if not alert.action.is_empty() and (alert.topic == Alert.CALL or alert.topic == Alert.HOME or AlertTarget.find_live(get_tree(), alert.topic) != null):
+	if not alert.action.is_empty() and (alert.topic == Alert.CALL or alert.topic == Alert.HOME or Alert.is_unanswered_call(alert.topic) or AlertTarget.find_live(get_tree(), alert.topic) != null):
 		buttons.add_child(_button(alert.action, action_requested.emit.bind(alert.topic), ink))
 	elif Alert.is_farm_trouble(alert.topic) and AlertTarget.find_live(get_tree(), alert.topic) == null and not _on_the_farm():
 		buttons.add_child(_button(Alert.LOOK_AT_FARM, action_requested.emit.bind(alert.topic), ink))
-	if alert.sticky:
+	if Alert.is_unanswered_call(alert.topic):
+		pass
+	elif alert.sticky:
 		buttons.add_child(_button("Понял", acknowledge.bind(alert.topic), ink))
 	else:
 		buttons.add_child(_button("×", acknowledge.bind(alert.topic), ink))

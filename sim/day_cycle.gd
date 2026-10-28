@@ -24,6 +24,8 @@ var late_night_logged: int = -1
 ## When the current day began (the last waking, or the start); the day summary counts from here.
 var day_started_at: float = 0.0
 var slept_at: float = -1.0
+## Reggie sent Jack home and he has not slept since: the bed takes him whatever the hour.
+var called_home: bool = false
 
 var _def: DayDef
 var _suspicion: Suspicion
@@ -96,13 +98,21 @@ func can_sleep(now: float) -> String:
 		return CommandResult.UNKNOWN_COMMAND
 	if not is_home():
 		return CommandResult.NOT_AT_HOME
-	var hour := fmod(now, SimClock.GAME_SECONDS_PER_DAY) / SimClock.GAME_SECONDS_PER_HOUR
-	if hour < _def.sleep_from_hour and hour >= _def.wake_hour:
+	if is_daytime(now) and not called_home:
 		return CommandResult.TOO_EARLY_TO_SLEEP
 	return ""
 
 
+## Between the morning and the hour the bed starts taking Jack.
+func is_daytime(at: float) -> bool:
+	var hour := fmod(at, SimClock.GAME_SECONDS_PER_DAY) / SimClock.GAME_SECONDS_PER_HOUR
+	return hour < _def.sleep_from_hour and hour >= _def.wake_hour
+
+
+## A night's sleep ends in the morning; sent home but back after sunrise, he sleeps a few hours.
 func wake_time(now: float) -> float:
+	if is_daytime(now):
+		return now + maxf(_def.day_sleep_hours, 0.0) * SimClock.GAME_SECONDS_PER_HOUR
 	return _next_hour_at(now, _def.wake_hour)
 
 
@@ -113,13 +123,15 @@ func fall_asleep(now: float, actor: String) -> void:
 
 func wake_up(now: float) -> void:
 	day_started_at = now
+	called_home = false
 	_event_log.record(EventLog.JACK_WOKE, now, PackedStringArray([JACK]), {"slept_at": slept_at})
 	_home_night(now)
 
 
 ## Waking at home after a real night (not the prologue's): less talk in the village and a little money.
+## A daytime sleep after a night out is not one.
 func _home_night(now: float) -> void:
-	if not is_home() or now < nights_from:
+	if not is_home() or now < nights_from or (slept_at >= 0.0 and is_daytime(slept_at)):
 		return
 	var before := _suspicion.level
 	_suspicion.add(-maxf(_def.home_night_suspicion_relief, 0.0))
@@ -174,6 +186,7 @@ func _arrive(now: float) -> void:
 func _evening(at: float) -> void:
 	if is_home():
 		return
+	called_home = true
 	_event_log.record(EventLog.EVENING_CALL, at, PackedStringArray([Helper.ACTOR, JACK]), {"place": place})
 
 
@@ -230,6 +243,7 @@ func to_dict() -> Dictionary:
 		"late_night_logged": late_night_logged,
 		"day_started_at": ExactFloat.encode(day_started_at),
 		"slept_at": ExactFloat.encode(slept_at),
+		"called_home": called_home,
 	}
 
 
@@ -243,3 +257,4 @@ func load_dict(data: Dictionary) -> void:
 	late_night_logged = int(data["late_night_logged"])
 	day_started_at = ExactFloat.decode(data["day_started_at"])
 	slept_at = ExactFloat.decode(data["slept_at"])
+	called_home = data.get("called_home", false) == true

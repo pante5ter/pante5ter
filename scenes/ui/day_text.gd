@@ -54,6 +54,8 @@ static func objective(sim: SimState) -> String:
 	var now := sim.clock.elapsed_game_seconds
 	if day.is_home():
 		if day.can_sleep(now).is_empty():
+			if day.is_daytime(now):
+				return "Вы дома, Джек. Ночь вышла длинной — поспите пару часов: кровать в углу. Ферму я подержу."
 			return "Вы дома, Джек. Вивьен уже зевает — ложитесь спать: кровать в углу. Утром расскажу, что было за ночь."
 		return ""
 	if is_evening(sim):
@@ -168,6 +170,8 @@ static func today(sim: SimState) -> PackedStringArray:
 		lines.append("Аренду %s обещали привезти лорду в поместье %s." % [UiText.money(sim.rent.owed()), RentTalk.deadline(sim)])
 	elif sim.rent.amount() > 0 and sim.rent.due_in(now) <= SimClock.GAME_SECONDS_PER_DAY:
 		lines.append("Аренда лорду — %s, срок %s." % [UiText.money(sim.rent.amount()), RentTalk.deadline(sim)])
+	if sim.rent.debt > 0:
+		lines.append("Долг лорду с пеней — %s: заберёт из кассы, как только наберётся." % UiText.money(sim.rent.debt))
 	var story := sim.stories.pending()
 	if story != null and story.place == StoryDef.MANOR:
 		lines.append("Лорд Эшкомб просит заехать в поместье.")
