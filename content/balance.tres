@@ -33,6 +33,8 @@
 [ext_resource type="Resource" path="res://content/day.tres" id="34_day"]
 [ext_resource type="Resource" path="res://content/stash.tres" id="35_stash"]
 [ext_resource type="Resource" path="res://content/cast.tres" id="36_cast"]
+[ext_resource type="Resource" path="res://content/shop.tres" id="37_shop"]
+[ext_resource type="Resource" path="res://content/opportunities.tres" id="38_opportunities"]
 
 [sub_resource type="Resource" id="Resource_milestone_1"]
 script = ExtResource("14_milestone_def")
@@ -85,9 +87,12 @@ climate = ExtResource("33_climate")
 day = ExtResource("34_day")
 stash = ExtResource("35_stash")
 cast = ExtResource("36_cast")
+shop = ExtResource("37_shop")
+opportunities = ExtResource("38_opportunities")
 fertilizer_price = 15
 fertilizer_bonus = 12
 prune_bonus = 8
+max_care_quality_bonus = 20
 delivery_hours = 1.5
 plot_price = 400
 starting_plot_cap = 8

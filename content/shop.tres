@@ -1,0 +1,83 @@
+[gd_resource type="Resource" script_class="ShopDef" format=3]
+
+[ext_resource type="Script" path="res://content/defs/shop_def.gd" id="1_shop"]
+[ext_resource type="Script" path="res://content/defs/upgrade_def.gd" id="2_upgrade"]
+
+[sub_resource type="Resource" id="Upgrade_dehumidifier"]
+script = ExtResource("2_upgrade")
+id = "dehumidifier"
+display_name = "Осушитель воздуха"
+description = "Сушит воздух у грядок: влажность −10, плесени меньше. Дешевле усиленной вентиляции, но гудит круглые сутки."
+price = 650
+daily_cost = 30
+install_suspicion = 2.0
+humidity_drop = 10.0
+
+[sub_resource type="Resource" id="Upgrade_camera"]
+script = ExtResource("2_upgrade")
+id = "camera"
+display_name = "Камера у ворот"
+description = "Видит гостей на подъезде к полю: на налёт остаётся на 3 часа больше, чтобы разобраться."
+price = 900
+daily_cost = 10
+install_suspicion = 1.0
+raid_warning_hours = 3.0
+
+[sub_resource type="Resource" id="Upgrade_auto_water"]
+script = ExtResource("2_upgrade")
+id = "auto_water"
+display_name = "Капельный автополив"
+description = "Сам поливает первые 6 грядок — садовники заняты остальным."
+price = 1400
+level = 1
+daily_cost = 15
+install_suspicion = 3.0
+auto_water_beds = 6
+
+[sub_resource type="Resource" id="Upgrade_coco"]
+script = ExtResource("2_upgrade")
+id = "coco"
+display_name = "Кокосовый субстрат"
+description = "+1 к урожаю с каждой грядки и +4 к качеству (вместе с уходом — не выше +20). Субстрат и подкормка — каждый день."
+price = 1800
+level = 1
+daily_cost = 30
+install_suspicion = 4.0
+yield_bonus = 1
+quality_bonus = 4
+
+[sub_resource type="Resource" id="Upgrade_grow_lamps"]
+script = ExtResource("2_upgrade")
+id = "grow_lamps"
+display_name = "Натриевые лампы"
+description = "Всё растёт на четверть быстрее. Счётчик крутится так, что на подстанции замечают: каждый день +6 к подозрению."
+price = 2800
+level = 1
+daily_cost = 50
+install_suspicion = 5.0
+daily_suspicion = 6.0
+growth_speed = 0.25
+
+[sub_resource type="Resource" id="Upgrade_hydro"]
+script = ExtResource("2_upgrade")
+id = "hydro"
+display_name = "Гидропоника"
+description = "Вместо кокоса: +2 к урожаю, +6 к качеству (вместе с уходом — не выше +20), рост на 10% быстрее. Растворы и насосы дорогие."
+price = 6500
+level = 2
+requires = "coco"
+replaces = "coco"
+daily_cost = 90
+install_suspicion = 8.0
+yield_bonus = 2
+quality_bonus = 6
+growth_speed = 0.1
+
+[resource]
+script = ExtResource("1_shop")
+delivery_hour = 9.0
+cutoff_hour = 8.0
+village_markup = 0.3
+village_items = Array[String](["fertilizer", "pesticide", "lamp"])
+upgrades = Array[ExtResource("2_upgrade")]([SubResource("Upgrade_dehumidifier"), SubResource("Upgrade_camera"), SubResource("Upgrade_auto_water"), SubResource("Upgrade_coco"), SubResource("Upgrade_grow_lamps"), SubResource("Upgrade_hydro")])
+bill_hour = 9.0

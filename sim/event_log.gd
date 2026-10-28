@@ -84,6 +84,15 @@ const RENT_CALLED: String = "rent_called"
 const RENT_VISIT_PROMISED: String = "rent_visit_promised"
 const HOME_NIGHT: String = "home_night"
 const CHARACTER_MET: String = "character_met"
+const SUPPLY_BOUGHT_IN_VILLAGE: String = "supply_bought_in_village"
+const UPGRADE_ORDERED: String = "upgrade_ordered"
+const UPGRADE_INSTALLED: String = "upgrade_installed"
+const UPGRADES_BILLED: String = "upgrades_billed"
+const UPGRADES_CUT: String = "upgrades_cut"
+const AUTO_WATERED: String = "auto_watered"
+const RAID_SPOTTED: String = "raid_spotted"
+const OPPORTUNITY_OPENED: String = "opportunity_opened"
+const OPPORTUNITY_EXPIRED: String = "opportunity_expired"
 
 var _entries: Array[SimEvent] = []
 
@@ -116,6 +125,18 @@ func since(seq: int) -> Array[SimEvent]:
 	for index: int in range(maxi(seq, 0), _entries.size()):
 		result.append(_entries[index])
 	return result
+
+
+## Events of a type at or after `from_time`, oldest first; reads back from the end only.
+func recent_of_type(type: String, from_time: float) -> Array[SimEvent]:
+	var found: Array[SimEvent] = []
+	for index: int in range(_entries.size() - 1, -1, -1):
+		var event := _entries[index]
+		if event.game_time < from_time:
+			break
+		if event.type == type:
+			found.push_front(event)
+	return found
 
 
 func size() -> int:

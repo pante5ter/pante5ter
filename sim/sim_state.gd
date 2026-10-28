@@ -48,6 +48,9 @@ var day: DayCycle
 var stash: Stash
 var planting: PlantingPlan
 var meetings: Meetings
+var upgrades: Upgrades
+var demand: Demand
+var opportunities: Opportunities
 
 
 func _init(balance: BalanceConfig, seed_value: int) -> void:
@@ -96,6 +99,13 @@ func _init(balance: BalanceConfig, seed_value: int) -> void:
 	stash = Stash.new(balance, inventory, packing, suspicion, rng, event_log)
 	stash.attach(helper, packer)
 	meetings = Meetings.new(balance, event_log)
+	upgrades = Upgrades.new(balance.shop, economy, suspicion, progress, supplies, event_log)
+	upgrades.attach(grow, raids)
+	grow.upgrades = upgrades
+	climate.upgrades = upgrades
+	demand = Demand.new(balance.orders, inventory, event_log)
+	orders.demand = demand
+	opportunities = Opportunities.new(balance.opportunities, rng, upgrades, orders, event_log)
 	progress.update(empire_value(), clock.elapsed_game_seconds)
 	# Whatever the start logged is not news to the intrigue; a refused first command must change nothing.
 	intrigue.seen_events = event_log.size()
@@ -121,7 +131,7 @@ func empire_value() -> int:
 		value += economy.price_of(product)
 	for order: Order in orders.with_status(Order.Status.IN_TRANSIT):
 		value += order.reward
-	return value + stash.value(economy)
+	return value + stash.value(economy) + upgrades.value()
 
 
 func _apply(command: SimCommand) -> CommandResult:
@@ -180,7 +190,13 @@ func _apply(command: SimCommand) -> CommandResult:
 		return supplies.set_auto_reorder(rule.item, rule.keep, now, command.actor)
 	if command is BuyCommand:
 		var buy := command as BuyCommand
+		if buy.in_village:
+			if not in_village():
+				return CommandResult.failure(CommandResult.NOT_IN_VILLAGE)
+			return supplies.buy_in_village(buy.item, buy.quantity, now, command.actor)
 		return supplies.buy(buy.item, buy.quantity, now, command.actor)
+	if command is BuyUpgradeCommand:
+		return upgrades.buy((command as BuyUpgradeCommand).upgrade_id, now, command.actor)
 	if command is BuySensorCommand:
 		return climate.buy_sensor(now, command.actor)
 	if command is SetVentilationCommand:
@@ -204,6 +220,11 @@ func _apply(command: SimCommand) -> CommandResult:
 	if command is MeetCommand:
 		return meetings.meet((command as MeetCommand).character_id, now, command.actor)
 	return CommandResult.failure(CommandResult.UNKNOWN_COMMAND)
+
+
+## Jack stands in the village by the stash, where the supply store is.
+func in_village() -> bool:
+	return day.enabled() and day.place == DayCycle.STASH and not day.travelling()
 
 
 func _buy_plot(now: float, actor: String) -> CommandResult:
@@ -287,6 +308,7 @@ func _next_event_time() -> float:
 	next = minf(next, minf(first_day.next_event_time(), director.next_event_time()))
 	next = minf(next, minf(intrigue.next_event_time(), stories.next_event_time()))
 	next = minf(next, minf(day.next_event_time(), stash.next_event_time()))
+	next = minf(next, minf(upgrades.next_event_time(), opportunities.next_event_time()))
 	return minf(next, raids.next_event_time())
 
 
@@ -300,6 +322,8 @@ func _process_events(now: float) -> void:
 	couriers.process(now)
 	packing.process(now)
 	raids.process(now)
+	upgrades.process(now)
+	opportunities.process(now)
 	suspicion.process(now)
 	workers.process(now)
 	helper.process(now)
@@ -374,6 +398,8 @@ func to_dict() -> Dictionary:
 		"stash": stash.to_dict(),
 		"planting_plan": planting.to_dict(),
 		"meetings": meetings.to_dict(),
+		"upgrades": upgrades.to_dict(),
+		"opportunities": opportunities.to_dict(),
 		"event_log": event_log.to_array(),
 	}
 
@@ -465,6 +491,11 @@ func _load_dict(data: Dictionary) -> void:
 		meetings.load_dict(data["meetings"] as Dictionary)
 	else:
 		meetings.meet_everyone()
+	upgrades.load_dict(data.get("upgrades", {}) as Dictionary)
+	if data.has("opportunities"):
+		opportunities.load_dict(data["opportunities"] as Dictionary)
+	else:
+		opportunities.start_at(clock.elapsed_game_seconds)
 
 
 ## Before v12 the bench and the shelf stood in the bunker; everything on them now waits at the stash.

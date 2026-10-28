@@ -180,9 +180,60 @@ func buy(item: String, quantity: int, now: float, actor: String) -> CommandResul
 	var cost := price * quantity
 	if not _economy.spend(cost):
 		return CommandResult.failure(CommandResult.NOT_ENOUGH_MONEY)
-	var arrives_at := now + _config.delivery_hours * SimClock.GAME_SECONDS_PER_HOUR
+	var arrives_at := arrival_for(now)
 	_deliveries.append({"item": item, "quantity": quantity, "arrives_at": arrives_at})
 	_event_log.record(EventLog.SUPPLY_ORDERED, now, PackedStringArray([actor]), {
+		"item": item,
+		"quantity": quantity,
+		"cost": cost,
+		"money": _economy.money,
+	})
+	return CommandResult.success(cost)
+
+
+func daily_delivery() -> bool:
+	return _config.shop != null and _config.shop.delivery_hour >= 0.0
+
+
+## When something ordered at `now` reaches the container door.
+func arrival_for(now: float) -> float:
+	if not daily_delivery():
+		return now + _config.delivery_hours * SimClock.GAME_SECONDS_PER_HOUR
+	var lead := _lead_seconds()
+	var slot := floorf(now / SimClock.GAME_SECONDS_PER_DAY) * SimClock.GAME_SECONDS_PER_DAY + _config.shop.delivery_hour * SimClock.GAME_SECONDS_PER_HOUR
+	while slot - lead < now:
+		slot += SimClock.GAME_SECONDS_PER_DAY
+	return slot
+
+
+## The last moment to make the delivery that an order placed now would catch.
+func cutoff_for(now: float) -> float:
+	return arrival_for(now) - _lead_seconds() if daily_delivery() else now
+
+
+func _lead_seconds() -> float:
+	var cutoff := _config.shop.cutoff_hour if _config.shop.cutoff_hour >= 0.0 else _config.shop.delivery_hour
+	return fposmod(_config.shop.delivery_hour - cutoff, 24.0) * SimClock.GAME_SECONDS_PER_HOUR
+
+
+func village_price(item: String) -> int:
+	if _config.shop == null or not _config.shop.village_items.has(item):
+		return 0
+	return ceili(float(unit_price(item)) * (1.0 + maxf(_config.shop.village_markup, 0.0)))
+
+
+## Over the counter in the village: dearer, but in Jack's hands at once.
+func buy_in_village(item: String, quantity: int, now: float, actor: String) -> CommandResult:
+	if quantity <= 0:
+		return CommandResult.failure(CommandResult.INVALID_QUANTITY)
+	var price := village_price(item)
+	if price <= 0:
+		return CommandResult.failure(CommandResult.NOT_SOLD_IN_VILLAGE)
+	var cost := price * quantity
+	if not _economy.spend(cost):
+		return CommandResult.failure(CommandResult.NOT_ENOUGH_MONEY)
+	_stock(item, quantity)
+	_event_log.record(EventLog.SUPPLY_BOUGHT_IN_VILLAGE, now, PackedStringArray([actor]), {
 		"item": item,
 		"quantity": quantity,
 		"cost": cost,

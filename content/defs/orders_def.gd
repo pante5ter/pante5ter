@@ -38,6 +38,23 @@ extends Resource
 ## Wholesale deadline once accepted; zero keeps deadline_hours.
 @export var wholesale_deadline_hours: float = 0.0
 
+@export_group("Demand")
+## Clients size Jack up by what they paid him lately and the stock he keeps: 0 a newcomer, 1 a big supplier.
+@export var demand_window_hours: float = 72.0
+## Paid for orders within the window that counts as a full demand; zero leaves takings out.
+@export var demand_full_takings: int = 0
+@export var demand_full_stock: int = 0
+@export_range(0.0, 1.0) var demand_takings_weight: float = 0.7
+## At full demand, on top of the usual ranges.
+@export var demand_extra_quantity_min: int = 0
+@export var demand_extra_quantity_max: int = 0
+@export var demand_extra_retail: int = 0
+@export var demand_extra_quality_min: int = 0
+@export var demand_extra_quality_max: int = 0
+@export var demand_reward_bonus: float = 0.0
+## Below the best quality the strain can reach with full care; a request never asks for more.
+@export var quality_headroom: int = 0
+
 @export_group("Packing")
 @export var pack_minutes_per_unit: float = 10.0
 

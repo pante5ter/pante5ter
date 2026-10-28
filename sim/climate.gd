@@ -11,6 +11,8 @@ var ventilation: int = 0
 var power_owed: int = 0
 var hours_since_bill: int = 0
 var next_tick_at: float = SimClock.GAME_SECONDS_PER_HOUR
+## Set by SimState: a dehumidifier dries the beds' room.
+var upgrades: Upgrades = null
 
 var _def: ClimateDef
 var _grow: Grow
@@ -55,6 +57,8 @@ func humidity(room: RoomDef) -> float:
 	var value := room.base_humidity
 	if room.has_beds:
 		value += room.humidity_per_bed * float(_growing_beds())
+		if upgrades != null:
+			value -= upgrades.humidity_drop()
 	var air := running()
 	if air != null:
 		value -= air.humidity_drop

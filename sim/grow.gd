@@ -11,6 +11,8 @@ var _supplies: Supplies = null
 var _progress: Progress = null
 ## Set by SimState: picks the strain when nobody names one.
 var planner: PlantingPlan = null
+## Set by SimState: the kit that speeds growth and lifts the harvest.
+var upgrades: Upgrades = null
 ## strain id -> units its last harvest grew, so the next one comes out different.
 var last_yields: Dictionary[String, int] = {}
 
@@ -126,7 +128,7 @@ func harvest(plot_id: int, now: float, actor: String) -> CommandResult:
 		return CommandResult.failure(CommandResult.PLOT_NOT_READY)
 	var strain := strain_of(target)
 	var quality := _roll_quality(target)
-	var care := strain.care_yield(target.fertilized, target.pruned)
+	var care := strain.care_yield(target.fertilized, target.pruned) + (upgrades.yield_bonus() if upgrades != null else 0)
 	var rolled := _roll_yield(strain, care)
 	var bonus := rolled - strain.yield_min
 	var grown := maxi(rolled + care, 1)
@@ -220,13 +222,14 @@ func stage_duration(target: Plot) -> float:
 
 func _stage_duration(target: Plot) -> float:
 	var strain := strain_of(target)
+	var speed := upgrades.growth_multiplier() if upgrades != null else 1.0
 	match target.stage:
 		Plot.Stage.SEED:
-			return _hours(strain.seed_hours)
+			return _hours(strain.seed_hours) / speed
 		Plot.Stage.SPROUT:
-			return _hours(strain.sprout_hours)
+			return _hours(strain.sprout_hours) / speed
 		Plot.Stage.BUSH:
-			return _hours(strain.bush_hours)
+			return _hours(strain.bush_hours) / speed
 	return 0.0
 
 
@@ -234,10 +237,18 @@ func _roll_quality(target: Plot) -> int:
 	var strain := strain_of(target)
 	var dry_hours := target.dry_seconds / SimClock.GAME_SECONDS_PER_HOUR
 	var spread := _rng.randi_range(-strain.quality_variance, strain.quality_variance)
-	var raw := float(strain.base_quality) - dry_hours * strain.dry_penalty_per_hour + float(spread)
-	if _config != null:
-		raw += float(_config.fertilizer_bonus if target.fertilized else 0) + float(_config.prune_bonus if target.pruned else 0)
+	var raw := float(strain.base_quality) - dry_hours * strain.dry_penalty_per_hour + float(spread) + float(care_quality(target))
 	return clampi(roundi(raw), 0, 100)
+
+
+## What care and kit add to this bed's quality, never more than the cap.
+func care_quality(target: Plot) -> int:
+	if _config == null:
+		return 0
+	var bonus := (_config.fertilizer_bonus if target.fertilized else 0) + (_config.prune_bonus if target.pruned else 0)
+	if upgrades != null:
+		bonus += upgrades.quality_bonus()
+	return mini(bonus, maxi(_config.max_care_quality_bonus, 0))
 
 
 func _actors(actor: String, target: Plot) -> PackedStringArray:

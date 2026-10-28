@@ -2,12 +2,13 @@ class_name PhoneShop
 extends RefCounted
 
 ## One tap cycles the auto-reorder rule through these stock levels.
-const AUTO_STEPS: Array[int] = [0, 2, 4, 8]
+## With one delivery a day a big farm keeps a day's worth in stock.
+const AUTO_STEPS: Array[int] = [0, 2, 4, 8, 16, 32]
 
 
 static func fill(box: VBoxContainer, sim: SimState, phone: Phone) -> void:
-	var delivery := UiText.real_duration(sim.config.delivery_hours * SimClock.GAME_SECONDS_PER_HOUR, sim)
-	box.add_child(PhoneKit.label("Привезут к двери контейнера через %s." % delivery, PhoneKit.SMALL_SIZE, PhoneKit.MUTED))
+	box.add_child(PhoneKit.label(delivery_line(sim), PhoneKit.SMALL_SIZE, PhoneKit.MUTED))
+	_add_village(box, sim, phone)
 	_add_restock(box, sim, phone)
 	for strain: StrainDef in sim.config.extra_strains:
 		var item := Supplies.seed_item(strain.id)
@@ -29,6 +30,7 @@ static func fill(box: VBoxContainer, sim: SimState, phone: Phone) -> void:
 	PhoneKit.heading(plot, "Новая грядка", UiText.money(sim.config.plot_price))
 	plot.add_child(PhoneKit.label("Сейчас %d, можно до %d" % [beds, cap], PhoneKit.SMALL_SIZE, PhoneKit.MUTED))
 	plot.add_child(PhoneKit.secondary("Купить грядку", phone.buy_plot, beds < cap and sim.economy.money >= sim.config.plot_price))
+	PhoneUpgrades.fill(box, sim, phone)
 	var pending := sim.supplies.pending_deliveries()
 	if not pending.is_empty():
 		var road := PhoneKit.card(box)
@@ -36,6 +38,36 @@ static func fill(box: VBoxContainer, sim: SimState, phone: Phone) -> void:
 		for delivery_item: Dictionary in pending:
 			var left := UiText.real_duration(float(delivery_item["arrives_at"]) - sim.clock.elapsed_game_seconds, sim)
 			road.add_child(PhoneKit.label("%s × %d — через %s" % [UiText.item_name(String(delivery_item["item"]), sim), int(delivery_item["quantity"]), left], PhoneKit.SMALL_SIZE, PhoneKit.MUTED))
+
+
+## When an order placed now arrives: «завтра в 09:00», or a countdown without a daily delivery.
+static func delivery_text(sim: SimState) -> String:
+	var now := sim.clock.elapsed_game_seconds
+	if not sim.supplies.daily_delivery():
+		return "через %s" % UiText.real_duration(sim.supplies.arrival_for(now) - now, sim)
+	return EconText.delivery_when(sim.supplies.arrival_for(now), sim)
+
+
+static func delivery_line(sim: SimState) -> String:
+	if not sim.supplies.daily_delivery():
+		return "Привезут к двери контейнера %s." % delivery_text(sim)
+	var now := sim.clock.elapsed_game_seconds
+	return "Поставка раз в день к двери контейнера. Заказ сейчас приедет %s; заказы до %s успевают к ней." % [delivery_text(sim), PhoneNews.time_of_day(sim.supplies.cutoff_for(now))]
+
+
+## Jack in the village: the supply store sells on the spot, dearer.
+static func _add_village(box: VBoxContainer, sim: SimState, phone: Phone) -> void:
+	if not sim.in_village() or sim.config.shop == null:
+		return
+	var card := PhoneKit.card(box, PhoneKit.GOLD)
+	PhoneKit.heading(card, "Деревенская лавка", "+%d%%" % roundi(sim.config.shop.village_markup * 100.0))
+	card.add_child(PhoneKit.label("Джек рядом — купить сразу, без ожидания поставки. Дороже, и семян тут нет.", PhoneKit.SMALL_SIZE, PhoneKit.MUTED))
+	for item: String in sim.config.shop.village_items:
+		var price := sim.supplies.village_price(item)
+		if price <= 0:
+			continue
+		var title := UiText.capitalized(UiText.item_name(item, sim))
+		card.add_child(PhoneKit.secondary("%s — %s" % [title, UiText.money(price)], phone.buy_in_village.bind(item, 1), sim.economy.money >= price))
 
 
 ## One line of the restock: the usual stock of an item, what is in hand or coming, what is missing.

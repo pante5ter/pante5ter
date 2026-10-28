@@ -39,11 +39,17 @@ extends Resource
 @export var stash: StashDef
 ## The people Jack meets and their backstories. Null: no intros.
 @export var cast: CastDef
+## Daily delivery, village store and upgrades. Null: parcels come after delivery_hours, no upgrades.
+@export var shop: ShopDef
+## Vivienne's gossip as business. Null: gossip is just talk.
+@export var opportunities: OpportunitiesDef
 
 @export_group("Care")
 @export var fertilizer_price: int = 0
 @export var fertilizer_bonus: int = 0
 @export var prune_bonus: int = 0
+## Care and kit together never lift a harvest more than this over the strain's base quality.
+@export var max_care_quality_bonus: int = 20
 
 @export_group("Shop")
 @export var delivery_hours: float = 1.0
@@ -65,6 +71,12 @@ func strains() -> Array[StrainDef]:
 	var all: Array[StrainDef] = [strain]
 	all.append_array(extra_strains)
 	return all
+
+
+## The best a strain grows with fertilizer and pruning, before luck.
+func best_quality(grown: StrainDef) -> int:
+	var care := mini(maxi(fertilizer_bonus, 0) + maxi(prune_bonus, 0), maxi(max_care_quality_bonus, 0))
+	return mini(grown.base_quality + care, 100)
 
 
 func candidates() -> Array[WorkerDef]:
